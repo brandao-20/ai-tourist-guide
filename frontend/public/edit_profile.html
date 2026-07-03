@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Personalized Tourist Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="edit_profile.css?v=1.0" rel="stylesheet">
+    <script src="/config.js"></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero-section">
+        <div class="container hero-container">
+            <h1>Edit Profile</h1>
+        </div>
+    </section>
+
+    <div class="content-container">
+        <section class="edit-section">
+            <h2>Edit information</h2>
+            <div class="profile-picture">
+                <img id="profile-pic"  class="profile-pic">
+                <button class="edit-button" id="edit-profile-pic"><i class="fas fa-pencil-alt"></i></button>
+                <!-- Campo de arquivo oculto -->
+                <input type="file" id="profileImageInput" name="profileImage" style="display:none;" accept="image/*">
+            </div>
+            <form class="edit-form">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <div class="input-container">
+                        <input type="text" id="name" readonly>
+                        <button class="edit-button" id="edit-name"><i class="fas fa-pencil-alt"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <div class="input-container">
+                        <input type="password" id="password" value="" readonly>
+                        <button class="edit-button" id="edit-password"><i class="fas fa-pencil-alt"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email address:</label>
+                    <div class="input-container">
+                        <input type="email" id="email" readonly>
+                        <!-- Removido o botão de edição para o email -->
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-button">Cancel</button>
+                    <button type="submit" class="save-button">Save</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Incluir apenas o bundle específico da página -->
+    <script src="/build/edit_profile.js"></script>
+</body>
+</html>

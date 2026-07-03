@@ -1,0 +1,177 @@
+body {
+    font-family: 'Raleway', sans-serif;
+    background: #dcdcdc;
+    color: #344e41;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.navbar {
+    
+    color: #ffffff;
+    bottom: 19px;
+    text-align: center;
+    position: relative;
+    font-weight: bold;
+    padding: 10px;
+    z-index: 1000;
+    font-size: 0.8em;
+    margin-top: auto;
+    right: 622.1px;
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 30px;
+}
+
+.brand{
+    color: #ffffffec;
+}
+
+.hero-section {
+    width: 95%;
+    padding: 10px 0;
+    text-align: center;
+    background: linear-gradient(340deg, #344E41 40%, #A3B18A 90%);
+    color: #ffffff;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    margin-bottom: -41px;
+    position: relative;
+    bottom: 50px;
+    
+}
+
+.profile {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+    margin-bottom: -10px;
+    margin-left: -85px;    
+}
+
+.profile-pic {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3   px solid #A3B18A;
+    margin-bottom: -19px;
+}
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 20px;
+}
+
+.profile-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+
+.profile-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0;
+}
+
+.profile-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    margin-right: 80px;
+    flex-grow: 1;
+    
+}
+
+.edit-button {
+    background-color: #ffffff;
+    color: #344e41;
+    border: none;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-top: 125px;
+    margin-right: -100px;
+}
+
+.edit-button:hover {
+    background-color: #23372d;
+    color: #ffffff;
+}
+
+.content-container {
+    width: 95%;
+    max-width: 600px;
+    margin: 20px auto;
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.personal-info-section h2 {
+    text-align: left;
+    color: #344e41;
+    margin-bottom: 20px;
+}
+
+.info-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    background: #344e41;
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.info-field .icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+    font-style: normal; 
+}
+
+.info-field input {
+    border: none;
+    background: none;
+    color: #ffffff;
+    width: 100%;
+    font-size: 1em;
+}
+
+.info-field button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+footer {
+    background: linear-gradient(180deg, #3A5A40 0%, #344E41 100%);
+    color: #f0f0f0;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.8em;
+    margin-top: auto;
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 53.5px;
+}

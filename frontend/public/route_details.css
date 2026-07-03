@@ -1,0 +1,401 @@
+/* route_details.css */
+
+/* Estilos globais */
+body {
+    font-family: 'Raleway', sans-serif;
+    background: #dcdcdc;
+    color: #344e41;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Barra de navegação */
+.navbar {
+    color: #ffffff;
+    bottom: 19px;
+    text-align: center;
+    position: relative;
+    font-weight: bold;
+    padding: 10px;
+    z-index: 1000;
+    font-size: 0.8em;
+    margin-top: 30px; /* Mantido apenas um margin-top */
+    right: 614px; 
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+}
+
+.brand {
+    color: #ffffffec;
+}
+
+/* Sessão de destaque */
+.hero-section {
+    width: 95%;
+    padding: 10px 0;
+    text-align: center;
+    background: linear-gradient(340deg, #344E41 40%, #A3B18A 90%);
+    color: #ffffff;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-radius: 15px;
+    margin-bottom: -41px; /* Mantido conforme teu CSS original */
+    position: relative;
+    bottom: 50px;
+}
+
+/* Container para o conteúdo principal */
+.content-container {
+    padding: 20px;
+    max-width: 1200px;
+    width: 100%; /* Garantir que ocupa toda a largura disponível */
+    margin: 0 auto;
+}
+
+/* Seção de pesquisa */
+.search-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+/* Opções de filtro com dropdowns */
+.filter-options {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.dropdown {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 20px;
+    flex: 1 1 300px;
+}
+
+.dropdown-toggle {
+    width: 100%;
+    padding: 10px;
+    background-color: #344e41;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-search {
+    width: 95%;
+    padding: 8px;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.dropdown-items {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-item.selected {
+    background-color: #d4edda;
+    font-weight: bold;
+}
+
+/* Mensagem quando não há resultados */
+.dropdown-item.no-results {
+    cursor: default;
+    color: #999;
+    font-style: italic;
+}
+
+/* Botão de pesquisa */
+.search-button {
+    background: #344e41;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    display: block;
+    margin: 20px auto;
+    transition: background 0.3s;
+}
+
+.search-button:hover {
+    background: #23372d;
+}
+
+/* Footer */
+footer {
+    background: linear-gradient(180deg, #3A5A40 0%, #344E41 100%);
+    color: #f0f0f0;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.8em;
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 30px;
+}
+
+/* Container geral para a barra de pesquisa */
+.overall-search-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+}
+
+.overall-search {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    box-sizing: border-box;
+    resize: none;
+    overflow-y: hidden;
+    line-height: 1.5em;
+    min-height: 1.5em;
+    max-height: 4.5em;
+    transition: height 0.2s ease;
+}
+
+        
+
+/* Estilos para lista de monumentos */
+.monument-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.monument-item span {
+    flex-grow: 1;
+}
+
+/* Botões de ações */
+.remove-button,
+.move-up-button,
+.move-down-button,
+.view-button,
+.add-button,
+.save-button {
+    border: none;
+    color: white;
+    padding: 5px 8px;
+    margin-left: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Botão "Ver" */
+.view-button {
+    background-color: #f0ad4e;
+}
+
+.view-button:hover {
+    background-color: #ec971f;
+}
+
+/* Botão "Remover" */
+.remove-button {
+    background-color: #ff4d4d;
+}
+
+.remove-button:hover {
+    background-color: #e60000;
+}
+
+/* Botões de mover */
+.move-up-button,
+.move-down-button {
+    background-color: #4CAF50;
+}
+
+.move-up-button:hover,
+.move-down-button:hover {
+    background-color: #45a049;
+}
+
+/* Botão Salvar */
+.save-button {
+    background-color: #008CBA;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.save-button:hover {
+    background-color: #005f6a;
+}
+
+/* Botão Adicionar Monumento */
+.add-button {
+    background-color: #5bc0de;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.add-button:hover {
+    background-color: #31b0d5;
+}
+
+/* Estilos para Modal */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 5px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+}
+
+/* Estilo para input de adicionar monumento */
+#add-monument-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Loader */
+#loader {
+    z-index: 1000;
+}
+
+/* Container para modos de transporte */
+.transport-mode-container {
+    display: flex;
+    align-items: center;
+}
+
+.transport-mode-container label {
+    margin-right: 10px;
+}
+
+.travel-mode-select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Container da hora de partida */
+.departure-time-container {
+    display: flex;
+    align-items: center;
+}
+
+.departure-time-container label {
+    margin-right: 10px;
+}
+
+.departure-time-input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Exemplo de estilo para o container do mapa */
+.map-container {
+    height: 500px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* Exemplo de estilo para o botão de favoritar/desfavoritar */
+.favorite-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    background-color: #f0c040;
+    border: none;
+}
+
+
+/* Container branco centralizado */
+.white-box {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 1200px; /* Ou o valor que se ajuste melhor à sua página */
+    margin: 0 auto 20px auto;
+}

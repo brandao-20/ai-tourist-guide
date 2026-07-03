@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Route Details</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link href="route_details.css?v=1.0" rel="stylesheet"/>
+    <script src="/config.js"></script>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero-section">
+    <div class="container hero-container">
+      <h1>Route Details</h1>
+    </div>
+  </section>
+
+  <div class="content-container">
+    <div class="white-box">
+      <section class="route-details-section">
+        <!-- Map -->
+        <div id="map" class="map-container"></div>
+
+        <!-- Favorite/Unfavorite Button -->
+        <div class="favorite-button-container">
+          <button id="toggle-favorite-button" class="favorite-button">
+            Unfavorite
+          </button>
+        </div>
+
+        <!-- Container for Itinerary and Monuments -->
+        <div class="itinerary-info">
+          <div id="custom-itinerary-container"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Personalized Tourist Guide - All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <!-- 1) axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- 2) Main Route Script -->
+  <script src="/build/route_details.js"></script>
+
+  <!-- 3) Google Maps API loader -->
+  <script src="/load-google-maps.js" data-callback="initMap" data-language="en" defer></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Node modules
+node_modules
+
+# npm logs
+npm-debug.log
+
+# Ignore the Dockerfile to prevent it from being copied into the image
+Dockerfile
+
+# Ignore the Docker Compose file to prevent it from being copied into the image
+docker-compose.yml

@@ -1,0 +1,206 @@
+body {
+    font-family: 'Raleway', sans-serif;
+    background: #dcdcdc;
+    color: #344e41;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Atualize ou adicione esta regra para os favoritos */
+.favorite-mini-map-wrapper {
+    width: 100%;
+    padding-top: 0%; /* Mantém a proporção 16:9 (aproximadamente) */
+    position: relative;
+    border: 3px solid #a3b18a; 
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .favorite-mini-map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+.navbar {
+    color: #ffffff;
+    bottom: 19px;
+    text-align: center;
+    position: relative;
+    font-weight: bold;
+    padding: 10px;
+    z-index: 1000;
+    font-size: 0.8em;
+    margin-top: auto;
+    right: 614px; 
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 30px;
+}
+
+.brand {
+    color: #ffffffec;
+}
+
+.hero-section {
+    width: 95%;
+    padding: 10px 0;
+    text-align: center;
+    background: linear-gradient(340deg, #344E41 40%, #A3B18A 90%);
+    color: #ffffff;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    margin-bottom: -41px;
+    position: relative;
+    bottom: 50px;
+}
+
+.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -5px;
+}
+
+.profile-pic {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #A3B18A;
+    margin-bottom: -19px;
+    
+}
+
+.content-container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+
+
+.explore-section, .recent-section, .suggestions-section, .favorites-section {
+    text-align: center;
+    background: #f0f0f0;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    min-width: 1250px; 
+    position: relative;
+    left: -40px;
+    
+}
+
+.logout-btn {
+    color: #ffffffec;
+    background-color: #d34131; 
+    border: 3px solid #344E41; /* Uma borda cinza clara */
+    border-radius: 8px; /* Cantos arredondados */
+    position: absolute;
+    left: 1375px;
+
+  }
+  
+  /* Efeito ao passar o mouse */
+  .logout-btn:hover {
+    background-color: #9b3428;      /* Tom de vermelho um pouco mais escuro */
+         /* Leve aumento de tamanho */
+  }
+  
+  /* Efeito ao clicar */
+  .logout-btn:active {
+    transform: scale(0.95);         /* Diminuição rápida ao clicar */
+  }
+
+.map-container {
+    width: 100%;
+    height: 300px; /* Ajuste conforme necessário */
+    border: 3px solid #A3B18A; /* Uma borda cinza clara */
+    border-radius: 10px; /* Cantos arredondados */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    overflow: hidden; /* Garantir que nada exceda o container */
+}
+
+.recent-item, .suggestions-grid, .favorites-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.map-image, .recent-image {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 10px;
+    border: 2px solid #a3b18a;
+}
+
+.suggestions-grid, .favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.suggestions-grid img, .favorites-grid img {
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #a3b18a;
+    transition: transform 0.3s ease;
+}
+
+.suggestions-grid img:hover, .favorites-grid img:hover {
+    transform: scale(1.05);
+}
+
+footer {
+    background: linear-gradient(180deg, #3A5A40 0%, #344E41 100%);
+    color: #f0f0f0;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.8em;
+    margin-top: auto;
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 41px;
+}
+
+.profile-link {
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.profile-link:hover {
+    transform: scale(1.05);
+}

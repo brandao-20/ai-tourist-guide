@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Personalized Tourist Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    <link href="home_logged.css?v=2.0" rel="stylesheet">
+    <script src="/config.js"></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
+                <button id="logout-btn" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero-section">
+        <div class="container hero-container">
+            <h2>Welcome</h2>
+            <a href="/profile.html" class="profile-link">
+                <div class="profile">
+                    <img id="profile-pic" class="profile-pic" alt="">
+                    <p id="user-name"></p>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <div class="content-container">
+        <section class="explore-section">
+            <h2>Explore</h2>
+            <div class="map-container" id="mini-map"></div>
+        </section>
+
+        <section class="recent-section">
+            <h2>View Recently</h2>
+            <div class="map-container" id="recent-map"></div>
+        </section>
+
+        <section class="favorites-section">
+            <h2>Favorites</h2>
+            <div id="favorites-container" class="favorites-grid"></div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/build/home_logged.js"></script>
+</body>
+</html>

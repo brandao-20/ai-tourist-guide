@@ -1,0 +1,200 @@
+/* edit_profile.css */
+
+body {
+    font-family: 'Raleway', sans-serif;
+    background: #dcdcdc;
+    color: #344e41;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+
+.navbar {
+    
+    color: #ffffff;
+    bottom: 19px;
+    text-align: center;
+    position: relative;
+    font-weight: bold;
+    padding: 10px;
+    z-index: 1000;
+    font-size: 0.8em;
+    margin-top: auto;
+    right: 614px;
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 30px;
+}
+
+.brand{
+    color: #ffffffec;
+}
+
+
+.hero-section {
+    width: 95%;
+    padding: 10px 0;
+    text-align: center;
+    background: linear-gradient(340deg, #344E41 40%, #A3B18A 90%);
+    color: #ffffff;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    margin-bottom: -41px;
+    position: relative;
+    bottom: 50px;
+    
+}
+.content-container {
+    width: 95%;
+    max-width: 600px;
+    margin: 20px auto;
+    background: #f0f0f0;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edit-section h2 {
+    text-align: center;
+    color: #344e41;
+    margin-bottom: 20px;
+}
+
+.profile-picture {
+    text-align: center;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    margin-left: 50px;
+    border-radius: 50%;
+    border: 3px solid #A3B18A;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-pic:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.edit-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 0px;
+    color: #344e41;
+    font-size: 1.2em;
+    transition: color 0.3s ease;
+}
+
+.edit-button:hover {
+    color: #A3B18A;
+}
+
+.edit-form {
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #a3b18a;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.input-container input {
+    border: none;
+    flex-grow: 1;
+    padding: 5px;
+    font-size: 1em;
+    background: none;
+    color: #344e41;
+}
+
+.input-container input:focus {
+    outline: none;
+    background: #e8f5e9;
+}
+
+.edit-form .view-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 1.2em;
+    color: #344e41;
+    transition: color 0.3s ease;
+}
+
+.edit-form .view-password:hover {
+    color: #A3B18A;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.cancel-button, .save-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.cancel-button {
+    background-color: #a3b18a;
+    color: #ffffff;
+}
+
+.cancel-button:hover {
+    background-color: #344e41;
+    color: #ffffff;
+}
+
+.save-button {
+    background-color: #344e41;
+    color: #ffffff;
+}
+
+.save-button:hover {
+    background-color: #A3B18A;
+    color: #344e41;
+}
+
+footer {
+    background: linear-gradient(180deg, #3A5A40 0%, #344E41 100%);
+    color: #f0f0f0;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.8em;
+    margin-top: auto;
+    width: 95%;
+    border-radius: 15px 15px 0 0;
+    margin-top: 53.5px;
+}
