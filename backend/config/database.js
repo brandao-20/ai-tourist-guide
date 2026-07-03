@@ -1,22 +1,24 @@
 const { Sequelize } = require('sequelize');
-const dotenv = require('dotenv');
+const { appConfig } = require('./env');
 
-dotenv.config(); // Load environment variables from the .env file
+const { database } = appConfig;
 
-// Sequelize configuration using environment variables
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
-  host: process.env.DB_HOST, // Hostname ('db' for Docker services)
-  port: process.env.DB_PORT, // Port (5432 for PostgreSQL in Docker)
+const sequelizeOptions = {
   dialect: 'postgres',
-});
+  logging: database.logging ? console.log : false,
+};
 
-// Test the connection to the database
-sequelize.authenticate()
-  .then(() => {
-    console.log('Connection to the database has been established successfully.');
-  })
-  .catch(err => {
-    console.error('Unable to connect to the database:', err);
-  });
+const sequelize = database.url
+  ? new Sequelize(database.url, sequelizeOptions)
+  : new Sequelize(
+    database.name,
+    database.user,
+    database.password,
+    {
+      ...sequelizeOptions,
+      host: database.host,
+      port: database.port,
+    }
+  );
 
-module.exports = sequelize; // Export the Sequelize instance
+module.exports = sequelize;

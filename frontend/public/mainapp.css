@@ -417,3 +417,37 @@ footer {
     font-size: 16px;
   }
   
+.empty-state {
+  color: #5f6f64;
+  font-style: italic;
+  padding: 12px 0;
+}
+
+.leg-item {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #d8dfd8;
+  border-radius: 10px;
+  background: #fafbf9;
+}
+
+.leg-meta,
+.instructions-label {
+  color: #5f6f64;
+}
+
+.route-steps {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.route-steps li {
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+button:disabled,
+.button--busy {
+  cursor: wait !important;
+  opacity: 0.65;
+}

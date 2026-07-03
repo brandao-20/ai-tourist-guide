@@ -4,58 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="profile.css?v=1.0" rel="stylesheet">
+    <link href="profile.css?v=2.0" rel="stylesheet">
     <title>Profile - Personalized Tourist Guide</title>
     <script src="/config.js"></script>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-            </div>
+    <header class="site-header">
+        <nav class="navbar" aria-label="Main navigation">
+            <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <div class="profile-header">
-                <div class="profile">
-                    <img id="profile-pic"  class="profile-pic">
-                    <p id="user-name"></p>
+    <main class="page-shell">
+        <section class="hero-section" aria-labelledby="profile-title">
+            <div class="profile-summary">
+                <img id="profile-pic" class="profile-pic" src="default-avatar.svg" alt="Profile picture">
+                <div>
+                    <p class="eyebrow">Account</p>
+                    <h1 id="profile-title">Profile</h1>
+                    <p id="user-name" class="profile-name">Traveller</p>
                 </div>
-                <h1 class="profile-title">Profile</h1>
-                <button class="edit-button">Edit</button>
             </div>
-        </div>
-    </section>
+            <button class="edit-button" type="button">Edit profile</button>
+        </section>
 
-    <div class="content-container">
-        <section class="personal-info-section">
-            <h2>Personal information</h2>
-            <div class="info-field">
-                <i class="icon">👤</i>
-                <input type="text" id="info-name" value="username" readonly>
+        <section class="content-container personal-info-section" aria-labelledby="personal-info-title">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Private area</p>
+                    <h2 id="personal-info-title">Personal information</h2>
+                </div>
             </div>
-            <div class="info-field">
-                <i class="icon">🔒</i>
-                <input type="password" id="info-password" value="**********" readonly>
-               
-            </div>
-            <div class="info-field">
-                <i class="icon">📧</i>
-                <input type="email" id="info-email" value="email" readonly>
+
+            <p id="profile-status" class="status-message is-hidden" aria-live="polite"></p>
+
+            <div class="info-grid">
+                <label class="info-field" for="info-name">
+                    <span class="info-label">Name</span>
+                    <input type="text" id="info-name" value="" readonly>
+                </label>
+
+                <label class="info-field" for="info-email">
+                    <span class="info-label">Email</span>
+                    <input type="email" id="info-email" value="" readonly>
+                </label>
+
+                <label class="info-field" for="info-password">
+                    <span class="info-label">Password</span>
+                    <input type="text" id="info-password" value="Hidden for security" readonly>
+                </label>
             </div>
         </section>
-    </div>
+    </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
     </footer>
 
-    <!-- Incluir apenas o bundle específico da página -->
     <script src="/build/profile.js"></script>
 </body>
 </html>

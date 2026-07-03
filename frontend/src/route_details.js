@@ -1,320 +1,343 @@
-console.log("Route Details Page Loaded");
+import { apiDelete, apiGet, apiPost } from './api.js';
+import {
+  clearStatusMessage,
+  escapeHtml,
+  getErrorMessage,
+  isValidNumericId,
+  setButtonBusy,
+  setStatusMessage,
+  showFavoriteNameModal,
+  stripHtml,
+} from './ui.js';
 
-// ==============================================
-// Function to show the custom modal for favorite itinerary name
-// ==============================================
-function showFavoriteNameModal(callback) {
-  // Check if the modal already exists; if not, create it
-  let modal = document.getElementById("favoriteModal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "favoriteModal";
-    modal.className = "modal";
-    modal.innerHTML = `
-      <div class="modal-content" style="text-align: center;">
-        <span class="close-button" id="favoriteModalClose">&times;</span>
-        <h2 style="color: #344e41;">Save Favorite Itinerary</h2>
-        <input type="text" id="favoriteNameInput" placeholder="Enter a name for the itinerary" style="padding:10px; width:80%; border:1px solid #ccc; border-radius:4px; margin:10px 0;">
-        <div>
-          <button id="favoriteModalSave" style="background-color: #344e41; color:#fff; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; margin-right:10px;">Save</button>
-          <button id="favoriteModalCancel" style="background-color: #ff4d4d; color:#fff; padding:10px 20px; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  }
-  modal.style.display = "block";
+const DEFAULT_MAP_OPTIONS = {
+  zoom: 12,
+  center: { lat: 38.7223, lng: -9.1393 },
+};
 
-  // Close the modal when clicking on the 'x'
-  document.getElementById("favoriteModalClose").onclick = function () {
-    modal.style.display = "none";
-  };
-
-  // The Cancel button also closes the modal
-  document.getElementById("favoriteModalCancel").onclick = function () {
-    modal.style.display = "none";
-  };
-
-  // Save button: checks the input and calls the callback with the provided name
-  document.getElementById("favoriteModalSave").onclick = function () {
-    const inputVal = document.getElementById("favoriteNameInput").value;
-    if (inputVal.trim() === "") {
-      alert("Please enter a valid itinerary name.");
-      return;
-    }
-    modal.style.display = "none";
-    callback(inputVal.trim());
-  };
-
-  // Close the modal when clicking outside the content area
-  window.onclick = function (event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  };
-}
-
-// Global variables
 let map;
 let directionsRenderer;
-let directionsService;
+let isFavorited = true;
+let favoriteRouteId = null;
+let currentRouteDetails = null;
 
-// Variables for controlling the favorite status
-let isFavorited = true;          // Route initially favorited
-let favoriteRouteId = null;      // Store the favorite ID (for DELETE)
-let currentRouteDetails = null;  // Store all route data (for refavoriting)
+function getStatusElement() {
+  return document.getElementById('route-status');
+}
 
-// 1) initMap
-window.initMap = function () {
+function getRouteContainer() {
+  return document.getElementById('custom-itinerary-container');
+}
+
+function getToggleFavoriteButton() {
+  return document.getElementById('toggle-favorite-button');
+}
+
+function hasValidCoordinates(monument) {
+  return (
+    monument?.coordinates &&
+    typeof monument.coordinates.lat === 'number' &&
+    typeof monument.coordinates.lng === 'number' &&
+    Number.isFinite(monument.coordinates.lat) &&
+    Number.isFinite(monument.coordinates.lng)
+  );
+}
+
+function setRouteStatus(message, type = 'info') {
+  setStatusMessage(getStatusElement(), message, type);
+}
+
+function clearRouteStatus() {
+  clearStatusMessage(getStatusElement());
+}
+
+function setToggleButtonState() {
+  const button = getToggleFavoriteButton();
+  if (!button) {
+    return;
+  }
+
+  button.textContent = isFavorited ? 'Remove from Favorites' : 'Save as Favorite';
+  button.dataset.state = isFavorited ? 'favorited' : 'not-favorited';
+}
+
+function createTextElement(tagName, text, className) {
+  const element = document.createElement(tagName);
+  if (className) {
+    element.className = className;
+  }
+  element.textContent = text || '';
+  return element;
+}
+
+function createEmptyState(title, description) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'empty-state';
+  wrapper.appendChild(createTextElement('h2', title));
+  wrapper.appendChild(createTextElement('p', description));
+  return wrapper;
+}
+
+function renderRoutePlaceholder(title, description) {
+  const container = getRouteContainer();
+  if (!container) {
+    return;
+  }
+
+  container.replaceChildren(createEmptyState(title, description));
+}
+
+window.initMap = function initMap() {
+  const mapElement = document.getElementById('map');
+  if (!mapElement) {
+    setRouteStatus('Map container not found.', 'error');
+    return;
+  }
+
   try {
-    map = new google.maps.Map(document.getElementById("map"), {
-      zoom: 12,
-      center: { lat: 38.7223, lng: -9.1393 },
-    });
-
-    directionsService = new google.maps.DirectionsService();
+    map = new google.maps.Map(mapElement, DEFAULT_MAP_OPTIONS);
     directionsRenderer = new google.maps.DirectionsRenderer({
       map,
       suppressMarkers: false,
       polylineOptions: {
-        strokeColor: "#FF0000",
+        strokeColor: '#3A5A40',
         strokeWeight: 4,
       },
     });
 
-    // Load the route details
+    setToggleButtonState();
+    getToggleFavoriteButton()?.addEventListener('click', toggleFavorite);
     loadRouteDetails();
-
-    // Attach event to the (un)favorite button
-    const toggleFavoriteButton = document.getElementById("toggle-favorite-button");
-    if (toggleFavoriteButton) {
-      toggleFavoriteButton.addEventListener("click", toggleFavorite);
-    }
   } catch (error) {
-    console.error("Error initializing the map:", error);
+    setRouteStatus('Could not initialize Google Maps. Please refresh the page.', 'error');
   }
 };
 
-// 2) loadRouteDetails (makes GET /api/favorites/:routeId)
 async function loadRouteDetails() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const routeId = params.get("favoriteId");
+  const params = new URLSearchParams(window.location.search);
+  const routeId = params.get('favoriteId');
 
-    if (!routeId) {
-      console.error("Route ID not provided in URL.");
-      return;
-    }
-
-    // Store the favorite ID (in case we need to delete later)
-    favoriteRouteId = routeId;
-
-    const response = await axios.get(getApiUrl(`/api/favorites/${routeId}`), {
-      withCredentials: true,
-    });
-
-    const routeDetails = response.data;
-    console.log("Route Details:", routeDetails);
-
-    if (!routeDetails || Object.keys(routeDetails).length === 0) {
-      console.error("No route details found for this ID.");
-      return;
-    }
-
-    // Save the data in case the user unfavorites and wants to refavorite
-    currentRouteDetails = routeDetails;
-
-    displayRouteDetails(routeDetails);
-  } catch (error) {
-    console.error("Error fetching route details:", error);
-  }
-}
-
-// 3) displayRouteDetails
-function displayRouteDetails(routeDetails) {
-  const { itinerary, map_data } = routeDetails;
-  if (!itinerary || !itinerary.monuments || itinerary.monuments.length === 0) {
-    console.error("Invalid itinerary data or no monuments.");
+  if (!routeId || !isValidNumericId(routeId)) {
+    renderRoutePlaceholder('Route not found', 'Open this page from a saved favorite itinerary.');
+    setRouteStatus('Missing or invalid favorite itinerary ID.', 'error');
+    getToggleFavoriteButton()?.setAttribute('disabled', 'disabled');
     return;
   }
 
-  // Render markers on the map and the route
-  renderMarkersAndRoute(itinerary.monuments, map_data);
+  favoriteRouteId = routeId;
+  setRouteStatus('Loading route details...', 'info');
 
-  // Display the itinerary and the formatted monuments list
-  displayCustomItinerary(itinerary, map_data);
+  try {
+    const routeDetails = await apiGet(`/favorites/${routeId}`);
+    if (!routeDetails || Object.keys(routeDetails).length === 0) {
+      renderRoutePlaceholder('Route not found', 'This favorite itinerary is no longer available.');
+      setRouteStatus('No route details were found for this favorite.', 'warning');
+      return;
+    }
+
+    currentRouteDetails = routeDetails;
+    displayRouteDetails(routeDetails);
+    clearRouteStatus();
+  } catch (error) {
+    renderRoutePlaceholder('Could not load route', getErrorMessage(error));
+    setRouteStatus('Could not load this route. Please try again later.', 'error');
+  }
 }
 
-// 4) renderMarkersAndRoute (same as before)
+function displayRouteDetails(routeDetails) {
+  const { itinerary, map_data } = routeDetails;
+  const monuments = Array.isArray(itinerary?.monuments) ? itinerary.monuments : [];
+
+  if (monuments.length === 0) {
+    renderRoutePlaceholder('Empty itinerary', 'This favorite route has no monuments saved.');
+    setRouteStatus('This itinerary does not contain monuments.', 'warning');
+    return;
+  }
+
+  renderMarkersAndRoute(monuments, map_data);
+  displayCustomItinerary({ ...itinerary, monuments }, map_data);
+}
+
 function renderMarkersAndRoute(monuments, mapData) {
+  if (!map || !directionsRenderer) {
+    return;
+  }
+
   const bounds = new google.maps.LatLngBounds();
+  let markerCount = 0;
 
   monuments.forEach((monument) => {
-    const { coordinates, name, address } = monument;
-    if (coordinates && typeof coordinates.lat === "number" && typeof coordinates.lng === "number") {
-      const position = { lat: coordinates.lat, lng: coordinates.lng };
-
-      const marker = new google.maps.Marker({
-        position,
-        map,
-        title: name,
-      });
-
-      const infoWindow = new google.maps.InfoWindow({
-        content: `<h3>${name}</h3><p>${address}</p>`,
-      });
-
-      marker.addListener("click", () => {
-        infoWindow.open(map, marker);
-      });
-
-      bounds.extend(position);
+    if (!hasValidCoordinates(monument)) {
+      return;
     }
+
+    const position = {
+      lat: monument.coordinates.lat,
+      lng: monument.coordinates.lng,
+    };
+
+    const marker = new google.maps.Marker({
+      position,
+      map,
+      title: monument.name || 'Monument',
+    });
+
+    const infoWindow = new google.maps.InfoWindow({
+      content: `<h3>${escapeHtml(monument.name || 'Monument')}</h3><p>${escapeHtml(monument.address || '')}</p>`,
+    });
+
+    marker.addListener('click', () => {
+      infoWindow.open(map, marker);
+    });
+
+    bounds.extend(position);
+    markerCount += 1;
   });
 
-  if (!bounds.isEmpty()) {
+  if (markerCount > 0 && !bounds.isEmpty()) {
     map.fitBounds(bounds);
   }
 
-  if (mapData && mapData.routes) {
+  if (mapData?.routes) {
     directionsRenderer.setDirections(mapData);
   }
 }
 
-// 5) displayCustomItinerary (same as before)
-function displayCustomItinerary(itinerary, directionsResult) {
-  let itineraryContainer = document.getElementById("custom-itinerary-container");
-  if (!itineraryContainer) {
-    const itineraryInfoDiv = document.querySelector(".itinerary-info");
-    if (!itineraryInfoDiv) return;
-
-    // Remove the old <pre> if it exists
-    const oldPre = document.getElementById("itinerary-data");
-    if (oldPre) oldPre.remove();
-
-    itineraryContainer = document.createElement("div");
-    itineraryContainer.id = "custom-itinerary-container";
-    itineraryInfoDiv.appendChild(itineraryContainer);
+function renderRouteLegs(container, directionsResult) {
+  const legs = directionsResult?.routes?.[0]?.legs;
+  if (!Array.isArray(legs) || legs.length === 0) {
+    container.appendChild(createEmptyState(
+      'Route directions unavailable',
+      'The saved monuments are visible, but turn-by-turn directions were not stored for this favorite.'
+    ));
+    return;
   }
 
-  itineraryContainer.innerHTML = "";
+  const title = createTextElement('h2', 'Itinerary');
+  container.appendChild(title);
 
-  if (directionsResult && directionsResult.routes && directionsResult.routes[0].legs) {
-    const legs = directionsResult.routes[0].legs;
+  legs.forEach((leg) => {
+    const legDiv = document.createElement('div');
+    legDiv.className = 'leg-item';
 
-    const title = document.createElement("h2");
-    title.textContent = "Itinerary";
-    itineraryContainer.appendChild(title);
+    const summary = document.createElement('p');
+    const start = createTextElement('strong', leg.start_address || 'Start');
+    const separator = document.createTextNode(' → ');
+    const end = createTextElement('strong', leg.end_address || 'Destination');
+    summary.append(start, separator, end);
 
-    legs.forEach((leg) => {
-      const { start_address, end_address, distance, duration, steps } = leg;
-      const legDiv = document.createElement("div");
-      legDiv.className = "leg-item";
-      legDiv.innerHTML = `
-        <p><strong>${start_address}</strong> → <strong>${end_address}</strong></p>
-        <p style="margin-left: 20px;">
-          <em>Distance:</em> ${distance.text} 
-          | <em>Duration:</em> ${duration.text}
-        </p>
-        <p style="margin-left: 20px;"><strong>Instructions:</strong></p>
-      `;
+    const meta = createTextElement(
+      'p',
+      `Distance: ${leg.distance?.text || 'N/A'} | Duration: ${leg.duration?.text || 'N/A'}`,
+      'leg-meta'
+    );
 
-      const stepsUl = document.createElement("ul");
-      stepsUl.style.marginLeft = "40px";
+    const instructionsLabel = createTextElement('p', 'Instructions:', 'instructions-label');
+    const stepsList = document.createElement('ul');
+    stepsList.className = 'route-steps';
+
+    const steps = Array.isArray(leg.steps) ? leg.steps : [];
+    if (steps.length === 0) {
+      stepsList.appendChild(createTextElement('li', 'No turn-by-turn instructions available.'));
+    } else {
       steps.forEach((step) => {
-        const li = document.createElement("li");
-        li.innerHTML = step.instructions;
-        stepsUl.appendChild(li);
+        stepsList.appendChild(createTextElement('li', stripHtml(step.instructions || '')));
       });
-      legDiv.appendChild(stepsUl);
+    }
 
-      itineraryContainer.appendChild(legDiv);
-    });
+    legDiv.append(summary, meta, instructionsLabel, stepsList);
+    container.appendChild(legDiv);
+  });
+}
+
+function renderMonuments(container, monuments) {
+  const monumentsDiv = document.createElement('div');
+  monumentsDiv.className = 'monuments-container';
+
+  monumentsDiv.appendChild(createTextElement('h2', 'Monuments'));
+  const list = document.createElement('ol');
+
+  monuments.forEach((monument) => {
+    const item = document.createElement('li');
+    const name = createTextElement('strong', monument.name || 'Unnamed monument');
+    const address = document.createTextNode(` (${monument.address || 'address unavailable'})`);
+    item.append(name, address);
+    list.appendChild(item);
+  });
+
+  monumentsDiv.appendChild(list);
+  container.appendChild(monumentsDiv);
+}
+
+function displayCustomItinerary(itinerary, directionsResult) {
+  const itineraryContainer = getRouteContainer();
+  if (!itineraryContainer) {
+    return;
   }
 
-  if (itinerary.monuments.length > 0) {
-    const monumentsDiv = document.createElement("div");
-    monumentsDiv.className = "monuments-container";
+  itineraryContainer.replaceChildren();
+  renderRouteLegs(itineraryContainer, directionsResult);
+  renderMonuments(itineraryContainer, itinerary.monuments);
+}
 
-    const monumentsTitle = document.createElement("h2");
-    monumentsTitle.textContent = "Monuments";
-    monumentsDiv.appendChild(monumentsTitle);
+async function removeFavorite(button) {
+  if (!isValidNumericId(favoriteRouteId)) {
+    setRouteStatus('Invalid favorite itinerary ID.', 'error');
+    return;
+  }
 
-    const ol = document.createElement("ol");
-    itinerary.monuments.forEach((mon) => {
-      const li = document.createElement("li");
-      li.innerHTML = `<strong>${mon.name}</strong> (${mon.address})`;
-      ol.appendChild(li);
-    });
-
-    monumentsDiv.appendChild(ol);
-    itineraryContainer.appendChild(monumentsDiv);
+  const restoreButton = setButtonBusy(button, 'Removing...');
+  try {
+    await apiDelete(`/favorites/${favoriteRouteId}`);
+    isFavorited = false;
+    setToggleButtonState();
+    setRouteStatus('Route removed from favorites. You can save it again from this page.', 'success');
+  } catch (error) {
+    setRouteStatus(getErrorMessage(error, 'Could not remove this route from favorites.'), 'error');
+  } finally {
+    restoreButton();
+    setToggleButtonState();
   }
 }
 
-// 6) toggleFavorite function - toggles between "Unfavorite" and "Favorite"
-async function toggleFavorite() {
-  const toggleFavoriteButton = document.getElementById("toggle-favorite-button");
-  if (!toggleFavoriteButton) return;
-
-  try {
-    if (isFavorited) {
-      // If it is favorited, unfavorite it (DELETE)
-      const resp = await fetch(getApiUrl(`/api/favorites/${favoriteRouteId}`), {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const data = await resp.json();
-
-      if (!resp.ok) {
-        throw new Error(data.error || "Error unfavoriting itinerary.");
-      }
-
-      console.log("Route unfavorited successfully:", data);
-
-      // Update the state
-      isFavorited = false;
-      toggleFavoriteButton.textContent = "Favorite";
-
-      alert("Route removed from favorites!");
-
-    } else {
-      // If it is not favorited, favorite it (POST)
-      // Show the modal to request a name for the route
-      showFavoriteNameModal(async function(favoriteName) {
-        // Build the payload using the provided name and the saved data
-        const payload = {
-          name: favoriteName,
-          itinerary: currentRouteDetails?.itinerary || {},
-          map_data: currentRouteDetails?.map_data || {},
-        };
-
-        const resp = await fetch(getApiUrl('/api/favorites'), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        const data = await resp.json();
-
-        if (!resp.ok) {
-          throw new Error(data.error || "Error favoriting itinerary.");
-        }
-
-        console.log("Route favorited again successfully:", data);
-
-        // Update the favorite ID
-        favoriteRouteId = data.favoriteId;
-
-        // Update the state
-        isFavorited = true;
-        toggleFavoriteButton.textContent = "Unfavorite";
-
-        alert("Route added to favorites!");
-      });
-    }
-  } catch (error) {
-    console.error("Error in toggleFavorite:", error);
-    alert(error.message || "An error occurred while toggling favorite.");
+function saveFavorite(button) {
+  if (!currentRouteDetails?.itinerary) {
+    setRouteStatus('Route details are not loaded yet.', 'error');
+    return;
   }
+
+  showFavoriteNameModal(async (favoriteName) => {
+    const restoreButton = setButtonBusy(button, 'Saving...');
+    try {
+      const data = await apiPost('/favorites', {
+        name: favoriteName,
+        itinerary: currentRouteDetails.itinerary,
+        map_data: currentRouteDetails.map_data || {},
+      });
+
+      favoriteRouteId = data.favoriteId;
+      currentRouteDetails = data.favorite || currentRouteDetails;
+      isFavorited = true;
+      setRouteStatus('Route saved as favorite.', 'success');
+    } catch (error) {
+      setRouteStatus(getErrorMessage(error, 'Could not save this route as favorite.'), 'error');
+    } finally {
+      restoreButton();
+      setToggleButtonState();
+    }
+  });
+}
+
+function toggleFavorite() {
+  const button = getToggleFavoriteButton();
+  if (!button) {
+    return;
+  }
+
+  if (isFavorited) {
+    removeFavorite(button);
+    return;
+  }
+
+  saveFavorite(button);
 }

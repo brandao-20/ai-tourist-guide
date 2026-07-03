@@ -3,54 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Personalized Tourist Guide</title>
+    <title>Dashboard - Personalized Tourist Guide</title>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="home_logged.css?v=2.0" rel="stylesheet">
+    <link href="home_logged.css?v=3.0" rel="stylesheet">
     <script src="/config.js"></script>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-                <button id="logout-btn" class="logout-btn">Logout</button>
-            </div>
+    <header class="site-header">
+        <nav class="navbar" aria-label="Main navigation">
+            <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
+            <button id="logout-btn" class="logout-btn" type="button">Logout</button>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <h2>Welcome</h2>
-            <a href="/profile.html" class="profile-link">
-                <div class="profile">
-                    <img id="profile-pic" class="profile-pic" alt="">
-                    <p id="user-name"></p>
-                </div>
+    <main class="page-shell">
+        <section class="hero-section" aria-labelledby="dashboard-title">
+            <div>
+                <p class="eyebrow">Trip dashboard</p>
+                <h1 id="dashboard-title">Welcome back</h1>
+                <p class="hero-copy">Continue planning routes, review recent searches and open your saved itineraries.</p>
+            </div>
+            <a href="/profile.html" class="profile-link" aria-label="Open profile">
+                <img id="profile-pic" class="profile-pic" src="default-avatar.svg" alt="Profile picture">
+                <span id="user-name" class="profile-name">Traveller</span>
             </a>
-        </div>
-    </section>
-
-    <div class="content-container">
-        <section class="explore-section">
-            <h2>Explore</h2>
-            <div class="map-container" id="mini-map"></div>
         </section>
 
-        <section class="recent-section">
-            <h2>View Recently</h2>
-            <div class="map-container" id="recent-map"></div>
+        <section class="dashboard-grid" aria-label="Travel shortcuts">
+            <article class="dashboard-card dashboard-card--explore">
+                <div class="card-header">
+                    <div>
+                        <p class="eyebrow">Explore</p>
+                        <h2>Start from your current area</h2>
+                    </div>
+                    <a href="/mainapp.html" class="card-action">Open planner</a>
+                </div>
+                <div class="map-container" id="mini-map" role="button" tabindex="0" aria-label="Open trip planner map"></div>
+            </article>
+
+            <article class="dashboard-card">
+                <div class="card-header">
+                    <div>
+                        <p class="eyebrow">Recent</p>
+                        <h2>Last route</h2>
+                    </div>
+                </div>
+                <div class="map-container" id="recent-map" role="button" tabindex="0" aria-label="Open recent route"></div>
+            </article>
         </section>
 
-        <section class="favorites-section">
-            <h2>Favorites</h2>
-            <div id="favorites-container" class="favorites-grid"></div>
+        <section class="dashboard-card favorites-section" aria-labelledby="favorites-title">
+            <div class="card-header">
+                <div>
+                    <p class="eyebrow">Saved</p>
+                    <h2 id="favorites-title">Favorite itineraries</h2>
+                </div>
+                <a href="/mainapp.html" class="card-action">Create new</a>
+            </div>
+            <div id="favorites-container" class="favorites-grid" aria-live="polite"></div>
         </section>
-    </div>
+    </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
     </footer>
 
     <script src="/build/home_logged.js"></script>

@@ -1,55 +1,65 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="learnmore.css" rel="stylesheet">
-    <title>Learn More - Personalized Tourist Guide</title>
+    <meta name="description" content="Learn how Personalized Tourist Guide AI generates and saves itinerary recommendations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="public.css?v=1.0" rel="stylesheet">
+    <title>How it works - Personalized Tourist Guide AI</title>
     <script src="/config.js"></script>
 </head>
-<body>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/" class="brand">PERSONALIZED TOURIST GUIDE</a>
-            </div>
+<body class="content-page">
+    <header class="site-header">
+        <nav class="navbar" aria-label="Primary navigation">
+            <a href="/" class="brand">Personalized Tourist Guide AI</a>
+            <ul class="nav-links">
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="/login.html" class="nav-action">Log in</a></li>
+                <li><a href="/register.html" class="nav-action nav-action--primary">Create account</a></li>
+            </ul>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <h2>Learn More About Us</h2>
-        </div>
-    </section>
+    <main class="content-shell">
+        <section class="page-hero" aria-labelledby="learnmore-title">
+            <span class="eyebrow">How it works</span>
+            <h1 id="learnmore-title">From preferences to a route you can review and save.</h1>
+            <p>The application keeps the planning flow short: choose a destination, describe the trip and inspect the generated itinerary on a map.</p>
+        </section>
 
-    <div class="learnmore-container">
-        <div class="learnmore-card">
-            <h3>Who We Are</h3>
-            <p>We are a passionate team of travel enthusiasts dedicated to creating personalized experiences for travelers. Our mission is to help you explore the world in a way that is tailored to your unique preferences and interests.</p>
+        <section class="info-grid" aria-label="Feature overview">
+            <article class="info-card">
+                <span>1</span>
+                <h3>Choose context</h3>
+                <p>Select a country, city, days available and the type of places you want to visit.</p>
+            </article>
+            <article class="info-card">
+                <span>2</span>
+                <h3>Generate itinerary</h3>
+                <p>The backend prepares a structured route response that the frontend can render as a map-first plan.</p>
+            </article>
+            <article class="info-card">
+                <span>3</span>
+                <h3>Save useful plans</h3>
+                <p>Authenticated users can keep favourite itineraries and reopen recent searches from the dashboard.</p>
+            </article>
+        </section>
 
-            <h3>Our Vision</h3>
-            <p>Our vision is to transform the way people experience travel by offering a platform that provides personalized recommendations and connects travelers with the best local experiences, making every journey memorable.</p>
+        <section class="content-card">
+            <h2>AI and recommendation direction</h2>
+            <p>The public version favours a practical recommendation foundation: mock/demo mode first, explainable ranking next, and optional external or local AI providers only when they add clear value.</p>
+            <div class="card-actions">
+                <a href="/register.html" class="btn btn-dark">Try the planner</a>
+            </div>
+        </section>
+    </main>
 
-            <h3>Our Services</h3>
-            <ul>
-                <li>Personalized travel recommendations based on your preferences.</li>
-                <li>Local insights and guides to help you discover hidden gems.</li>
-                <li>Planning tools to streamline your travel experience.</li>
-            </ul>
-
-            <h3>Our Values</h3>
-            <p>We believe in authenticity, sustainability, and community. We are committed to providing authentic experiences, supporting sustainable travel practices, and building a community of like-minded travelers.</p>
-
-            <h3>Get in Touch</h3>
-            <p>For more information, feel free to <a href="contact.html">contact us</a> or follow us on our social media channels.</p>
-        </div>
-    </div>
-
-    <footer>
-        <div class="container">
-            <p>Copyright &copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
     </footer>
 </body>
 </html>

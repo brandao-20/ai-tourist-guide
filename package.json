@@ -1,11 +1,4 @@
 {
-  "dependencies": {
-    "multer": "^1.4.5-lts.1",
-    "pg": "^8.13.1",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.5",
-    "sequelize-cli": "^6.6.2"
-  },
   "name": "personalized-tourist-guide-ai",
   "version": "1.0.0",
   "private": true,
@@ -17,6 +10,12 @@
     "start:backend": "npm start --prefix backend",
     "start:frontend": "npm start --prefix frontend",
     "build:frontend": "npm run build --prefix frontend",
+    "check:backend": "npm run check:syntax --prefix backend",
+    "check:frontend": "npm run check:syntax --prefix frontend",
+    "check": "npm run check:backend && npm run check:frontend",
     "db:sync": "npm run db:sync --prefix backend"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

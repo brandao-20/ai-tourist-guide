@@ -3,42 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="contact.css?v=1.0" rel="stylesheet">
-    <title>Contact - Personalized Tourist Guide</title>
+    <meta name="description" content="Contact information for the public portfolio version of Personalized Tourist Guide AI.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="public.css?v=1.0" rel="stylesheet">
+    <title>Contact - Personalized Tourist Guide AI</title>
     <script src="/config.js"></script>
 </head>
-<body>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/" class="brand1">PERSONALIZED TOURIST GUIDE</a>
-            </div>
+<body class="content-page">
+    <header class="site-header">
+        <nav class="navbar" aria-label="Primary navigation">
+            <a href="/" class="brand">Personalized Tourist Guide AI</a>
+            <ul class="nav-links">
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/learnmore.html">How it works</a></li>
+                <li><a href="/login.html" class="nav-action">Log in</a></li>
+                <li><a href="/register.html" class="nav-action nav-action--primary">Create account</a></li>
+            </ul>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <h2>Contact Us</h2>
-        </div>
-    </section>
+    <main class="content-shell">
+        <section class="page-hero" aria-labelledby="contact-title">
+            <span class="eyebrow">Contact</span>
+            <h1 id="contact-title">Public portfolio contact policy.</h1>
+            <p>This version intentionally avoids exposing personal emails, phone numbers or private academic contact details.</p>
+        </section>
 
-    <div class="contact-container">
-        <div class="contact-card">
-            <h3>Contact Information</h3>
-            <p>This academic portfolio version does not expose personal contact details.</p>
-            <p>For collaboration or questions, use the repository issue tracker or the contact information available on the author profile.</p>
+        <section class="content-card">
+            <h2>How to reach the project authors</h2>
+            <p>For collaboration, feedback or questions, use the public repository channels or the contact information available on the authors' public profiles.</p>
+            <div class="contact-options">
+                <article class="info-card">
+                    <span>GH</span>
+                    <h3>Repository issues</h3>
+                    <p>Use GitHub issues for bugs, suggestions and technical discussion once the repository is public.</p>
+                </article>
+                <article class="info-card">
+                    <span>CV</span>
+                    <h3>Author profile</h3>
+                    <p>Use the professional profile linked from the repository owner account for direct contact.</p>
+                </article>
+            </div>
+        </section>
+    </main>
 
-        
-            </form>
-        </div>
-    </div>
-
-    <footer>
-        <div class="container">
-            <p>Copyright &copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
     </footer>
-    
 </body>
 </html>

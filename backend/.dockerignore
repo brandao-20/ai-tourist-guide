@@ -1,18 +1,30 @@
-# Node.js dependencies
+# Dependencies
 node_modules/
 
-# npm logs
-npm-debug.log*
-
-# Environment files
-.env
-
-# Temporary system files
+# Git and editor metadata
+.git/
+.gitignore
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
-# Frontend build files
-frontend/public/build/
-
-# Other files that don't need to be versioned
+# Logs and temporary files
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and local runtime configuration
+.env
+.env.*
+config/config.json
+
+# Runtime uploads must not be baked into Docker images
+uploads/*
+!uploads/.gitkeep
+
+# Local tooling/cache output
+coverage/
+dist/
+build/

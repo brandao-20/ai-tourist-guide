@@ -1,21 +1,13 @@
-# backend/Dockerfile
+FROM node:20-bookworm-slim
 
-FROM node:16
-
-# Set the working directory inside the container
 WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-# Copy only the dependency files to optimize Docker cache
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Install dependencies
-RUN npm install
-
-# Copy the remaining application code to the working directory
 COPY . .
 
-# Expose the port that the backend will use
 EXPOSE 5000
 
-# Command to start the server
 CMD ["npm", "run", "start"]

@@ -3,74 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="welcome.css?v=2.0" rel="stylesheet">
-    <title>Personalized Tourist Guide</title>
+    <meta name="description" content="Personalized Tourist Guide AI helps travellers create preference-based itineraries with maps, saved routes and explainable recommendations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="public.css?v=1.0" rel="stylesheet">
+    <title>Personalized Tourist Guide AI</title>
     <script src="/config.js"></script>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="brand">PERSONALIZED TOURIST GUIDE</div>
-            <div class="nav-links-container">
-                <ul class="nav-links">
-                    <li><a href="/about.html">about</a></li>
-                    <li><a href="/contact.html">contact</a></li>
-                </ul>
-                <a href="/register.html" class="btn-register">Register</a>
-                <a href="/login.html" class="btn-login">Login</a>
-            </div>
+    <header class="site-header">
+        <nav class="navbar" aria-label="Primary navigation">
+            <a href="/" class="brand">Personalized Tourist Guide AI</a>
+            <ul class="nav-links">
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/learnmore.html">How it works</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="/login.html" class="nav-action">Log in</a></li>
+                <li><a href="/register.html" class="nav-action nav-action--primary">Create account</a></li>
+            </ul>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <div class="hero-text">
-                <h2>Explore The World On Your Terms!</h2>
-                <p>Get personalized recommendations for places, activities, and dining experiences tailored just for you.</p>
-                <div class="hero-buttons">
-                    <a href="/login.html" class="btn-main">Start Exploring</a>
-                    <a href="/learnmore.html" class="btn-secondary">Learn More</a>
+    <main class="main-layout">
+        <section class="hero-section" aria-labelledby="hero-title">
+            <div class="hero-grid">
+                <div class="hero-copy">
+                    <span class="eyebrow">Portfolio travel planner</span>
+                    <h1 id="hero-title">Build smarter city itineraries around your preferences.</h1>
+                    <p>Plan city visits with map-based routes, saved itineraries and recommendation logic that can evolve from demo mode into local or custom providers.</p>
+                    <div class="hero-actions">
+                        <a href="/register.html" class="btn btn-primary">Start planning</a>
+                        <a href="/learnmore.html" class="btn btn-secondary">Explore features</a>
+                    </div>
+                </div>
+                <div class="hero-visual" aria-label="Travel planning illustration">
+                    <img src="plane1.png" alt="Retro airplane illustration">
+                    <div class="hero-stat-card">
+                        <strong>3-step</strong>
+                        <span>Choose a city, set preferences and review a generated route.</span>
+                    </div>
                 </div>
             </div>
-            <div class="hero-image">
-                <img src="plane1.png" alt="Retro airplane illustration">
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="unique-section">
-        <div class="container">
-            <h2>What Makes Us Unique?</h2>
-            <ul class="features-list">
-                <li>Personalized Recommendations - "Tailored Suggestions Based On Your Preferences"</li>
-                <li>Real-Time Suggestions - "Get Updates And Ideas As You Explore"</li>
-                <li>Seamless Planning - "Save Time And Focus On Enjoying Your Trip"</li>
-            </ul>
-        </div>
-    </section>
-
-    <section class="team-section">
-        <div class="team-container">
-            <div class="team-member">
-                <div class="team-avatar" aria-hidden="true">LD</div>
-                <div class="team-info">
-                    <h3>LUÍS DIAS</h3>
-                </div>
+        <section class="section" aria-labelledby="features-title">
+            <div class="section-heading">
+                <h2 id="features-title">Built for a clean public demo</h2>
+                <p>A simple full-stack project focused on practical travel planning, safe public configuration and clear recruiter-friendly architecture.</p>
             </div>
-            <div class="team-member">
-                <div class="team-avatar" aria-hidden="true">GB</div>
-                <div class="team-info">
-                    <h3>GABRIEL BRANDÃO</h3>
-                </div>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <span>01</span>
+                    <h3>Personalised routes</h3>
+                    <p>Generate itineraries from destination, time, interests and travel preferences.</p>
+                </article>
+                <article class="feature-card">
+                    <span>02</span>
+                    <h3>Map-first planning</h3>
+                    <p>Review route details visually and keep useful trips in favourites for later.</p>
+                </article>
+                <article class="feature-card">
+                    <span>03</span>
+                    <h3>Provider-ready AI</h3>
+                    <p>Designed to support mock/demo mode first and optional external or local providers later.</p>
+                </article>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <footer>
-        <div class="container">
-            <p>Copyright &copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+        <section class="section" aria-labelledby="team-title">
+            <div class="section-heading">
+                <h2 id="team-title">Project authors</h2>
+                <p>Academic project transformed into a cleaner public portfolio version.</p>
+            </div>
+            <div class="team-grid">
+                <article class="team-card">
+                    <div class="team-avatar" aria-hidden="true">LD</div>
+                    <div>
+                        <h3>Luís Dias</h3>
+                        <p>Project co-author</p>
+                    </div>
+                </article>
+                <article class="team-card">
+                    <div class="team-avatar" aria-hidden="true">GB</div>
+                    <div>
+                        <h3>Gabriel Brandão</h3>
+                        <p>Project co-author</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
     </footer>
 </body>
 </html>

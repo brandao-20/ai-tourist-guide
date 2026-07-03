@@ -1,58 +1,61 @@
 const express = require('express');
-const router = express.Router();
 const passport = require('passport');
-const bcrypt = require('bcrypt');
-const { User } = require('../models');
+const {
+  loginLocalUser,
+  normalizeRegistrationPayload,
+  registerLocalUser,
+} = require('../services/authService');
+const {
+  sendJson,
+  sendServerError,
+  sendUnauthorized,
+  sendValidationError,
+} = require('../utils/httpResponses');
 
-// Registration route
+const router = express.Router();
+
 router.post('/register', async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+  const normalizedPayload = normalizeRegistrationPayload(req.body);
 
-    // Check if the user already exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(409).json({ message: 'Email already registered.' });
+  if (normalizedPayload.error) {
+    return sendValidationError(res, normalizedPayload.error);
+  }
+
+  try {
+    const result = await registerLocalUser(normalizedPayload.value);
+
+    if (result.error) {
+      return sendJson(res, result.statusCode || 400, { error: result.error });
     }
 
-    // Create the user (password will be hashed by the beforeCreate hook)
-    const user = await User.create({
-      name,
-      email,
-      password,
+    return sendJson(res, 201, {
+      message: 'User successfully registered.',
+      user: result.value,
     });
-
-    res.status(201).json({ message: 'User successfully registered.' });
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ message: 'Error registering user.' });
+    return sendServerError(res, 'Failed to register user', error, 'Error registering user.');
   }
 });
 
-// Login route
-router.post('/login', (req, res, next) => {
-  passport.authenticate('local', (err, user, info) => {
-    if (err) { 
-      console.error('Error during authentication:', err);
-      return res.status(500).json({ message: 'Server error during login.' });
-    }
-    if (!user) { 
-      return res.status(401).json({ message: info.message || 'Login failed.' });
-    }
-    req.logIn(user, (err) => {
-      if (err) { 
-        console.error('Error logging in:', err);
-        return res.status(500).json({ message: 'Error logging in.' });
+router.post('/login', async (req, res, next) => {
+  try {
+    const result = await loginLocalUser(req, res, next, passport);
+
+    if (result.error) {
+      if (result.statusCode === 401) {
+        return sendUnauthorized(res, result.error);
       }
-      // Store user information in the session
-      req.session.user = {
-        name: user.name,
-        email: user.email,
-      };
-      console.log('Sessão após login:', req.session.user);
-      return res.status(200).json({ message: 'Login successful.' });
+
+      return sendValidationError(res, result.error);
+    }
+
+    return sendJson(res, 200, {
+      message: 'Login successful.',
+      user: result.value,
     });
-  })(req, res, next);
+  } catch (error) {
+    return sendServerError(res, 'Failed to authenticate user', error, 'Server error during login.');
+  }
 });
 
 module.exports = router;

@@ -1,48 +1,55 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="about.css?v=1.0" rel="stylesheet">
-    <title>About - Personalized Tourist Guide</title>
+    <meta name="description" content="About Personalized Tourist Guide AI, a clean public portfolio version of an academic travel planning project.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="public.css?v=1.0" rel="stylesheet">
+    <title>About - Personalized Tourist Guide AI</title>
     <script src="/config.js"></script>
 </head>
-<body>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/" class="brand">PERSONALIZED TOURIST GUIDE</a>
-            </div>
+<body class="content-page">
+    <header class="site-header">
+        <nav class="navbar" aria-label="Primary navigation">
+            <a href="/" class="brand">Personalized Tourist Guide AI</a>
+            <ul class="nav-links">
+                <li><a href="/learnmore.html">How it works</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="/login.html" class="nav-action">Log in</a></li>
+                <li><a href="/register.html" class="nav-action nav-action--primary">Create account</a></li>
+            </ul>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <h2>About Us</h2>
-        </div>
-    </section>
+    <main class="content-shell">
+        <section class="page-hero" aria-labelledby="about-title">
+            <span class="eyebrow">About the project</span>
+            <h1 id="about-title">A cleaner public version of a personalised travel planner.</h1>
+            <p>This repository turns an academic prototype into a safer, simpler and more professional portfolio project.</p>
+        </section>
 
-    <div class="about-container">
-        <div class="about-card">
-            <h3>Our Story</h3>
-            <p>Welcome to the Personalized Tourist Guide! We are passionate about helping travelers experience the best of each destination in a truly personal way. Our platform is designed to cater to your individual interests, offering curated suggestions, expert insights, and convenient tools to make your trip unforgettable.</p>
-            <h3>Our Mission</h3>
-            <p>Our mission is to transform the way people travel by making every journey unique and tailored specifically to you. We leverage cutting-edge technology to provide personalized recommendations, ensuring you discover hidden gems and local favorites wherever you go.</p>
-            <h3>Why Choose Us?</h3>
-            <p>With our guide, you can:</p>
+        <section class="content-card">
+            <h2>Project purpose</h2>
+            <p>Personalized Tourist Guide AI helps users plan city visits by combining preferences, destination data, map-based route views and saved itineraries. The current version keeps the architecture understandable and demo-friendly instead of depending on a complex or paid-first AI stack.</p>
+
+            <h3>What it demonstrates</h3>
             <ul>
-                <li>Receive personalized suggestions based on your preferences.</li>
-                <li>Access local insights to enrich your travel experience.</li>
-                <li>Plan efficiently and make the most out of your journey.</li>
+                <li>Separated frontend and backend structure.</li>
+                <li>Session-based user accounts with profile and image upload handling.</li>
+                <li>Itinerary search, favourite routes and recent searches.</li>
+                <li>Configuration prepared for public GitHub usage.</li>
             </ul>
-        </div>
-    </div>
 
-    <footer>
-        <div class="container">
-            <p>Copyright &copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+            <h3>Development direction</h3>
+            <p>The project is designed to evolve towards explainable recommendation scoring based on preferences, categories, distance, duration and popularity, while keeping mock/demo mode available for portfolio presentations.</p>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
     </footer>
 </body>
 </html>

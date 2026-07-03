@@ -1,31 +1,67 @@
 const axios = require('axios');
+const { appConfig } = require('../config/env');
+const { logServerWarning } = require('../utils/logger');
+
+const MAX_ADDRESS_LENGTH = 240;
+
+function normalizeAddress(address) {
+  return typeof address === 'string'
+    ? address.trim().replace(/\s+/g, ' ').slice(0, MAX_ADDRESS_LENGTH)
+    : '';
+}
+
+function extractCoordinates(responseData) {
+  const firstResult = responseData?.results?.[0];
+  const location = firstResult?.geometry?.location;
+
+  if (!Number.isFinite(Number(location?.lat)) || !Number.isFinite(Number(location?.lng))) {
+    return null;
+  }
+
+  return {
+    lat: Number(location.lat),
+    lng: Number(location.lng),
+  };
+}
+
+function logGeocodingFailure(reason, details) {
+  logServerWarning(`Geocoding skipped: ${reason}`, details);
+}
 
 async function geocodeAddress(address) {
-  const apiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
+  const normalizedAddress = normalizeAddress(address);
+  const apiKey = appConfig.googleMaps.serverApiKey;
 
-  if (!apiKey || !address) {
+  if (!normalizedAddress || !apiKey) {
     return null;
   }
 
   try {
     const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
       params: {
-        address,
+        address: normalizedAddress,
         key: apiKey,
       },
+      timeout: appConfig.googleMaps.geocodingTimeoutMs,
     });
 
-    if (response.data.status !== 'OK' || !response.data.results?.length) {
+    const status = response.data?.status;
+    if (status !== 'OK') {
+      logGeocodingFailure('Google Geocoding returned a non-OK status.', { status });
       return null;
     }
 
-    const location = response.data.results[0].geometry.location;
-    return {
-      lat: location.lat,
-      lng: location.lng,
-    };
+    const coordinates = extractCoordinates(response.data);
+    if (!coordinates) {
+      logGeocodingFailure('Google Geocoding returned no usable coordinates.');
+      return null;
+    }
+
+    return coordinates;
   } catch (error) {
-    console.error('Geocoding request failed:', error.response ? error.response.data : error.message);
+    const status = error.response?.status;
+    const code = error.code;
+    logGeocodingFailure('request failed.', { status, code, message: error.message });
     return null;
   }
 }

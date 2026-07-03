@@ -1,16 +1,40 @@
 const axios = require('axios');
+const { appConfig } = require('../config/env');
 
-const SUPPORTED_PROVIDERS = ['mock', 'ollama', 'openai'];
+const MAX_ITINERARY_DAYS = 30;
+const MAX_ACTIVITIES_PER_DAY = 8;
+const MAX_MONUMENTS = 40;
+const MAX_TEXT_LENGTH = 240;
 
 function getProvider() {
-  const provider = (process.env.TRAVEL_AI_PROVIDER || 'mock').toLowerCase();
-  return SUPPORTED_PROVIDERS.includes(provider) ? provider : 'mock';
+  return appConfig.ai.provider;
+}
+
+function getAiTimeout() {
+  return appConfig.ai.timeoutMs;
+}
+
+function normalizeText(value, maxLength = MAX_TEXT_LENGTH) {
+  return typeof value === 'string'
+    ? value.trim().replace(/\s+/g, ' ').slice(0, maxLength)
+    : '';
+}
+
+function getTripDuration(selectedDays) {
+  const rawDays = Array.isArray(selectedDays) && selectedDays.length > 0
+    ? selectedDays[0]
+    : selectedDays;
+  const days = Number.parseInt(rawDays, 10);
+
+  if (!Number.isInteger(days) || days < 1) {
+    return 3;
+  }
+
+  return Math.min(days, MAX_ITINERARY_DAYS);
 }
 
 function buildTravelPrompt({ generalQuery, selectedCountries, selectedCities, selectedAttractions, selectedDays }) {
-  const days = Array.isArray(selectedDays) && selectedDays.length > 0
-    ? parseInt(selectedDays[0], 10)
-    : parseInt(selectedDays, 10) || 3;
+  const days = getTripDuration(selectedDays);
 
   return `You are a travel planning assistant. Create a practical itinerary in JSON only.
 
@@ -65,12 +89,44 @@ function extractJson(text) {
   return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));
 }
 
+function normalizeItineraryDay(day, index) {
+  if (!day || typeof day !== 'object') {
+    return null;
+  }
+
+  const activities = Array.isArray(day.activities)
+    ? day.activities.map((activity) => normalizeText(activity)).filter(Boolean).slice(0, MAX_ACTIVITIES_PER_DAY)
+    : [];
+
+  if (activities.length === 0) {
+    return null;
+  }
+
+  return {
+    day: Number.isInteger(Number(day.day)) ? Number(day.day) : index + 1,
+    city: normalizeText(day.city, 120),
+    activities,
+  };
+}
+
+function normalizeGeneratedPayload(payload) {
+  const itinerary = Array.isArray(payload?.itinerary)
+    ? payload.itinerary.map(normalizeItineraryDay).filter(Boolean).slice(0, MAX_ITINERARY_DAYS)
+    : [];
+
+  const monuments = Array.isArray(payload?.monuments)
+    ? payload.monuments.map((monument) => normalizeText(monument)).filter(Boolean).slice(0, MAX_MONUMENTS)
+    : [];
+
+  return { itinerary, monuments };
+}
+
 async function callOpenAI(prompt) {
-  if (!process.env.OPENAI_API_KEY) {
+  if (!appConfig.ai.openaiApiKey) {
     throw new Error('OPENAI_API_KEY is required when TRAVEL_AI_PROVIDER=openai.');
   }
 
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const model = appConfig.ai.openaiModel;
   const response = await axios.post(
     'https://api.openai.com/v1/chat/completions',
     {
@@ -81,38 +137,49 @@ async function callOpenAI(prompt) {
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${appConfig.ai.openaiApiKey}`,
         'Content-Type': 'application/json',
       },
+      timeout: getAiTimeout(),
     }
   );
 
-  return response.data.choices[0].message.content;
+  const content = response.data?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error('OpenAI returned no message content.');
+  }
+
+  return content;
 }
 
 async function callOllama(prompt) {
-  const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-  const model = process.env.OLLAMA_MODEL || 'llama3.1:8b';
+  const baseUrl = appConfig.ai.ollamaBaseUrl;
+  const model = appConfig.ai.ollamaModel;
 
-  const response = await axios.post(`${baseUrl}/api/generate`, {
-    model,
-    prompt,
-    stream: false,
-    format: 'json',
-  });
+  const response = await axios.post(
+    `${baseUrl}/api/generate`,
+    {
+      model,
+      prompt,
+      stream: false,
+      format: 'json',
+    },
+    { timeout: getAiTimeout() }
+  );
+
+  if (!response.data?.response) {
+    throw new Error('Ollama returned no response content.');
+  }
 
   return response.data.response;
 }
 
 function buildMockResponse({ selectedCities, selectedAttractions, selectedDays }) {
-  const days = Array.isArray(selectedDays) && selectedDays.length > 0
-    ? parseInt(selectedDays[0], 10)
-    : parseInt(selectedDays, 10) || 3;
-
+  const days = getTripDuration(selectedDays);
   const cities = selectedCities.length > 0 ? selectedCities : ['Lisbon'];
   const attractionLabel = selectedAttractions.length > 0 ? selectedAttractions[0] : 'historic center';
 
-  const itinerary = Array.from({ length: Math.max(days, 1) }, (_, index) => {
+  const itinerary = Array.from({ length: days }, (_, index) => {
     const city = cities[index % cities.length];
     return {
       day: index + 1,
@@ -127,31 +194,34 @@ function buildMockResponse({ selectedCities, selectedAttractions, selectedDays }
 
   return JSON.stringify({
     itinerary,
-    monuments: itinerary.flatMap(day => day.activities.filter(activity => activity.startsWith('Explore') || activity.startsWith('Walk'))),
+    monuments: itinerary.flatMap((day) => day.activities.filter((activity) => (
+      activity.startsWith('Explore') || activity.startsWith('Walk')
+    ))),
   });
+}
+
+async function getProviderResponse(provider, prompt, input) {
+  if (provider === 'openai') {
+    return callOpenAI(prompt);
+  }
+
+  if (provider === 'ollama') {
+    return callOllama(prompt);
+  }
+
+  return buildMockResponse(input);
 }
 
 async function generateTravelItinerary(input) {
   const provider = getProvider();
   const prompt = buildTravelPrompt(input);
-
-  let rawContent;
-
-  if (provider === 'openai') {
-    rawContent = await callOpenAI(prompt);
-  } else if (provider === 'ollama') {
-    rawContent = await callOllama(prompt);
-  } else {
-    rawContent = buildMockResponse(input);
-  }
-
+  const rawContent = await getProviderResponse(provider, prompt, input);
   const parsed = extractJson(rawContent);
+  const normalizedPayload = normalizeGeneratedPayload(parsed);
 
   return {
     provider,
-    rawContent,
-    itinerary: Array.isArray(parsed.itinerary) ? parsed.itinerary : [],
-    monuments: Array.isArray(parsed.monuments) ? parsed.monuments : [],
+    ...normalizedPayload,
   };
 }
 

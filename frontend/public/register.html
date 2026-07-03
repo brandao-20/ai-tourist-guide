@@ -1,64 +1,77 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="register.css?v=1.0" rel="stylesheet">
-    <title>Register - Personalized Tourist Guide</title>
+    <meta name="description" content="Create a Personalized Tourist Guide AI account to save route recommendations and recent travel searches.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="public.css?v=1.0" rel="stylesheet">
+    <title>Create account - Personalized Tourist Guide AI</title>
     <script src="/config.js"></script>
 </head>
-<body>
-    <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/" class="brand">PERSONALIZED TOURIST GUIDE</a>
-            </div>
+<body class="auth-page">
+    <header class="site-header">
+        <nav class="navbar" aria-label="Primary navigation">
+            <a href="/" class="brand">Personalized Tourist Guide AI</a>
+            <ul class="nav-links">
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/login.html" class="nav-action nav-action--primary">Log in</a></li>
+            </ul>
         </nav>
     </header>
 
-    <section class="hero-section">
-        <div class="container hero-container">
-            <h2>Create Account</h2>
-        </div>
-    </section>
+    <main class="auth-shell">
+        <section class="auth-intro" aria-labelledby="register-title">
+            <span class="eyebrow">Create account</span>
+            <h1 id="register-title">Save routes and keep planning simple.</h1>
+            <p>Create a local demo account to test saved itineraries, recent searches and the personalised trip flow.</p>
+            <ul class="auth-list">
+                <li>Local email/password account</li>
+                <li>Optional Google OAuth support</li>
+                <li>Portfolio-friendly demo setup</li>
+            </ul>
+        </section>
 
-    <div class="register-container">
-        <div class="register-card">
-            <h3>Sign up for Personalized Tourist Guide</h3>
-            <a href="#" class="google-register">
-                <img src="google-icon2.png" alt="Google Icon" class="google-icon"> Continue with Google
+        <section class="auth-card" aria-label="Registration form">
+            <h1>Create account</h1>
+            <p>Passwords must have at least 8 characters. Google OAuth appears only when configured on the backend.</p>
+            <a href="#" class="oauth-button google-register" aria-describedby="register-oauth-note">
+                <img src="google-icon2.png" alt="" class="google-icon" aria-hidden="true">
+                <span>Continue with Google</span>
             </a>
-            <div class="or-text">or</div>
-            <form id="register-form">
-                <div class="form-group">
-                    <label for="first-name">First Name:</label>
-                    <input type="text" id="first-name" class="form-control" placeholder="First name..." required>
+            <p id="register-oauth-note" class="auth-note is-hidden" role="status" aria-live="polite"></p>
+            <div class="divider">or</div>
+            <div id="register-feedback" class="form-feedback is-hidden" role="status" aria-live="polite"></div>
+            <form id="register-form" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="first-name">First name</label>
+                        <input type="text" id="first-name" class="form-control" placeholder="First name" autocomplete="given-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last-name">Last name</label>
+                        <input type="text" id="last-name" class="form-control" placeholder="Last name" autocomplete="family-name" required>
+                    </div>
+                    <div class="form-group form-group--full">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-control" placeholder="you@example.com" autocomplete="email" required>
+                    </div>
+                    <div class="form-group form-group--full">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+                        <p class="form-help">Use a demo-safe password. Do not reuse sensitive credentials.</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="last-name">Last Name:</label>
-                    <input type="text" id="last-name" class="form-control" placeholder="Last name..." required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" class="form-control" placeholder="Email..." required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" class="form-control" placeholder="Password..." required>
-                </div>
-                <button type="submit" class="register-button">Register</button>
+                <button type="submit" class="btn btn-dark">Create account</button>
             </form>
-            <div class="links">
-                <a href="/login.html">Already have an account? Log in</a>
-            </div>
-        </div>
-    </div>
+            <p class="auth-links">Already registered? <a href="/login.html">Log in</a>.</p>
+        </section>
+    </main>
 
-    <footer>
-        <div class="container">
-            <p>Copyright &copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-        </div>
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
     </footer>
     <script src="/build/register.js"></script>
 </body>

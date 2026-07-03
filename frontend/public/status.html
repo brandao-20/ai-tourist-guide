@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Public runtime status page for Personalized Tourist Guide AI.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="public.css?v=1.0" rel="stylesheet">
+    <title>Status - Personalized Tourist Guide AI</title>
+    <script src="/config.js"></script>
+</head>
+<body class="content-page status-page">
+    <header class="site-header">
+        <nav class="navbar" aria-label="Primary navigation">
+            <a href="/" class="brand">Personalized Tourist Guide AI</a>
+            <ul class="nav-links">
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/learnmore.html">How it works</a></li>
+                <li><a href="/login.html" class="nav-action">Log in</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="content-shell status-shell">
+        <section class="page-hero status-hero" aria-labelledby="status-title">
+            <span class="eyebrow">Runtime status</span>
+            <h1 id="status-title">Check whether the public demo is ready.</h1>
+            <p>This page uses safe API endpoints only. It does not expose secrets, database credentials or raw provider responses.</p>
+        </section>
+
+        <section class="content-card" aria-labelledby="status-summary-title">
+            <div class="status-header">
+                <div>
+                    <h2 id="status-summary-title">Application status</h2>
+                    <p id="status-summary">Checking frontend and backend availability...</p>
+                </div>
+                <button type="button" id="refresh-status" class="btn btn-dark status-refresh">Refresh</button>
+            </div>
+            <div id="status-feedback" class="form-feedback is-hidden" role="status" aria-live="polite"></div>
+            <div id="status-grid" class="status-grid" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
+    </footer>
+    <script src="/build/status.js"></script>
+</body>
+</html>

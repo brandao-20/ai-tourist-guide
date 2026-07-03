@@ -1,53 +1,59 @@
-import axios from 'axios';
-import { getApiUrl } from './config.js';
+import { apiPost } from './api.js';
+import { buildFullName, isValidEmail, setupGoogleOAuthButton } from './authPage.js';
+import { clearStatusMessage, getErrorMessage, setButtonBusy, setStatusMessage } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const googleRegister = document.querySelector('.google-register');
-  if (googleRegister) {
-    googleRegister.href = getApiUrl('/auth/google');
-  }
-
+  const oauthNote = document.getElementById('register-oauth-note');
   const registerForm = document.getElementById('register-form');
+  const feedback = document.getElementById('register-feedback');
 
-  if (registerForm) {
-    registerForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
+  setupGoogleOAuthButton({
+    button: googleRegister,
+    noteElement: oauthNote,
+    feedbackElement: feedback,
+  });
 
-      const firstName = document.getElementById('first-name').value.trim();
-      const lastName = document.getElementById('last-name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      if (!firstName || !lastName || !email || !password) {
-        alert('Please fill in all fields.');
-        return;
-      }
-
-      const name = `${firstName} ${lastName}`;
-
-      try {
-        const response = await axios.post(
-          getApiUrl('/api/users/register'),
-          { name, email, password },
-          { withCredentials: true }
-        );
-
-        if (response.status === 201) {
-          alert('Account successfully created!');
-          window.location.href = '/login.html';
-        } else {
-          alert(`Error creating account: ${response.data.message}`);
-        }
-      } catch (error) {
-        console.error('Error registering user:', error);
-        if (error.response && error.response.data && error.response.data.message) {
-          alert(`Error creating account: ${error.response.data.message}`);
-        } else {
-          alert('Error creating account. Please try again later.');
-        }
-      }
-    });
-  } else {
-    console.error('Registration form not found.');
+  if (!registerForm) {
+    return;
   }
+
+  registerForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearStatusMessage(feedback);
+
+    const firstName = document.getElementById('first-name').value.trim();
+    const lastName = document.getElementById('last-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!firstName || !lastName || !email || !password) {
+      setStatusMessage(feedback, 'Please fill in all required fields.', 'error');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setStatusMessage(feedback, 'Please enter a valid email address.', 'error');
+      return;
+    }
+
+    if (password.length < 8) {
+      setStatusMessage(feedback, 'Password must have at least 8 characters.', 'error');
+      return;
+    }
+
+    const submitButton = registerForm.querySelector('button[type="submit"]');
+    const restoreButton = setButtonBusy(submitButton, 'Creating account...');
+
+    try {
+      await apiPost('/users/register', { name: buildFullName(firstName, lastName), email, password });
+      setStatusMessage(feedback, 'Account created successfully. Redirecting to login...', 'success');
+      window.setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 700);
+    } catch (error) {
+      setStatusMessage(feedback, `Account creation failed: ${getErrorMessage(error, 'Please try again later.')}`, 'error');
+      restoreButton();
+    }
+  });
 });

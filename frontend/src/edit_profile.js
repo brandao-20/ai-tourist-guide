@@ -1,126 +1,178 @@
-import axios from 'axios';
-import { getApiUrl, getUploadUrl } from './config.js';
+import { apiGet, apiPut } from './api.js';
+import { getUploadUrl } from './config.js';
+import { getErrorMessage, setButtonBusy, setStatusMessage } from './ui.js';
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("Edit Profile page loaded");
+const DEFAULT_AVATAR = 'default-avatar.svg';
+const MAX_CLIENT_IMAGE_SIZE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-    let selectedFile = null; // Variable to store the selected image file
+function getElement(id) {
+    return document.getElementById(id);
+}
 
-    // Load user data from the server
-    const loadUserData = async () => {
-        try {
-            const response = await axios.get(getApiUrl('/api/user'), { withCredentials: true });
-            const user = response.data;
+function getStatusElement() {
+    return getElement('edit-profile-status');
+}
 
-            // Populate input fields with user data
-            const nameInput = document.getElementById('name');
-            const emailInput = document.getElementById('email');
-            const profilePic = document.getElementById('profile-pic');
+function setProfileStatus(message, type = 'info') {
+    setStatusMessage(getStatusElement(), message, type);
+}
 
-            if (nameInput) {
-                nameInput.value = user.name || '';
-            }
+function validateSelectedImage(file) {
+    if (!file) {
+        return null;
+    }
 
-            if (emailInput) {
-                emailInput.value = user.email || '';
-            }
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        return 'Please choose a valid image file: JPG, PNG, WEBP or GIF.';
+    }
 
-            if (profilePic) {
-                profilePic.src = user.profileImage ? getUploadUrl(user.profileImage) : 'default-avatar.svg';
-            }
-        } catch (error) {
-            console.error('Error loading user data:', error);
-            alert('Failed to load user data. Please try again.');
-            window.location.href = '/login.html'; // Redirect to login page
-        }
+    if (file.size > MAX_CLIENT_IMAGE_SIZE_BYTES) {
+        return 'Profile image must be 2 MB or smaller.';
+    }
+
+    return null;
+}
+
+function previewSelectedImage(file) {
+    const profilePicture = getElement('profile-pic');
+    if (!profilePicture || !file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        profilePicture.src = event.target.result;
     };
+    reader.readAsDataURL(file);
+}
 
-    // Call the function to load user data
+function toggleEdit(inputElement, buttonElement) {
+    if (!inputElement || !buttonElement) {
+        return;
+    }
+
+    const isReadOnly = inputElement.readOnly;
+    inputElement.readOnly = !isReadOnly;
+    buttonElement.innerHTML = isReadOnly
+        ? '<i class="fas fa-check"></i>'
+        : '<i class="fas fa-pencil-alt"></i>';
+
+    if (isReadOnly) {
+        inputElement.focus();
+    }
+}
+
+async function loadUserData() {
+    setProfileStatus('Loading profile...', 'info');
+
+    try {
+        const user = await apiGet('/user');
+        const nameInput = getElement('name');
+        const emailInput = getElement('email');
+        const profilePicture = getElement('profile-pic');
+
+        if (nameInput) {
+            nameInput.value = user.name || '';
+        }
+
+        if (emailInput) {
+            emailInput.value = user.email || '';
+        }
+
+        if (profilePicture) {
+            const displayName = user.name || 'Traveller';
+            profilePicture.src = user.profileImage ? getUploadUrl(user.profileImage) : DEFAULT_AVATAR;
+            profilePicture.alt = `${displayName} profile picture`;
+        }
+
+        setProfileStatus('', 'info');
+    } catch (error) {
+        setProfileStatus('Session expired. Redirecting to login...', 'error');
+        window.location.href = '/login.html';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    let selectedFile = null;
+
     loadUserData();
 
-    // Function to toggle editing for input fields
-    const toggleEdit = (inputElement, buttonElement) => {
-        if (inputElement.readOnly) {
-            inputElement.readOnly = false;
-            inputElement.focus();
-            buttonElement.innerHTML = '<i class="fas fa-check"></i>'; // Change icon to checkmark
-        } else {
-            inputElement.readOnly = true;
-            buttonElement.innerHTML = '<i class="fas fa-pencil-alt"></i>'; // Change icon back to pencil
-        }
-    };
-
-    // Edit user name
-    const editNameButton = document.getElementById('edit-name');
+    const editNameButton = getElement('edit-name');
     if (editNameButton) {
-        const nameInput = document.getElementById('name');
-        editNameButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleEdit(nameInput, editNameButton);
+        editNameButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            toggleEdit(getElement('name'), editNameButton);
         });
     }
 
-    // Edit password
-    const editPasswordButton = document.getElementById('edit-password');
+    const editPasswordButton = getElement('edit-password');
     if (editPasswordButton) {
-        const passwordInput = document.getElementById('password');
-        editPasswordButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleEdit(passwordInput, editPasswordButton);
+        editPasswordButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            toggleEdit(getElement('password'), editPasswordButton);
         });
     }
 
-    // Cancel button functionality
     const cancelButton = document.querySelector('.cancel-button');
     if (cancelButton) {
         cancelButton.addEventListener('click', () => {
-            window.location.href = '/profile.html'; // Redirect to the profile page
+            window.location.href = '/profile.html';
         });
     }
 
-    // Edit profile picture
-    const editProfilePicButton = document.getElementById('edit-profile-pic');
-    const profileImageInput = document.getElementById('profileImageInput');
+    const editProfilePicButton = getElement('edit-profile-pic');
+    const profileImageInput = getElement('profileImageInput');
 
     if (editProfilePicButton && profileImageInput) {
-        // Open file selection dialog when clicking the pencil icon
-        editProfilePicButton.addEventListener('click', (e) => {
-            e.preventDefault();
+        editProfilePicButton.addEventListener('click', (event) => {
+            event.preventDefault();
             profileImageInput.click();
         });
 
-        // Handle file selection
-        profileImageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                selectedFile = file;
+        profileImageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const validationError = validateSelectedImage(file);
 
-                // Show a preview of the selected image
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const profilePic = document.getElementById('profile-pic');
-                    if (profilePic) {
-                        profilePic.src = event.target.result; // Display the chosen image
-                    }
-                };
-                reader.readAsDataURL(file);
-            } else {
-                selectedFile = null; // Clear selected file if no file chosen
+            if (validationError) {
+                selectedFile = null;
+                profileImageInput.value = '';
+                setProfileStatus(validationError, 'error');
+                return;
+            }
+
+            selectedFile = file || null;
+            if (selectedFile) {
+                previewSelectedImage(selectedFile);
+                setProfileStatus('Image selected. Save changes to upload it.', 'success');
             }
         });
     }
 
-    // Form submission (Save changes)
     const editProfileForm = document.querySelector('.edit-form');
     if (editProfileForm) {
-        editProfileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        editProfileForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-            const name = document.getElementById('name').value.trim();
-            const password = document.getElementById('password').value;
+            const nameInput = getElement('name');
+            const passwordInput = getElement('password');
+            const saveButton = editProfileForm.querySelector('.save-button');
+            const restoreButton = setButtonBusy(saveButton, 'Saving...');
+
+            const name = nameInput?.value.trim() || '';
+            const password = passwordInput?.value || '';
 
             if (!name) {
-                alert('Name is required.');
+                restoreButton();
+                setProfileStatus('Name is required.', 'error');
+                nameInput?.focus();
+                return;
+            }
+
+            if (password && password.length < 8) {
+                restoreButton();
+                setProfileStatus('Password must have at least 8 characters.', 'error');
+                passwordInput?.focus();
                 return;
             }
 
@@ -130,38 +182,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             try {
-                // First update name and password
-                await axios.put(getApiUrl('/api/user/profile'), updatedData, { withCredentials: true });
-                console.log('Profile (name/password) updated successfully.');
+                await apiPut('/user/profile', updatedData);
 
-                // If a file was selected, upload the profile image
                 if (selectedFile) {
                     const formData = new FormData();
                     formData.append('profileImage', selectedFile);
-
-                    const response = await fetch(getApiUrl('/api/user/profile/image'), {
-                        method: 'PUT',
-                        credentials: 'include',
-                        body: formData
-                    });
-
-                    const result = await response.json();
-                    if (!response.ok) {
-                        alert('Failed to update profile image: ' + (result.error || 'Unknown error'));
-                        return;
-                    }
-
-                    console.log('Profile image updated successfully!');
+                    await apiPut('/user/profile/image', formData);
                 }
 
-                alert('Profile updated successfully.');
+                setProfileStatus('Profile updated successfully. Redirecting...', 'success');
                 window.location.href = '/profile.html';
-
             } catch (error) {
-                console.error('Error updating profile:', error.response ? error.response.data : error);
-                alert(error.response && error.response.data && error.response.data.error
-                      ? error.response.data.error
-                      : 'Failed to update profile. Please try again.');
+                setProfileStatus(getErrorMessage(error, 'Failed to update profile. Please try again.'), 'error');
+            } finally {
+                restoreButton();
             }
         });
     }

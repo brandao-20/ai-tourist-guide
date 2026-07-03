@@ -3,58 +3,78 @@ services:
     image: postgis/postgis:13-3.1-alpine
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD is required. Copy .env.example to .env first.}"
       POSTGRES_DB: ${DB_NAME:-personalized_tourist_guide}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-personalized_tourist_guide}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
   backend:
     build: ./backend
-    command: npm run start
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
     ports:
       - "5000:5000"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 5000
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      JSON_BODY_LIMIT: ${JSON_BODY_LIMIT:-10mb}
+      HEALTHCHECK_TIMEOUT_MS: ${HEALTHCHECK_TIMEOUT_MS:-3000}
+      SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE:-lax}
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD is required. Copy .env.example to .env first.}"
       DB_NAME: ${DB_NAME:-personalized_tourist_guide}
       DB_LOGGING: ${DB_LOGGING:-false}
+      DB_SYNC_ALTER: ${DB_SYNC_ALTER:-false}
+      SESSION_SECRET: "${SESSION_SECRET:?SESSION_SECRET is required. Copy .env.example to .env first.}"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5000/auth/google/callback}
-      SESSION_SECRET: ${SESSION_SECRET:-development_session_secret_change_me}
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
+      GEOCODING_TIMEOUT_MS: ${GEOCODING_TIMEOUT_MS:-7000}
       TRAVEL_AI_PROVIDER: ${TRAVEL_AI_PROVIDER:-mock}
+      AI_PROVIDER_TIMEOUT_MS: ${AI_PROVIDER_TIMEOUT_MS:-20000}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    volumes:
+      - backend-uploads:/usr/src/app/uploads
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const http=require('http');const req=http.get('http://127.0.0.1:5000/api/health',res=>process.exit(res.statusCode===200?0:1));req.on('error',()=>process.exit(1));req.setTimeout(3000,()=>{req.destroy();process.exit(1);});\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - app-network
 
   frontend:
     build: ./frontend
-    command: npm run start -- --host 0.0.0.0 --port 8080
-    volumes:
-      - ./frontend:/usr/src/app
-      - /usr/src/app/node_modules
     ports:
       - "8080:8080"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const http=require('http');const req=http.get('http://127.0.0.1:8080/health',res=>process.exit(res.statusCode>=200&&res.statusCode<400?0:1));req.on('error',()=>process.exit(1));req.setTimeout(3000,()=>{req.destroy();process.exit(1);});\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - app-network
 
@@ -64,3 +84,4 @@ networks:
 
 volumes:
   pgdata:
+  backend-uploads:

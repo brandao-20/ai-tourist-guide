@@ -3,18 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "description": "Static JavaScript/Rollup frontend for Personalized Tourist Guide AI.",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "start": "sirv public --no-clear"
-  },
-  "dependencies": {
-    "axios": "^0.27.2",
-    "bootstrap": "^5.2.0",
-    "csv-parser": "^3.1.0",
-    "multer": "^1.4.5-lts.1",
-    "sirv-cli": "^2.0.0",
-    "svelte": "^3.55.0"
+    "start": "node server.js",
+    "check:syntax": "node --check server.js && node --check src/api.js && node --check src/authPage.js && node --check src/config.js && node --check src/edit_profile.js && node --check src/home_logged.js && node --check src/login.js && node --check src/mainapp.js && node --check src/mainapp/loader.js && node --check src/mainapp/mapItinerary.js && node --check src/mainapp/manualMonumentModal.js && node --check src/mainapp/notifications.js && node --check src/mainapp/searchForm.js && node --check src/profile.js && node --check src/register.js && node --check src/route_details.js && node --check src/status.js && node --check src/ui.js && node --check rollup.config.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.0",
@@ -22,9 +16,9 @@
     "@rollup/plugin-terser": "^0.4.0",
     "rollup": "^3.15.0",
     "rollup-plugin-css-only": "^4.3.0",
-    "rollup-plugin-livereload": "^2.0.0",
-    "rollup-plugin-svelte": "^7.1.2"
+    "rollup-plugin-livereload": "^2.0.0"
   },
-  "proxy": "http://localhost:5000",
-  "description": "Svelte/static frontend for Personalized Tourist Guide AI."
+  "engines": {
+    "node": ">=18"
+  }
 }

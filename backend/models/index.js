@@ -3,21 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
+const sequelize = require('../config/database');
 
 const basename = path.basename(__filename);
 const db = {};
-
-const sequelize = new Sequelize(
-  process.env.DB_NAME || 'personalized_tourist_guide',
-  process.env.DB_USER || 'postgres',
-  process.env.DB_PASSWORD || 'postgres',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    logging: process.env.DB_LOGGING === 'true' ? console.log : false,
-  }
-);
 
 fs
   .readdirSync(__dirname)

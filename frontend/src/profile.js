@@ -1,82 +1,58 @@
-import axios from 'axios';
-import { getApiUrl, getUploadUrl } from './config.js';
+import { apiGet } from './api.js';
+import { getUploadUrl } from './config.js';
+import { setStatusMessage } from './ui.js';
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("Profile page loaded");
+const DEFAULT_AVATAR = 'default-avatar.svg';
 
-    // Function to update user data on the page
-    const updateUserProfile = async () => {
-        try {
-            console.log("Requesting data from /api/user");
-            const response = await axios.get(getApiUrl('/api/user'), { withCredentials: true }); // Fetch user data with credentials
-            const user = response.data;
+function setInputValue(id, value) {
+    const input = document.getElementById(id);
+    if (input) {
+        input.value = value;
+    }
+}
 
-            console.log('User data received:', user);
+function setProfileImage(user) {
+    const profilePicture = document.getElementById('profile-pic');
+    if (!profilePicture) {
+        return;
+    }
 
-            // Update the user's name
-            const userNameElement = document.getElementById('user-name');
-            if (userNameElement) {
-                userNameElement.textContent = user.name || 'Name not available';
-                console.log('User name updated to:', user.name);
-            } else {
-                console.warn('Element with id "user-name" not found.');
-            }
+    const displayName = user.name || 'Traveller';
+    profilePicture.src = user.profileImage ? getUploadUrl(user.profileImage) : DEFAULT_AVATAR;
+    profilePicture.alt = `${displayName} profile picture`;
+}
 
-            // Update the user's profile picture
-            const profilePicElement = document.getElementById('profile-pic');
-            if (profilePicElement) {
-                profilePicElement.src = user.profileImage ? getUploadUrl(user.profileImage) : 'default-avatar.svg';
-                console.log('Profile picture updated.');
-            }
+async function updateUserProfile() {
+    const statusElement = document.getElementById('profile-status');
+    setStatusMessage(statusElement, 'Loading profile...', 'info');
 
-            // Update personal information fields
-            const infoFields = {
-                'info-name': user.name || 'Name not available',
-                'info-email': user.email || 'Email not available',
-                // Add other fields as needed
-            };
+    try {
+        const user = await apiGet('/user');
+        const displayName = user.name || 'Traveller';
 
-            // Populate information fields
-            for (const [id, value] of Object.entries(infoFields)) {
-                const inputElement = document.getElementById(id);
-                if (inputElement) {
-                    inputElement.value = value;
-                    console.log(`Field ${id} updated with value: ${value}`);
-                }
-            }
-
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            // Optional: Redirect to login page if the user is not authenticated
-            window.location.href = '/login.html';
+        const userNameElement = document.getElementById('user-name');
+        if (userNameElement) {
+            userNameElement.textContent = displayName;
         }
-    };
 
-    // Call the function to update the user's profile
+        setProfileImage(user);
+        setInputValue('info-name', displayName);
+        setInputValue('info-email', user.email || 'Email not available');
+        setInputValue('info-password', 'Hidden for security');
+        setStatusMessage(statusElement, '', 'info');
+    } catch (error) {
+        setStatusMessage(statusElement, 'Session expired. Redirecting to login...', 'error');
+        window.location.href = '/login.html';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     updateUserProfile();
 
-    // Add functionality to the "Edit" button
     const editButton = document.querySelector('.edit-button');
     if (editButton) {
         editButton.addEventListener('click', () => {
-            // Redirect to the profile edit page or open a modal
-            window.location.href = '/edit_profile.html'; // Adjust based on your project structure
-        });
-    }
-
-    // Optional functionality to toggle password visibility
-    const viewPasswordButton = document.querySelector('.view-password');
-    const passwordInput = document.getElementById('info-password');
-
-    if (viewPasswordButton && passwordInput) {
-        viewPasswordButton.addEventListener('click', () => {
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text'; // Show the password
-                viewPasswordButton.textContent = '🙈'; // Update button text to indicate hidden mode
-            } else {
-                passwordInput.type = 'password'; // Hide the password
-                viewPasswordButton.textContent = '👁️'; // Update button text to indicate visible mode
-            }
+            window.location.href = '/edit_profile.html';
         });
     }
 });
