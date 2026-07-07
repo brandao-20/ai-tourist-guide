@@ -23,65 +23,91 @@ function ensureModalStyle() {
       display: none;
       position: fixed;
       z-index: 1001;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       overflow: auto;
-      background-color: rgba(0, 0, 0, 0.4);
+      background: rgba(25, 45, 34, 0.42);
+      backdrop-filter: blur(8px);
     }
     .modal-content {
-      background-color: #fefefe;
-      margin: 10% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 500px;
-      border-radius: 5px;
       position: relative;
+      width: min(520px, calc(100% - 40px));
+      margin: 12vh auto;
+      padding: 28px;
+      border: 1px solid rgba(52, 78, 65, 0.14);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 30px 90px rgba(25, 45, 34, 0.22);
+      color: #344e41;
+    }
+    .modal-content h2 {
+      margin: 0 36px 14px 0;
+      letter-spacing: -0.03em;
     }
     .close-button {
-      color: #aaa;
       position: absolute;
-      top: 10px;
-      right: 15px;
+      top: 18px;
+      right: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      color: #667367;
       font-size: 28px;
-      font-weight: bold;
+      font-weight: 900;
       cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     .close-button:hover,
     .close-button:focus {
-      color: black;
+      background: rgba(52, 78, 65, 0.08);
+      color: #24382e;
       text-decoration: none;
     }
     #add-monument-input {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
+      min-height: 48px;
+      padding: 0 14px;
+      margin-top: 8px;
+      border: 1px solid rgba(52, 78, 65, 0.16);
+      border-radius: 14px;
+      background: #f8faf5;
+      color: #24382e;
+      font: inherit;
+      outline: none;
       box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
+    }
+    #add-monument-input:focus {
+      border-color: rgba(52, 78, 65, 0.44);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(52, 78, 65, 0.1);
     }
     .autocomplete-suggestions {
+      display: grid;
+      gap: 6px;
       list-style-type: none;
-      padding: 0;
-      margin: 5px 0 0 0;
-      max-height: 150px;
+      padding: 8px;
+      margin: 8px 0 0;
+      max-height: 220px;
       overflow-y: auto;
-      border: 1px solid #ccc;
-      border-top: none;
-      background-color: #fff;
-      position: absolute;
-      width: 100%;
-      z-index: 1002;
+      border: 1px solid rgba(52, 78, 65, 0.12);
+      border-radius: 16px;
+      background-color: #ffffff;
+      box-shadow: 0 16px 40px rgba(25, 45, 34, 0.12);
+    }
+    .autocomplete-suggestions:empty {
+      display: none;
     }
     .autocomplete-suggestions li {
-      padding: 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      color: #344e41;
       cursor: pointer;
+      line-height: 1.4;
     }
     .autocomplete-suggestions li:hover {
-      background-color: #f0f0f0;
+      background-color: rgba(52, 78, 65, 0.08);
     }
   `;
   document.head.appendChild(style);
@@ -96,8 +122,8 @@ function createModal() {
   modal.innerHTML = `
     <div class="modal-content">
       <span class="close-button" aria-label="Close">&times;</span>
-      <h2>Add Monument</h2>
-      <input id="add-monument-input" type="text" placeholder="Enter the monument name..." autocomplete="off" />
+      <h2>Add custom stop</h2>
+      <input id="add-monument-input" type="text" placeholder="Search for a place or attraction..." autocomplete="off" />
       <ul id="autocomplete-suggestions" class="autocomplete-suggestions"></ul>
     </div>
   `;
@@ -149,7 +175,7 @@ export function createManualMonumentController({ state, displayMonumentsOnly, no
       };
 
       if (hasDuplicateMonument(state.currentMonuments, newMonument)) {
-        notify.warning('This monument has already been added.');
+        notify.warning('This stop has already been added.');
         return;
       }
 

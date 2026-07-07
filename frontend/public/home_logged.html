@@ -1,73 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Personalized Tourist Guide</title>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="home_logged.css?v=3.0" rel="stylesheet">
-    <script src="/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Personalized Tourist Guide AI dashboard with a map-first route preview, recent itinerary and saved routes.">
+  <meta name="theme-color" content="#31543f">
+  <link rel="icon" href="/globe-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="home_logged.css?v=7.0" rel="stylesheet">
+  <title>Personalized Tourist Guide AI</title>
+  <script src="/config.js"></script>
 </head>
-<body>
-    <header class="site-header">
-        <nav class="navbar" aria-label="Main navigation">
-            <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-            <button id="logout-btn" class="logout-btn" type="button">Logout</button>
-        </nav>
-    </header>
+<body class="app-page dashboard-page dashboard-page--classic">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="navbar" aria-label="Application navigation">
+      <a href="/dashboard" class="brand" aria-label="Tourist Guide AI dashboard">Tourist Guide AI</a>
+      <ul class="nav-links">
+        <li><a href="/dashboard" aria-current="page">Dashboard</a></li>
+        <li><a href="/plan-trip">Plan trip</a></li>
+        <li><a href="/saved-routes">Saved routes</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+      </ul>
+    </nav>
+  </header>
 
-    <main class="page-shell">
-        <section class="hero-section" aria-labelledby="dashboard-title">
-            <div>
-                <p class="eyebrow">Trip dashboard</p>
-                <h1 id="dashboard-title">Welcome back</h1>
-                <p class="hero-copy">Continue planning routes, review recent searches and open your saved itineraries.</p>
-            </div>
-            <a href="/profile.html" class="profile-link" aria-label="Open profile">
-                <img id="profile-pic" class="profile-pic" src="default-avatar.svg" alt="Profile picture">
-                <span id="user-name" class="profile-name">Traveller</span>
-            </a>
-        </section>
+  <main id="main-content" class="page-shell page-shell--app dashboard-shell dashboard-shell--classic">
+    <section class="welcome-panel" aria-labelledby="dashboard-title">
+      <div class="welcome-panel__content">
+        <span class="eyebrow eyebrow--dark">Welcome</span>
+        <img id="profile-pic" class="welcome-avatar" src="default-avatar.svg" alt="Traveller profile picture">
+        <h1 id="dashboard-title">Welcome back, <span id="hero-user-name">traveller</span></h1>
+        <p>Start from the map, continue your latest route or reopen saved itineraries.</p>
+        <div class="hero-actions"><a href="/plan-trip" class="btn btn-dark">Explore map</a><a href="/saved-routes" class="btn btn-light">Saved routes</a></div>
+      </div>
+      <aside class="profile-summary-card profile-summary-card--light" aria-label="Profile summary"><div><span>Signed in as</span><strong id="user-name">Traveller</strong><a href="/profile">View profile</a></div></aside>
+    </section>
 
-        <section class="dashboard-grid" aria-label="Travel shortcuts">
-            <article class="dashboard-card dashboard-card--explore">
-                <div class="card-header">
-                    <div>
-                        <p class="eyebrow">Explore</p>
-                        <h2>Start from your current area</h2>
-                    </div>
-                    <a href="/mainapp.html" class="card-action">Open planner</a>
-                </div>
-                <div class="map-container" id="mini-map" role="button" tabindex="0" aria-label="Open trip planner map"></div>
-            </article>
+    <section class="classic-map-card classic-map-card--explore" aria-labelledby="explore-title">
+      <div class="section-heading section-heading--split"><div><span class="eyebrow eyebrow--dark">Explore</span><h2 id="explore-title">Start from your map</h2></div><div class="header-actions"><button id="dashboard-location-button" class="action-button" type="button">Use current location</button><a href="/plan-trip" class="action-button action-button--primary">Open planner</a></div></div>
+      <div id="mini-map" class="mini-map mini-map--hero" tabindex="0" role="button" aria-label="Open planner"></div>
+      <p id="mini-map-caption" class="map-caption">Preparing your location preview.</p>
+    </section>
 
-            <article class="dashboard-card">
-                <div class="card-header">
-                    <div>
-                        <p class="eyebrow">Recent</p>
-                        <h2>Last route</h2>
-                    </div>
-                </div>
-                <div class="map-container" id="recent-map" role="button" tabindex="0" aria-label="Open recent route"></div>
-            </article>
-        </section>
+    <section class="classic-map-card" aria-labelledby="recent-title">
+      <div class="section-heading section-heading--split"><div><span class="eyebrow eyebrow--dark">Latest route</span><h2 id="recent-title">Continue where you stopped</h2></div></div>
+      <div id="recent-map" class="mini-map mini-map--hero is-hidden" tabindex="0" role="button" aria-label="Open latest route"></div>
+      <div id="recent-summary" class="favorites-grid favorites-grid--classic" aria-live="polite"></div>
+    </section>
 
-        <section class="dashboard-card favorites-section" aria-labelledby="favorites-title">
-            <div class="card-header">
-                <div>
-                    <p class="eyebrow">Saved</p>
-                    <h2 id="favorites-title">Favorite itineraries</h2>
-                </div>
-                <a href="/mainapp.html" class="card-action">Create new</a>
-            </div>
-            <div id="favorites-container" class="favorites-grid" aria-live="polite"></div>
-        </section>
-    </main>
+    <section class="classic-map-card" aria-labelledby="saved-routes-title">
+      <div class="section-heading section-heading--split"><div><span class="eyebrow eyebrow--dark">Saved routes</span><h2 id="saved-routes-title"><span id="favorites-title">Your saved routes</span></h2></div><a href="/saved-routes" class="action-button">View all</a></div>
+      <div id="favorites-container" class="favorites-grid favorites-grid--classic" aria-live="polite"></div>
+    </section>
+  </main>
 
-    <footer class="site-footer">
-        <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-    </footer>
-
-    <script src="/build/home_logged.js"></script>
+  <footer class="site-footer">
+    <div class="footer-grid footer-grid--simple">
+      <section class="footer-brand" aria-label="Project summary">
+        <h2>Personalized Tourist Guide AI</h2>
+        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+      </section>
+      <section class="footer-column footer-column--project" aria-label="Project links">
+        <h3>Project</h3>
+        <a href="/contact">GitHub</a>
+        <a href="/contact">Professional profile</a>
+        <a href="/contact">Contact</a>
+      </section>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
+  </footer>
+  <script src="/build/home_logged.js"></script>
+  <script src="/nav-surface.js"></script>
 </body>
 </html>

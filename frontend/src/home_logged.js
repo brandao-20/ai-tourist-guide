@@ -1,8 +1,12 @@
 import { apiGet } from './api.js';
 import { getApiUrl, getUploadUrl, getGoogleMapsBrowserApiKey } from './config.js';
+import { getFallbackLocation, getPreferredMapLocation } from './location.js';
 
-const DEFAULT_LOCATION = { lat: 38.7223, lng: -9.1393 };
+const DEFAULT_LOCATION = getFallbackLocation();
 const DEFAULT_AVATAR = 'default-avatar.svg';
+
+let dashboardMiniMap = null;
+let dashboardMiniMapMarker = null;
 
 function getElement(id) {
     return document.getElementById(id);
@@ -25,18 +29,28 @@ function setImage(id, src, alt) {
     image.alt = alt;
 }
 
-function createStateCard(title, description, action) {
+function createTextElement(tagName, text, className) {
+    const element = document.createElement(tagName);
+    if (className) {
+        element.className = className;
+    }
+    element.textContent = text || '';
+    return element;
+}
+
+function createStateCard(title, description, action, badge = null) {
     const card = document.createElement('div');
     card.className = 'state-card';
 
-    const heading = document.createElement('h3');
-    heading.textContent = title;
+    if (badge) {
+        card.appendChild(createTextElement('span', badge, 'state-card__badge'));
+    }
+
+    const heading = createTextElement('h3', title);
     card.appendChild(heading);
 
     if (description) {
-        const text = document.createElement('p');
-        text.textContent = description;
-        card.appendChild(text);
+        card.appendChild(createTextElement('p', description));
     }
 
     if (action) {
@@ -50,35 +64,177 @@ function createStateCard(title, description, action) {
     return card;
 }
 
-function replaceWithState(container, title, description, action) {
+function replaceWithState(container, title, description, action, badge = null) {
     if (!container) {
         return;
     }
 
     container.innerHTML = '';
-    container.appendChild(createStateCard(title, description, action));
+    container.appendChild(createStateCard(title, description, action, badge));
 }
 
-function setMapUnavailableState(message = 'Map preview unavailable.') {
+function setDashboardMetric(id, value) {
+    const element = getElement(id);
+    if (element) {
+        element.textContent = value;
+    }
+}
+
+function hasConfiguredPreferences(user) {
+    const preferences = user?.travelPreferences || {};
+    return Boolean(
+        preferences.notes ||
+        (Array.isArray(preferences.favoriteInterests) && preferences.favoriteInterests.length > 0)
+    );
+}
+
+function setOnboardingStep(id, { complete = false, current = false } = {}) {
+    const element = getElement(id);
+    if (!element) {
+        return;
+    }
+
+    element.classList.toggle('is-complete', complete);
+    element.classList.toggle('is-current', current && !complete);
+    element.setAttribute('aria-label', `${element.querySelector('strong')?.textContent || 'Step'}: ${complete ? 'complete' : 'pending'}`);
+}
+
+function updateOnboardingState(user, favorites = [], recentSearch = null) {
+    const hasPreferences = hasConfiguredPreferences(user);
+    const hasRecentRoute = Boolean(recentSearch?.directions?.routes);
+    const hasFavorites = Array.isArray(favorites) && favorites.length > 0;
+
+    setOnboardingStep('step-profile', {
+        complete: hasPreferences,
+        current: !hasPreferences,
+    });
+    setOnboardingStep('step-planner', {
+        complete: hasRecentRoute,
+        current: hasPreferences && !hasRecentRoute,
+    });
+    setOnboardingStep('step-favorites', {
+        complete: hasFavorites,
+        current: hasPreferences && hasRecentRoute && !hasFavorites,
+    });
+}
+
+function setMapUnavailableState(message = 'The interactive map is temporarily unavailable. Your saved routes are still available as cards and lists.') {
+    setDashboardMetric('maps-state', 'List view');
+    setText('mini-map-caption', 'Map preview temporarily unavailable');
+    setDashboardMetric('recent-route-state', 'List view');
+    setText('favorites-meta', 'List view available');
+
     replaceWithState(
         getElement('mini-map'),
-        'Explore map unavailable',
+        'Map temporarily unavailable',
         message,
-        { href: '/mainapp.html', label: 'Open trip planner' }
+        { href: '/plan-trip', label: 'Plan a trip' },
+        'List view available'
     );
 
     replaceWithState(
         getElement('recent-map'),
-        'No map preview',
-        'Recent routes can still be opened from the trip planner when available.',
-        { href: '/mainapp.html', label: 'Open trip planner' }
+        'Route preview unavailable',
+        'Your recent itinerary is still available as a list when map previews cannot load.',
+        { href: '/plan-trip', label: 'Plan a trip' },
+        'List view available'
+    );
+
+    replaceWithState(
+        getElement('recent-summary'),
+        'Recent itinerary available as a list',
+        'Open the planner to continue with the available itinerary details.',
+        { href: '/plan-trip', label: 'Open planner' }
     );
 
     replaceWithState(
         getElement('favorites-container'),
-        'Favorite previews unavailable',
-        'Saved routes are still available when Google Maps is configured.'
+        'Saved routes available',
+        'Open saved routes to review itinerary cards and stop lists.',
+        { href: '/saved-routes', label: 'View saved routes' },
+        'List view available'
     );
+}
+
+function formatDisplayDate(dateValue) {
+    if (!dateValue) {
+        return 'Unknown date';
+    }
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) {
+        return 'Unknown date';
+    }
+
+    return new Intl.DateTimeFormat('en', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(date);
+}
+
+function getFavoriteMonuments(favorite) {
+    return Array.isArray(favorite?.itinerary?.monuments) ? favorite.itinerary.monuments : [];
+}
+
+function getItineraryDays(itinerary) {
+    if (Array.isArray(itinerary?.days)) {
+        return itinerary.days.length;
+    }
+
+    if (Array.isArray(itinerary)) {
+        return itinerary.length;
+    }
+
+    return 0;
+}
+
+function getRouteLegs(routeData) {
+    const legs = routeData?.routes?.[0]?.legs;
+    return Array.isArray(legs) ? legs : [];
+}
+
+function getRouteSummary(routeData, monuments = []) {
+    const legs = getRouteLegs(routeData);
+    const firstLeg = legs[0];
+    const lastLeg = legs[legs.length - 1];
+
+    return {
+        legCount: legs.length,
+        firstStop: firstLeg?.start_address || monuments[0]?.name || 'Start unavailable',
+        lastStop: lastLeg?.end_address || monuments[monuments.length - 1]?.name || 'Destination unavailable',
+        distance: firstLeg?.distance?.text || (legs.length > 0 ? 'Multiple legs' : 'Distance unavailable'),
+        duration: firstLeg?.duration?.text || (legs.length > 0 ? 'Multiple legs' : 'Duration unavailable'),
+    };
+}
+
+function getFavoriteSummary(favorite) {
+    const monuments = getFavoriteMonuments(favorite);
+    const routeSummary = getRouteSummary(favorite?.map_data, monuments);
+    const days = getItineraryDays(favorite?.itinerary);
+
+    return {
+        stops: monuments.length,
+        days,
+        legs: routeSummary.legCount,
+        firstStop: routeSummary.firstStop,
+        lastStop: routeSummary.lastStop,
+        updatedAt: formatDisplayDate(favorite?.updatedAt || favorite?.createdAt),
+    };
+}
+
+function createMetaList(items) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'favorite-card__meta';
+
+    items.forEach((item) => {
+        if (!item) {
+            return;
+        }
+        wrapper.appendChild(createTextElement('span', item));
+    });
+
+    return wrapper;
 }
 
 async function updateUserNameAndImage() {
@@ -86,64 +242,104 @@ async function updateUserNameAndImage() {
     const displayName = user.name || 'Traveller';
 
     setText('user-name', displayName);
+    setText('hero-user-name', displayName.split(' ')[0] || displayName);
     setImage(
         'profile-pic',
         user.profileImage ? getUploadUrl(user.profileImage) : DEFAULT_AVATAR,
         `${displayName} profile picture`
     );
+
+    return user;
 }
 
-function initMiniMap() {
+async function applyDashboardMapLocation(location, { forced = false } = {}) {
+    const mapElement = getElement('mini-map');
+    if (!mapElement || !window.google?.maps) {
+        return;
+    }
+
+    const center = { lat: location.lat, lng: location.lng };
+
+    if (!dashboardMiniMap) {
+        mapElement.innerHTML = '';
+        dashboardMiniMap = new google.maps.Map(mapElement, {
+            center,
+            zoom: location.source === 'browser' || location.source === 'cached' ? 13 : 6,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+        });
+
+        dashboardMiniMap.addListener('click', () => {
+            window.location.href = '/plan-trip';
+        });
+
+        mapElement.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                window.location.href = '/plan-trip';
+            }
+        });
+    } else {
+        dashboardMiniMap.setCenter(center);
+        dashboardMiniMap.setZoom(location.source === 'browser' || location.source === 'cached' ? 13 : 6);
+    }
+
+    if (dashboardMiniMapMarker) {
+        dashboardMiniMapMarker.setMap(null);
+    }
+
+    dashboardMiniMapMarker = new google.maps.Marker({
+        position: center,
+        map: dashboardMiniMap,
+        title: location.label || 'Map preview location',
+    });
+
+    if (location.source === 'browser') {
+        setText('mini-map-caption', 'Current location preview. Open the planner to build a route.');
+        return;
+    }
+
+    if (location.source === 'cached') {
+        setText('mini-map-caption', 'Last shared location preview. Use current location to refresh it.');
+        return;
+    }
+
+    setText(
+        'mini-map-caption',
+        forced
+            ? 'Browser location is unavailable. Check site permissions and try again.'
+            : 'Allow browser location or use the button above to centre this map on your current position.'
+    );
+}
+
+async function initMiniMap() {
     const mapElement = getElement('mini-map');
     if (!mapElement) {
         return;
     }
 
-    const miniMap = new google.maps.Map(mapElement, {
-        center: DEFAULT_LOCATION,
-        zoom: 14,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-    });
+    mapElement.innerHTML = '';
+    const location = await getPreferredMapLocation();
+    await applyDashboardMapLocation(location);
+}
 
-    const userMarker = new google.maps.Marker({
-        position: DEFAULT_LOCATION,
-        map: miniMap,
-        title: 'You',
-    });
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const userPosition = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                };
-                userMarker.setPosition(userPosition);
-                miniMap.setCenter(userPosition);
-
-                navigator.geolocation.watchPosition(
-                    (positionUpdate) => {
-                        const livePosition = {
-                            lat: positionUpdate.coords.latitude,
-                            lng: positionUpdate.coords.longitude,
-                        };
-                        userMarker.setPosition(livePosition);
-                        miniMap.setCenter(livePosition);
-                    },
-                    () => {},
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-        );
+async function forceDashboardLocation() {
+    const button = getElement('dashboard-location-button');
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'Locating...';
     }
 
-    miniMap.addListener('click', () => {
-        window.location.href = '/mainapp.html';
-    });
+    try {
+        const location = await getPreferredMapLocation({ allowCache: false });
+        await applyDashboardMapLocation(location, { forced: true });
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = 'Use current location';
+        }
+    }
 }
 
 function loadGoogleMapsScript() {
@@ -172,16 +368,16 @@ function loadGoogleMapsScript() {
 function renderDirectionsPreview(mapElement, directions, options = {}) {
     const map = new google.maps.Map(mapElement, {
         zoom: options.zoom || 6,
-        center: DEFAULT_LOCATION,
+        center: { lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng },
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
     });
 
     const directionsRenderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: true,
+        suppressMarkers: options.suppressMarkers ?? true,
         polylineOptions: {
-            strokeColor: '#FF0000',
+            strokeColor: '#3A5A40',
             strokeWeight: 4,
         },
     });
@@ -191,19 +387,58 @@ function renderDirectionsPreview(mapElement, directions, options = {}) {
     return map;
 }
 
+function createFavoriteCard(favorite) {
+    const card = document.createElement('a');
+    card.href = `/route-details?favoriteId=${encodeURIComponent(favorite.id)}`;
+    card.className = 'favorite-card';
+
+    const mapWrapper = document.createElement('div');
+    mapWrapper.className = 'favorite-card__map';
+
+    const badge = createTextElement('span', 'Saved route', 'favorite-card__badge');
+    const miniMap = document.createElement('div');
+    const miniMapId = `mini-map-fav-${favorite.id}`;
+    miniMap.id = miniMapId;
+    miniMap.className = 'favorite-mini-map';
+
+    mapWrapper.append(badge, miniMap);
+
+    const body = document.createElement('div');
+    body.className = 'favorite-card__body';
+    body.appendChild(createTextElement('h3', favorite.name || 'Saved itinerary'));
+
+    const summary = getFavoriteSummary(favorite);
+    body.appendChild(createTextElement('p', `${summary.firstStop} → ${summary.lastStop}`));
+    body.appendChild(createMetaList([
+        `${summary.stops} stops`,
+        summary.days > 0 ? `${summary.days} days` : null,
+        summary.legs > 0 ? `${summary.legs} route legs` : 'Map route',
+        summary.updatedAt,
+    ]));
+
+    card.append(mapWrapper, body);
+    return { card, miniMapId };
+}
+
 function renderFavoriteFallback(favorite, container) {
     const card = document.createElement('a');
-    card.href = `/route_details.html?favoriteId=${encodeURIComponent(favorite.id)}`;
+    card.href = `/route-details?favoriteId=${encodeURIComponent(favorite.id)}`;
     card.className = 'favorite-card favorite-card--fallback';
 
-    const title = document.createElement('h3');
-    title.textContent = favorite.name || 'Saved itinerary';
+    const body = document.createElement('div');
+    body.className = 'favorite-card__body';
 
-    const description = document.createElement('p');
-    description.textContent = 'Open this saved route to view its full details.';
+    const summary = getFavoriteSummary(favorite);
+    body.appendChild(createTextElement('h3', favorite.name || 'Saved itinerary'));
+    body.appendChild(createTextElement('p', `${summary.firstStop} → ${summary.lastStop}`));
+    body.appendChild(createMetaList([
+        `${summary.stops} stops`,
+        summary.days > 0 ? `${summary.days} days` : null,
+        'Open details',
+        summary.updatedAt,
+    ]));
 
-    card.appendChild(title);
-    card.appendChild(description);
+    card.appendChild(body);
     container.appendChild(card);
 }
 
@@ -216,15 +451,22 @@ function initMiniMapForFavorite(favorite, elementId) {
     try {
         const favoriteMap = renderDirectionsPreview(mapElement, favorite.map_data);
         favoriteMap.addListener('click', () => {
-            window.location.href = `/route_details.html?favoriteId=${encodeURIComponent(favorite.id)}`;
+            window.location.href = `/route-details?favoriteId=${encodeURIComponent(favorite.id)}`;
         });
     } catch (error) {
-        const wrapper = mapElement.closest('.favorite-mini-map-wrapper');
-        if (wrapper) {
-            wrapper.remove();
-            renderFavoriteFallback(favorite, getElement('favorites-container'));
+        const card = mapElement.closest('.favorite-card');
+        if (card) {
+            const container = getElement('favorites-container');
+            card.remove();
+            renderFavoriteFallback(favorite, container);
         }
     }
+}
+
+function updateFavoritesMeta(favorites) {
+    const count = Array.isArray(favorites) ? favorites.length : 0;
+    setDashboardMetric('favorite-count', String(count));
+    setText('favorites-meta', count === 1 ? '1 saved route' : `${count} saved routes`);
 }
 
 async function loadFavorites() {
@@ -239,103 +481,163 @@ async function loadFavorites() {
     try {
         const favoritesArray = await apiGet('/favorites');
         favoritesContainer.removeAttribute('aria-busy');
+        updateFavoritesMeta(favoritesArray);
 
         if (!Array.isArray(favoritesArray) || favoritesArray.length === 0) {
             replaceWithState(
                 favoritesContainer,
-                'No favorites yet',
-                'Plan a route and save it to keep it here for quick access.',
-                { href: '/mainapp.html', label: 'Plan a route' }
+                'No saved routes yet',
+                'Create your first itinerary and save it for later.',
+                null
             );
-            return;
+            return favoritesArray;
         }
 
         favoritesArray.forEach((favorite) => {
-            if (!favorite.map_data) {
+            if (!favorite.map_data?.routes) {
                 renderFavoriteFallback(favorite, favoritesContainer);
                 return;
             }
 
-            const favoriteWrapper = document.createElement('article');
-            favoriteWrapper.className = 'favorite-mini-map-wrapper';
-
-            const miniMapId = `mini-map-fav-${favorite.id}`;
-            const miniMapDiv = document.createElement('div');
-            miniMapDiv.id = miniMapId;
-            miniMapDiv.className = 'favorite-mini-map';
-
-            const favoriteName = document.createElement('p');
-            favoriteName.className = 'favorite-name';
-            favoriteName.textContent = favorite.name || 'Saved itinerary';
-
-            favoriteWrapper.appendChild(miniMapDiv);
-            favoriteWrapper.appendChild(favoriteName);
-            favoritesContainer.appendChild(favoriteWrapper);
+            const { card, miniMapId } = createFavoriteCard(favorite);
+            favoritesContainer.appendChild(card);
             initMiniMapForFavorite(favorite, miniMapId);
         });
+
+        return favoritesArray;
     } catch (error) {
         favoritesContainer.removeAttribute('aria-busy');
+        setDashboardMetric('favorite-count', '—');
+        setText('favorites-meta', 'Could not load');
         replaceWithState(
             favoritesContainer,
-            'Could not load favorites',
+            'Could not load saved routes',
             'Please refresh the page or sign in again.'
         );
+        return [];
     }
+}
+
+function renderRecentSummary(recentSearch) {
+    const container = getElement('recent-summary');
+    if (!container) {
+        return;
+    }
+
+    const monuments = Array.isArray(recentSearch?.monuments) ? recentSearch.monuments : [];
+    const routeSummary = getRouteSummary(recentSearch?.directions, monuments);
+    const query = recentSearch?.query_params || {};
+    const cities = Array.isArray(query.selectedCities) ? query.selectedCities.join(', ') : '';
+
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+
+    card.appendChild(createTextElement('h3', cities || 'Recent route'));
+    card.appendChild(createTextElement('p', `${routeSummary.firstStop} → ${routeSummary.lastStop}`));
+
+    const meta = document.createElement('div');
+    meta.className = 'summary-meta';
+    [
+        `${monuments.length} stops`,
+        getItineraryDays(recentSearch?.itinerary) > 0 ? `${getItineraryDays(recentSearch.itinerary)} days` : null,
+        routeSummary.legCount > 0 ? `${routeSummary.legCount} legs` : 'Route saved',
+        formatDisplayDate(recentSearch?.updated_at || recentSearch?.created_at),
+    ].forEach((item) => {
+        if (item) {
+            meta.appendChild(createTextElement('span', item));
+        }
+    });
+
+    card.appendChild(meta);
+    container.replaceChildren(card);
 }
 
 async function loadRecentSearch() {
     const recentMapContainer = getElement('recent-map');
-    if (!recentMapContainer) {
-        return;
+    const recentSummary = getElement('recent-summary');
+    if (!recentSummary) {
+        return null;
     }
 
     try {
         const recentSearch = await apiGet('/recent_search');
-        if (!recentSearch?.directions) {
+        if (!recentSearch?.directions?.routes) {
+            if (recentMapContainer) {
+                recentMapContainer.classList.add('is-hidden');
+            }
+            setDashboardMetric('recent-route-state', 'Empty');
             replaceWithState(
-                recentMapContainer,
-                'No recent route',
-                'Your latest planned route will appear here.',
-                { href: '/mainapp.html', label: 'Plan a route' }
+                recentSummary,
+                'No recent route yet',
+                'Your latest generated itinerary will appear here.',
+                null
             );
-            return;
+            return null;
         }
 
-        renderDirectionsPreview(recentMapContainer, recentSearch.directions);
-        recentMapContainer.addEventListener('click', () => {
+        setDashboardMetric('recent-route-state', 'Ready');
+        if (recentMapContainer) {
+            recentMapContainer.classList.remove('is-hidden');
+            recentMapContainer.innerHTML = '';
+            renderDirectionsPreview(recentMapContainer, recentSearch.directions);
+        }
+        renderRecentSummary(recentSearch);
+
+        const openRecentRoute = () => {
             localStorage.setItem('recentSearch', JSON.stringify(recentSearch));
-            window.location.href = '/mainapp.html?recent=true';
+            window.location.href = '/plan-trip?recent=true';
+        };
+
+        recentMapContainer?.addEventListener('click', openRecentRoute);
+        recentMapContainer?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openRecentRoute();
+            }
         });
+
+        return recentSearch;
     } catch (error) {
+        if (recentMapContainer) {
+            recentMapContainer.classList.add('is-hidden');
+        }
+        setDashboardMetric('recent-route-state', 'Empty');
         replaceWithState(
-            recentMapContainer,
-            'No recent route',
-            'Your latest planned route will appear here.',
-            { href: '/mainapp.html', label: 'Plan a route' }
+            recentSummary,
+            'No recent route yet',
+            'Your latest generated itinerary will appear here.',
+            null
         );
+        return null;
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     const logoutButton = getElement('logout-btn');
+    getElement('dashboard-location-button')?.addEventListener('click', forceDashboardLocation);
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
             window.location.href = getApiUrl('/logout');
         });
     }
 
+    let user;
     try {
-        await updateUserNameAndImage();
+        user = await updateUserNameAndImage();
+        updateOnboardingState(user);
     } catch (error) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
         return;
     }
 
     try {
         await loadGoogleMapsScript();
-        initMiniMap();
-        await Promise.all([loadFavorites(), loadRecentSearch()]);
+        setDashboardMetric('maps-state', 'Ready');
+        await initMiniMap();
+        const [favorites, recentSearch] = await Promise.all([loadFavorites(), loadRecentSearch()]);
+        updateOnboardingState(user, favorites, recentSearch);
     } catch (error) {
-        setMapUnavailableState('Configure GOOGLE_MAPS_BROWSER_API_KEY to enable interactive route previews.');
+        setMapUnavailableState('The interactive map is temporarily unavailable. Your saved routes are still available as cards and lists.');
+        updateOnboardingState(user);
     }
 });

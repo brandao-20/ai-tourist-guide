@@ -16,7 +16,7 @@ const pageEntries = [
   'edit_profile',
   'mainapp',
   'route_details',
-  'status',
+  'favorites',
 ];
 
 function createPlugins() {

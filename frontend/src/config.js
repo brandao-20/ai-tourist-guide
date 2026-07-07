@@ -9,7 +9,20 @@ export function getApiUrl(path = '') {
 }
 
 export function getGoogleMapsBrowserApiKey() {
-  return window.APP_CONFIG?.GOOGLE_MAPS_BROWSER_API_KEY || '';
+  const value = window.APP_CONFIG?.GOOGLE_MAPS_BROWSER_API_KEY;
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const normalized = value.trim();
+  const lower = normalized.toLowerCase();
+  const placeholders = [
+    'your_google_maps_browser_api_key',
+    'replace_with_google_maps_browser_api_key',
+    'change_me_google_maps_browser_api_key',
+  ];
+
+  return normalized && !placeholders.includes(lower) ? normalized : '';
 }
 
 export function getUploadUrl(filename) {

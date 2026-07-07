@@ -64,15 +64,19 @@ export function setButtonBusy(button, busyLabel = 'Loading...') {
 function createFavoriteNameModal() {
   const modal = document.createElement('div');
   modal.id = 'favoriteModal';
-  modal.className = 'modal';
+  modal.className = 'modal favorite-modal';
   modal.innerHTML = `
-    <div class="modal-content" style="text-align: center;">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="favoriteModalTitle">
       <span class="close-button" id="favoriteModalClose" aria-label="Close">&times;</span>
-      <h2 style="color: #344e41;">Save Favorite Itinerary</h2>
-      <input type="text" id="favoriteNameInput" maxlength="120" placeholder="Enter a name for the itinerary" style="padding:10px; width:80%; border:1px solid #ccc; border-radius:4px; margin:10px 0;">
-      <div>
-        <button id="favoriteModalSave" type="button" style="background-color: #344e41; color:#fff; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; margin-right:10px;">Save</button>
-        <button id="favoriteModalCancel" type="button" style="background-color: #ff4d4d; color:#fff; padding:10px 20px; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
+      <h2 id="favoriteModalTitle">Save favorite itinerary</h2>
+      <p class="favorite-modal__intro">Name this route so it is easy to find later from the dashboard.</p>
+      <label class="favorite-modal__field" for="favoriteNameInput">
+        Itinerary name
+        <input type="text" id="favoriteNameInput" maxlength="120" placeholder="Example: Lisbon weekend route" autocomplete="off">
+      </label>
+      <div class="favorite-modal__actions">
+        <button id="favoriteModalCancel" type="button">Cancel</button>
+        <button id="favoriteModalSave" type="button">Save itinerary</button>
       </div>
     </div>
   `;
@@ -81,16 +85,35 @@ function createFavoriteNameModal() {
   return modal;
 }
 
-export function showFavoriteNameModal(callback) {
+export function showFavoriteNameModal(callback, options = {}) {
   const modal = document.getElementById('favoriteModal') || createFavoriteNameModal();
   const input = modal.querySelector('#favoriteNameInput');
   const closeButton = modal.querySelector('#favoriteModalClose');
   const cancelButton = modal.querySelector('#favoriteModalCancel');
   const saveButton = modal.querySelector('#favoriteModalSave');
+  const title = modal.querySelector('#favoriteModalTitle');
+  const intro = modal.querySelector('.favorite-modal__intro');
+
+  const {
+    defaultName = '',
+    title: modalTitle = 'Save favorite itinerary',
+    description = 'Name this route so it is easy to find later from the dashboard.',
+    submitLabel = 'Save itinerary',
+  } = options;
 
   const closeModal = () => {
     modal.style.display = 'none';
   };
+
+  if (title) {
+    title.textContent = modalTitle;
+  }
+  if (intro) {
+    intro.textContent = description;
+  }
+  if (saveButton) {
+    saveButton.textContent = submitLabel;
+  }
 
   closeButton.onclick = closeModal;
   cancelButton.onclick = closeModal;
@@ -114,7 +137,9 @@ export function showFavoriteNameModal(callback) {
     }
   };
 
-  input.value = '';
+  input.value = defaultName;
+  input.placeholder = defaultName || 'Example: Lisbon weekend route';
   modal.style.display = 'block';
   input.focus();
+  input.select();
 }

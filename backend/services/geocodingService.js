@@ -25,14 +25,19 @@ function extractCoordinates(responseData) {
 }
 
 function logGeocodingFailure(reason, details) {
-  logServerWarning(`Geocoding skipped: ${reason}`, details);
+  logServerWarning(`Google Maps geocoding unavailable: ${reason}`, details);
 }
 
 async function geocodeAddress(address) {
   const normalizedAddress = normalizeAddress(address);
   const apiKey = appConfig.googleMaps.serverApiKey;
 
-  if (!normalizedAddress || !apiKey) {
+  if (!normalizedAddress) {
+    return null;
+  }
+
+  if (!apiKey) {
+    logGeocodingFailure('server API key is not configured.');
     return null;
   }
 

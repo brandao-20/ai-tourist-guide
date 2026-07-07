@@ -1,8 +1,22 @@
+const LABEL_BY_TYPE = {
+  country: 'country',
+  city: 'city',
+  attraction: 'interests',
+  day: 'duration',
+};
+
+const SUMMARY_BY_SELECTED_KEY = {
+  countries: 'Country',
+  cities: 'City',
+  attractions: 'Interests',
+  days: 'Duration',
+};
+
 const ATTRACTIONS = [
   'Museums',
   'Parks',
   'Stadiums',
-  'Monuments',
+  'Landmarks',
   'Beaches',
   'Art Galleries',
   'Zoos',
@@ -34,8 +48,9 @@ function escapeSelectorValue(value) {
     return window.CSS.escape(String(value));
   }
 
-  return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\"');
+  return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
+
 function getDropdowns() {
   return {
     countries: document.getElementById('countries-list'),
@@ -58,10 +73,88 @@ function getItemsContainer(dropdown, type) {
   return itemsContainer;
 }
 
+function getSummaryContainer() {
+  return document.getElementById('selection-summary');
+}
+
 function closeAllDropdowns() {
-  document.querySelectorAll('.dropdown-menu.open').forEach((menu) => {
-    menu.classList.remove('open');
+  document.querySelectorAll('.dropdown.open').forEach((dropdown) => {
+    dropdown.classList.remove('open');
+    const menu = dropdown.querySelector('.dropdown-menu');
+    const toggle = dropdown.querySelector('.dropdown-toggle');
+    menu?.classList.remove('open');
+    toggle?.setAttribute('aria-expanded', 'false');
   });
+}
+
+function updateDropdownToggleLabel(dropdown, type, selectedSet) {
+  const wrapper = dropdown?.closest('.dropdown');
+  const toggle = wrapper?.querySelector('.dropdown-toggle');
+  if (!toggle) {
+    return;
+  }
+
+  const count = selectedSet?.size || 0;
+  if (type === 'day' && count > 0) {
+    const selectedValue = Array.from(selectedSet)[0];
+    const selectedLabel = selectedValue === '1' ? '1 day' : `${selectedValue} days`;
+    toggle.textContent = selectedLabel;
+  } else {
+    toggle.textContent = count > 0 ? `${count} ${LABEL_BY_TYPE[type]} selected` : `Choose ${LABEL_BY_TYPE[type]}`;
+  }
+  toggle.setAttribute('aria-expanded', dropdown.classList.contains('open') ? 'true' : 'false');
+}
+
+function getSelectedLabels(dropdown, selectedSet) {
+  return Array.from(selectedSet).map((value) => {
+    const item = dropdown?.querySelector(`[data-value="${escapeSelectorValue(value)}"]`);
+    return item?.dataset.label || value;
+  });
+}
+
+function createSelectionChip(label, value) {
+  const chip = document.createElement('span');
+  chip.className = 'selection-chip';
+
+  const strong = document.createElement('strong');
+  strong.textContent = label;
+
+  const text = document.createElement('span');
+  text.textContent = value;
+
+  chip.append(strong, text);
+  return chip;
+}
+
+function updateSelectionSummary(selected, dropdowns) {
+  const summary = getSummaryContainer();
+  if (!summary) {
+    return;
+  }
+
+  summary.replaceChildren();
+
+  const chips = [];
+  Object.entries(selected).forEach(([selectedKey, selectedSet]) => {
+    if (selectedSet.size === 0) {
+      return;
+    }
+
+    const labels = getSelectedLabels(dropdowns[selectedKey], selectedSet);
+    const value = labels.slice(0, 3).join(', ');
+    const extra = labels.length > 3 ? ` +${labels.length - 3}` : '';
+    chips.push(createSelectionChip(SUMMARY_BY_SELECTED_KEY[selectedKey], `${value}${extra}`));
+  });
+
+  if (chips.length === 0) {
+    const empty = document.createElement('span');
+    empty.className = 'selection-summary__empty';
+    empty.textContent = 'No trip details selected yet.';
+    summary.appendChild(empty);
+    return;
+  }
+
+  chips.forEach((chip) => summary.appendChild(chip));
 }
 
 function setupDropdownToggle(dropdown) {
@@ -69,17 +162,24 @@ function setupDropdownToggle(dropdown) {
     return;
   }
 
-  const wrapper = dropdown.closest('.dropdown');
-  const toggle = wrapper?.querySelector('.dropdown-toggle');
-  if (!toggle) {
+  const toggle = dropdown.querySelector('.dropdown-toggle');
+  const menu = dropdown.querySelector('.dropdown-menu');
+  if (!toggle || !menu) {
     return;
   }
 
   toggle.addEventListener('click', (event) => {
+    event.preventDefault();
     event.stopPropagation();
     const isOpen = dropdown.classList.contains('open');
     closeAllDropdowns();
     dropdown.classList.toggle('open', !isOpen);
+    menu.classList.toggle('open', !isOpen);
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+    if (!isOpen) {
+      const searchInput = dropdown.querySelector('.dropdown-search');
+      window.setTimeout(() => searchInput?.focus(), 0);
+    }
   });
 
   dropdown.addEventListener('click', (event) => {
@@ -171,6 +271,10 @@ export function createSearchFormController({ apiGet, notify }) {
     days: new Set(),
   };
 
+  function refreshSummary() {
+    updateSelectionSummary(selected, dropdowns);
+  }
+
   function createDropdownItems(dropdown, items, type) {
     const itemsContainer = getItemsContainer(dropdown, type);
     const selectedKey = SELECTED_SET_BY_TYPE[type];
@@ -183,27 +287,45 @@ export function createSearchFormController({ apiGet, notify }) {
       const option = document.createElement('div');
       option.className = 'dropdown-item';
       option.dataset.value = item.value;
+      option.dataset.label = item.name;
       option.dataset.type = type;
       option.dataset.country = item.country || '';
       option.innerText = item.name;
 
       option.addEventListener('click', (event) => {
         event.stopPropagation();
-        const isSelected = option.classList.toggle('selected');
         const selectedSet = selected[selectedKey];
+        const wasSelected = option.classList.contains('selected');
+
+        if (type === 'day') {
+          itemsContainer.querySelectorAll('.dropdown-item.selected').forEach((selectedOption) => {
+            selectedOption.classList.remove('selected');
+          });
+          selectedSet.clear();
+        }
+
+        const isSelected = type === 'day' ? !wasSelected : option.classList.toggle('selected');
+        if (type === 'day') {
+          option.classList.toggle('selected', isSelected);
+        }
 
         if (isSelected) {
           selectedSet.add(item.value);
           if (type === 'country') {
             loadCitiesForCountry(item.value);
           }
-          return;
+          if (type === 'day') {
+            closeAllDropdowns();
+          }
+        } else {
+          selectedSet.delete(item.value);
+          if (type === 'country') {
+            removeCitiesOfCountry(item.value);
+          }
         }
 
-        selectedSet.delete(item.value);
-        if (type === 'country') {
-          removeCitiesOfCountry(item.value);
-        }
+        updateDropdownToggleLabel(dropdown, type, selectedSet);
+        refreshSummary();
       });
 
       itemsContainer.appendChild(option);
@@ -211,6 +333,8 @@ export function createSearchFormController({ apiGet, notify }) {
 
     setupDropdownToggle(dropdown);
     setupDropdownSearch(dropdown);
+    updateDropdownToggleLabel(dropdown, type, selected[selectedKey]);
+    refreshSummary();
   }
 
   async function loadCountries() {
@@ -266,6 +390,9 @@ export function createSearchFormController({ apiGet, notify }) {
       selected.cities.delete(cityValue);
       option.remove();
     });
+
+    updateDropdownToggleLabel(dropdowns.cities, 'city', selected.cities);
+    refreshSummary();
   }
 
   function loadAttractions() {
@@ -277,9 +404,10 @@ export function createSearchFormController({ apiGet, notify }) {
   }
 
   function loadDays() {
-    const days = Array.from({ length: 30 }, (_, index) => {
+    const days = Array.from({ length: 14 }, (_, index) => {
       const value = String(index + 1);
-      return { name: value, value };
+      const label = index === 0 ? '1 day' : `${value} days`;
+      return { name: label, value };
     });
     createDropdownItems(dropdowns.days, days, 'day');
   }
@@ -296,9 +424,7 @@ export function createSearchFormController({ apiGet, notify }) {
 
   function validatePayload(payload) {
     const errors = [];
-    if (!payload.generalQuery) {
-      errors.push('Please fill in the search bar before searching.');
-    }
+    // Notes are helpful but optional: selected filters are enough to create a demo route.
     if (payload.selectedCountries.length === 0) {
       errors.push('Please select at least one country.');
     }
@@ -322,12 +448,42 @@ export function createSearchFormController({ apiGet, notify }) {
     }
   }
 
+  function setTravelRequest(value) {
+    const overallSearch = document.querySelector('.overall-search');
+    if (!overallSearch || !value) {
+      return;
+    }
+
+    overallSearch.value = value;
+    overallSearch.dispatchEvent(new Event('input'));
+  }
+
+  function applyPreset(preset) {
+    const presets = {
+      historic: 'historic city route with architecture, viewpoints and walkable old-town areas',
+      food: 'local food route with markets, viewpoints, cultural stops and relaxed walking areas',
+      relaxed: 'relaxed coastal route with beaches, viewpoints, gardens and easy food stops',
+    };
+
+    setTravelRequest(presets[preset] || 'balanced route with culture, food stops and scenic areas');
+  }
+
+  function applyPreferences(preferences = {}) {
+    const interests = Array.isArray(preferences.favoriteInterests) && preferences.favoriteInterests.length > 0
+      ? preferences.favoriteInterests.join(', ')
+      : 'culture, viewpoints and local food';
+    const pace = preferences.travelPace || 'balanced';
+    const walking = preferences.walkingTolerance === 'high' ? 'walkable' : 'practical';
+    setTravelRequest(`${pace} ${walking} route focused on ${interests}`);
+  }
+
   function init() {
     document.addEventListener('click', closeAllDropdowns);
     loadCountries();
     loadAttractions();
     loadDays();
     setupOverallSearchAutoResize();
+    refreshSummary();
   }
 
   return {
@@ -335,5 +491,7 @@ export function createSearchFormController({ apiGet, notify }) {
     getPayload,
     validatePayload,
     restoreQuery,
+    applyPreset,
+    applyPreferences,
   };
 }

@@ -1,9 +1,10 @@
 const axios = require('axios');
 const { appConfig } = require('../config/env');
+const { generateRecommendationPlan } = require('./recommendationEngineService');
 
-const MAX_ITINERARY_DAYS = 30;
-const MAX_ACTIVITIES_PER_DAY = 8;
-const MAX_MONUMENTS = 40;
+const MAX_ITINERARY_DAYS = 14;
+const MAX_ACTIVITIES_PER_DAY = 6;
+const MAX_MONUMENTS = 24;
 const MAX_TEXT_LENGTH = 240;
 
 function getProvider() {
@@ -57,12 +58,21 @@ Return only valid JSON, with no markdown and no extra text, using this structure
     }
   ],
   "monuments": [
-    "place name (full address, city, country)"
+    {
+      "name": "place name",
+      "address": "full address, city, country",
+      "city": "city name",
+      "category": "category",
+      "reason": "short explanation"
+    }
   ]
 }
 
 Rules:
 - Include complete addresses whenever possible.
+- Prefer real, specific places instead of generic labels.
+- Do not repeat the same stop unless it is essential.
+- Keep the route stops realistic for Google Maps routing.
 - Distribute activities across the selected cities.
 - Include food stops when useful.
 - Keep the number of places realistic for the selected duration.`;
@@ -109,16 +119,50 @@ function normalizeItineraryDay(day, index) {
   };
 }
 
+function normalizeMonumentObject(monument) {
+  if (typeof monument === 'string') {
+    return normalizeText(monument);
+  }
+
+  if (!monument || typeof monument !== 'object') {
+    return null;
+  }
+
+  const name = normalizeText(monument.name || monument.title || monument.place, 140);
+  const address = normalizeText(monument.address || monument.location || monument.formattedAddress, 200);
+
+  if (!name && !address) {
+    return null;
+  }
+
+  return {
+    name: name || address,
+    address,
+    city: normalizeText(monument.city, 120),
+    category: normalizeText(monument.category, 80),
+    tags: Array.isArray(monument.tags) ? monument.tags.map((tag) => normalizeText(tag, 60)).filter(Boolean).slice(0, 8) : [],
+    durationMinutes: Number.isFinite(Number(monument.durationMinutes)) ? Number(monument.durationMinutes) : null,
+    reason: normalizeText(monument.reason, 240),
+    coordinates: monument.coordinates || null,
+  };
+}
+
 function normalizeGeneratedPayload(payload) {
   const itinerary = Array.isArray(payload?.itinerary)
     ? payload.itinerary.map(normalizeItineraryDay).filter(Boolean).slice(0, MAX_ITINERARY_DAYS)
     : [];
 
   const monuments = Array.isArray(payload?.monuments)
-    ? payload.monuments.map((monument) => normalizeText(monument)).filter(Boolean).slice(0, MAX_MONUMENTS)
+    ? payload.monuments.map(normalizeMonumentObject).filter(Boolean).slice(0, MAX_MONUMENTS)
     : [];
 
-  return { itinerary, monuments };
+  return {
+    itinerary,
+    monuments,
+    recommendation: payload?.recommendation && typeof payload.recommendation === 'object'
+      ? payload.recommendation
+      : null,
+  };
 }
 
 async function callOpenAI(prompt) {
@@ -126,14 +170,13 @@ async function callOpenAI(prompt) {
     throw new Error('OPENAI_API_KEY is required when TRAVEL_AI_PROVIDER=openai.');
   }
 
-  const model = appConfig.ai.openaiModel;
   const response = await axios.post(
     'https://api.openai.com/v1/chat/completions',
     {
-      model,
+      model: appConfig.ai.openaiModel,
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 1500,
-      temperature: 0.7,
+      max_tokens: 1800,
+      temperature: 0.55,
     },
     {
       headers: {
@@ -152,72 +195,35 @@ async function callOpenAI(prompt) {
   return content;
 }
 
-async function callOllama(prompt) {
-  const baseUrl = appConfig.ai.ollamaBaseUrl;
-  const model = appConfig.ai.ollamaModel;
-
-  const response = await axios.post(
-    `${baseUrl}/api/generate`,
-    {
-      model,
-      prompt,
-      stream: false,
-      format: 'json',
-    },
-    { timeout: getAiTimeout() }
-  );
-
-  if (!response.data?.response) {
-    throw new Error('Ollama returned no response content.');
-  }
-
-  return response.data.response;
-}
-
-function buildMockResponse({ selectedCities, selectedAttractions, selectedDays }) {
-  const days = getTripDuration(selectedDays);
-  const cities = selectedCities.length > 0 ? selectedCities : ['Lisbon'];
-  const attractionLabel = selectedAttractions.length > 0 ? selectedAttractions[0] : 'historic center';
-
-  const itinerary = Array.from({ length: days }, (_, index) => {
-    const city = cities[index % cities.length];
-    return {
-      day: index + 1,
-      city,
-      activities: [
-        `Explore ${attractionLabel} in ${city} (${city}, Portugal)`,
-        `Lunch in the city center (${city}, Portugal)`,
-        `Walk through the main viewpoint or cultural area (${city}, Portugal)`,
-      ],
-    };
-  });
-
-  return JSON.stringify({
-    itinerary,
-    monuments: itinerary.flatMap((day) => day.activities.filter((activity) => (
-      activity.startsWith('Explore') || activity.startsWith('Walk')
-    ))),
-  });
-}
-
-async function getProviderResponse(provider, prompt, input) {
+async function getProviderResponse(provider, prompt) {
   if (provider === 'openai') {
     return callOpenAI(prompt);
   }
 
-  if (provider === 'ollama') {
-    return callOllama(prompt);
-  }
-
-  return buildMockResponse(input);
+  return null;
 }
 
-async function generateTravelItinerary(input) {
+async function generateTravelItinerary(input, options = {}) {
   const provider = getProvider();
+
+  if (provider === 'mock') {
+    return {
+      provider,
+      ...generateRecommendationPlan(input, options.userPreferences),
+    };
+  }
+
   const prompt = buildTravelPrompt(input);
-  const rawContent = await getProviderResponse(provider, prompt, input);
+  const rawContent = await getProviderResponse(provider, prompt);
   const parsed = extractJson(rawContent);
   const normalizedPayload = normalizeGeneratedPayload(parsed);
+
+  if (normalizedPayload.itinerary.length === 0 || normalizedPayload.monuments.length === 0) {
+    return {
+      provider: `${provider}-fallback-local-scoring-v1`,
+      ...generateRecommendationPlan(input, options.userPreferences),
+    };
+  }
 
   return {
     provider,
@@ -227,4 +233,5 @@ async function generateTravelItinerary(input) {
 
 module.exports = {
   generateTravelItinerary,
+  normalizeGeneratedPayload,
 };

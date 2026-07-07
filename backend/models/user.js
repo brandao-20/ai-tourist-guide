@@ -1,6 +1,7 @@
 'use strict';
 
 const bcrypt = require('bcrypt');
+const { DEFAULT_TRAVEL_PREFERENCES, normalizeTravelPreferences } = require('../services/userPreferenceService');
 
 const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 254;
@@ -50,6 +51,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    travelPreferences: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: DEFAULT_TRAVEL_PREFERENCES,
+      field: 'travel_preferences',
+    },
   }, {
     tableName: 'Users',
     timestamps: true,
@@ -76,6 +83,7 @@ module.exports = (sequelize, DataTypes) => {
   User.beforeValidate((user) => {
     user.name = normalizeName(user.name);
     user.email = normalizeEmail(user.email);
+    user.travelPreferences = normalizeTravelPreferences(user.travelPreferences);
   });
 
   User.beforeCreate(async (user) => {

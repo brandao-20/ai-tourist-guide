@@ -13,7 +13,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const result = await runItinerarySearch(searchPayload.value);
+    const result = await runItinerarySearch(searchPayload.value, {
+      userPreferences: req.session?.user?.travelPreferences || null,
+    });
     return res.json(result);
   } catch (error) {
     logServerError('Failed to process travel search', error);

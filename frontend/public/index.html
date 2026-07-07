@@ -1,102 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Personalized Tourist Guide AI helps travellers create preference-based itineraries with maps, saved routes and explainable recommendations.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link href="public.css?v=1.0" rel="stylesheet">
-    <title>Personalized Tourist Guide AI</title>
-    <script src="/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Personalized Tourist Guide AI creates tailored itineraries from destinations, available time and travel interests, with maps and saved routes.">
+  <meta property="og:title" content="Personalized Tourist Guide AI">
+  <meta property="og:description" content="Plan personalised trips with AI-assisted itineraries, interactive maps and saved travel routes.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#31543f">
+  <link rel="icon" href="/globe-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="public.css?v=5.0" rel="stylesheet">
+  <title>Personalized Tourist Guide AI</title>
+  <script src="/config.js"></script>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="navbar" aria-label="Primary navigation">
-            <a href="/" class="brand">Personalized Tourist Guide AI</a>
-            <ul class="nav-links">
-                <li><a href="/about.html">About</a></li>
-                <li><a href="/learnmore.html">How it works</a></li>
-                <li><a href="/contact.html">Contact</a></li>
-                <li><a href="/login.html" class="nav-action">Log in</a></li>
-                <li><a href="/register.html" class="nav-action nav-action--primary">Create account</a></li>
-            </ul>
-        </nav>
-    </header>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="navbar" aria-label="Primary navigation">
+      <a href="/" class="brand" aria-label="Tourist Guide AI home">Tourist Guide AI</a>
+      <ul class="nav-links">
+        <li><a href="/" aria-current="page">Home</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/login">Sign in</a></li>
+        <li><a href="/register" class="nav-action nav-action--primary">Create account</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main-content" class="main-layout public-home">
+    <section class="hero-section hero-section--map-first" aria-labelledby="hero-title">
+      <div class="hero-grid hero-grid--compact">
+        <div class="hero-copy-wrap">
+          <span class="eyebrow">AI travel planner</span>
+          <h1 id="hero-title">Plan trips around the map</h1>
+          <p class="hero-copy">Build personalised itineraries from your destination, time and travel style. Review the route visually, save it and continue later.</p>
+          <div class="hero-actions">
+            <a href="/register" class="btn btn-primary">Start planning</a>
+            <a href="/features" class="btn btn-secondary">Explore features</a>
+          </div>
+        </div>
+        <div class="hero-visual-plane" aria-label="Travel planning visual">
+          <img src="plane1.png" alt="Travel map, compass and airplane illustration">
+          <div class="hero-map-note"><strong>Map-first planning</strong><span>Generate stops, review the route and save the itinerary.</span></div>
+        </div>
+      </div>
+    </section>
 
-    <main class="main-layout">
-        <section class="hero-section" aria-labelledby="hero-title">
-            <div class="hero-grid">
-                <div class="hero-copy">
-                    <span class="eyebrow">Portfolio travel planner</span>
-                    <h1 id="hero-title">Build smarter city itineraries around your preferences.</h1>
-                    <p>Plan city visits with map-based routes, saved itineraries and recommendation logic that can evolve from demo mode into local or custom providers.</p>
-                    <div class="hero-actions">
-                        <a href="/register.html" class="btn btn-primary">Start planning</a>
-                        <a href="/learnmore.html" class="btn btn-secondary">Explore features</a>
-                    </div>
-                </div>
-                <div class="hero-visual" aria-label="Travel planning illustration">
-                    <img src="plane1.png" alt="Retro airplane illustration">
-                    <div class="hero-stat-card">
-                        <strong>3-step</strong>
-                        <span>Choose a city, set preferences and review a generated route.</span>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <section class="benefit-strip" aria-label="Main benefits">
+      <article><strong>Personalised routes</strong><span>Based on destination, time and interests.</span></article>
+      <article><strong>Large interactive map</strong><span>Review stops, order and route context visually.</span></article>
+      <article><strong>Saved plans</strong><span>Reopen useful itineraries from your account.</span></article>
+    </section>
 
-        <section class="section" aria-labelledby="features-title">
-            <div class="section-heading">
-                <h2 id="features-title">Built for a clean public demo</h2>
-                <p>A simple full-stack project focused on practical travel planning, safe public configuration and clear recruiter-friendly architecture.</p>
-            </div>
-            <div class="feature-grid">
-                <article class="feature-card">
-                    <span>01</span>
-                    <h3>Personalised routes</h3>
-                    <p>Generate itineraries from destination, time, interests and travel preferences.</p>
-                </article>
-                <article class="feature-card">
-                    <span>02</span>
-                    <h3>Map-first planning</h3>
-                    <p>Review route details visually and keep useful trips in favourites for later.</p>
-                </article>
-                <article class="feature-card">
-                    <span>03</span>
-                    <h3>Provider-ready AI</h3>
-                    <p>Designed to support mock/demo mode first and optional external or local providers later.</p>
-                </article>
-            </div>
-        </section>
+    <section class="section section--compact" aria-labelledby="how-title">
+      <div class="section-heading section-heading--split">
+        <div><span class="eyebrow eyebrow--dark">How it works</span><h2 id="how-title">Choose, generate, review, save.</h2></div>
+        <p>A short workflow for creating practical city itineraries without losing control of the route.</p>
+      </div>
+      <div class="steps-grid steps-grid--four">
+        <article class="step-card"><span>01</span><h3>Choose destination</h3><p>Select country, city and duration.</p></article>
+        <article class="step-card"><span>02</span><h3>Choose interests</h3><p>Pick the places and trip style you want.</p></article>
+        <article class="step-card"><span>03</span><h3>Review map</h3><p>Check stops and route flow visually.</p></article>
+        <article class="step-card"><span>04</span><h3>Save route</h3><p>Keep the itinerary for later.</p></article>
+      </div>
+    </section>
 
-        <section class="section" aria-labelledby="team-title">
-            <div class="section-heading">
-                <h2 id="team-title">Project authors</h2>
-                <p>Academic project transformed into a cleaner public portfolio version.</p>
-            </div>
-            <div class="team-grid">
-                <article class="team-card">
-                    <div class="team-avatar" aria-hidden="true">LD</div>
-                    <div>
-                        <h3>Luís Dias</h3>
-                        <p>Project co-author</p>
-                    </div>
-                </article>
-                <article class="team-card">
-                    <div class="team-avatar" aria-hidden="true">GB</div>
-                    <div>
-                        <h3>Gabriel Brandão</h3>
-                        <p>Project co-author</p>
-                    </div>
-                </article>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <p>&copy; 2024 Personalized Tourist Guide AI. Academic portfolio project.</p>
-    </footer>
+    <section class="split-map-section" aria-labelledby="preview-title">
+      <div>
+        <span class="eyebrow eyebrow--dark">Planner preview</span>
+        <h2 id="preview-title">The map is the workspace.</h2>
+        <p>Plan from a compact request panel and use the map as the main surface for stops, route order and itinerary review.</p>
+        <div class="hero-actions"><a href="/register" class="btn btn-dark">Create account</a><a href="/login" class="btn btn-light">Sign in</a></div>
+      </div>
+      <div class="product-preview product-preview--wide" aria-label="Map-first planner preview">
+        <div class="preview-window preview-window--large preview-window--flat">
+          <div class="preview-layout preview-layout--map-dominant">
+            <aside class="preview-panel"><span class="preview-kicker">Trip request</span><div class="preview-input"></div><div class="preview-chip-row"><span>Portugal</span><span>Lisbon</span><span>2 days</span></div><button type="button">Generate itinerary</button></aside>
+            <section class="preview-map" aria-hidden="true"><div class="preview-route-line"></div><span class="pin pin-a">1</span><span class="pin pin-b">2</span><span class="pin pin-c">3</span></section>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-grid footer-grid--simple">
+      <section class="footer-brand" aria-label="Project summary">
+        <h2>Personalized Tourist Guide AI</h2>
+        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+      </section>
+      <section class="footer-column footer-column--project" aria-label="Project links">
+        <h3>Project</h3>
+        <a href="/contact">GitHub</a>
+        <a href="/contact">Professional profile</a>
+        <a href="/contact">Contact</a>
+      </section>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
+  </footer>
+  <script src="/nav-surface.js"></script>
 </body>
 </html>

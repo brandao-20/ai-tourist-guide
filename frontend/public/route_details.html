@@ -1,64 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Route Details | Personalized Tourist Guide</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap"
-    rel="stylesheet"
-  />
-  <link href="route_details.css?v=2.0" rel="stylesheet"/>
-    <script src="/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Review saved route details, stops, itinerary timeline and export actions.">
+  <meta name="theme-color" content="#31543f">
+  <link rel="icon" href="/globe-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="route_details.css?v=5.0" rel="stylesheet">
+  <title>Personalized Tourist Guide AI</title>
+  <script src="/config.js"></script>
 </head>
-<body>
-  <header>
-    <nav class="navbar">
-      <div class="container">
-        <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-      </div>
+<body class="app-page route-details-page">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="navbar" aria-label="Application navigation">
+      <a href="/dashboard" class="brand" aria-label="Tourist Guide AI dashboard">Tourist Guide AI</a>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/plan-trip">Plan trip</a></li>
+        <li><a href="/saved-routes" aria-current="page">Saved routes</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+      </ul>
     </nav>
   </header>
+  <main id="main-content" class="page-shell">
+    <section class="hero-section" aria-labelledby="route-title">
+      <div class="hero-copy">
+        <span class="eyebrow">Saved route</span>
+        <h1 id="route-title">Route details</h1>
+        <p id="route-description">Review stops, itinerary details and saved route context.</p>
+        <div class="hero-actions"><a href="/saved-routes" class="btn btn-secondary">Back to saved routes</a><a href="/plan-trip" class="btn btn-primary">Plan another trip</a></div>
+      </div>
+      <aside class="hero-card" aria-label="Route summary">
+        <span class="summary-label">Route status</span>
+        <strong id="hero-route-status">Loading</strong>
+        <span id="hero-route-meta">Fetching saved route data.</span>
+      </aside>
+    </section>
 
-  <section class="hero-section">
-    <div class="container hero-container">
-      <h1>Route Details</h1>
-    </div>
-  </section>
-
-  <div class="content-container">
-    <div class="white-box">
-      <section class="route-details-section">
-        <!-- Map -->
-        <div id="map" class="map-container"></div>
-
-        <div id="route-status" class="status-message" role="status" aria-live="polite">Loading route details...</div>
-
-        <!-- Favorite/Unfavorite Button -->
-        <div class="favorite-button-container">
-          <button id="toggle-favorite-button" class="favorite-button" type="button">
-            Remove from Favorites
-          </button>
+    <section class="route-shell content-card" aria-labelledby="route-overview-title">
+      <div class="route-toolbar">
+        <div><span class="eyebrow eyebrow--dark">Overview</span><h2 id="route-overview-title">Route overview</h2></div>
+        <div class="toolbar-actions">
+          <a id="open-google-maps-link" class="action-button action-button--ghost is-disabled" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Open in Google Maps</a>
+          <button id="print-route-button" class="action-button action-button--ghost" type="button" disabled>Print</button>
+          <button id="export-html-button" class="action-button action-button--ghost" type="button" disabled>Export HTML</button>
+          <button id="export-json-button" class="action-button action-button--ghost" type="button" disabled>Export JSON</button>
+          <button id="copy-summary-button" class="action-button action-button--ghost" type="button" disabled>Copy summary</button>
+          <button id="toggle-favorite-button" class="action-button action-button--danger" type="button">Remove route</button>
         </div>
-
-        <!-- Container for Itinerary and Monuments -->
-        <div class="itinerary-info">
-          <div id="custom-itinerary-container" aria-live="polite"></div>
-        </div>
+      </div>
+      <div id="route-status" class="form-feedback" role="status" aria-live="polite">Loading route details...</div>
+      <div class="overview-grid" aria-label="Route metrics">
+        <article class="metric-card"><span>Stops</span><strong id="overview-stops">—</strong></article>
+        <article class="metric-card"><span>Legs</span><strong id="overview-legs">—</strong></article>
+        <article class="metric-card"><span>Distance</span><strong id="overview-distance">—</strong></article>
+        <article class="metric-card"><span>Duration</span><strong id="overview-duration">—</strong></article>
+      </div>
+      <div class="details-layout">
+        <section class="map-panel" aria-labelledby="map-title">
+          <div class="section-heading"><div><span class="eyebrow eyebrow--dark">Map</span><h2 id="map-title">Route preview</h2></div><span id="route-mode-pill" class="pill">Saved route</span></div>
+          <div id="map" class="map-container" role="region" aria-label="Saved route map preview"></div>
+          <div id="route-mini-summary" class="route-mini-summary" aria-live="polite"><span>Origin</span><strong>Loading route...</strong><span>Destination</span><strong>Loading route...</strong></div>
+        </section>
+        <section class="stops-panel" aria-labelledby="stops-title">
+          <div class="section-heading"><div><span class="eyebrow eyebrow--dark">Stops</span><h2 id="stops-title">Itinerary stops</h2></div><span id="stops-count-pill" class="pill">0 stops</span></div>
+          <div id="monuments-container" class="stops-list" aria-live="polite"></div>
+        </section>
+      </div>
+      <section class="directions-panel" aria-labelledby="directions-title">
+        <div class="section-heading"><div><span class="eyebrow eyebrow--dark">Timeline</span><h2 id="directions-title">Route legs</h2></div></div>
+        <div id="custom-itinerary-container" class="directions-list" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-grid footer-grid--simple">
+      <section class="footer-brand" aria-label="Project summary">
+        <h2>Personalized Tourist Guide AI</h2>
+        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+      </section>
+      <section class="footer-column footer-column--project" aria-label="Project links">
+        <h3>Project</h3>
+        <a href="/contact">GitHub</a>
+        <a href="/contact">Professional profile</a>
+        <a href="/contact">Contact</a>
       </section>
     </div>
-  </div>
-
-  <footer>
-    <div class="container">
-      <p>&copy; 2026 Personalized Tourist Guide AI - All Rights Reserved.</p>
-    </div>
+    <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-
-  <!-- Main Route Script -->
   <script src="/build/route_details.js"></script>
-
-  <!-- Google Maps API loader -->
   <script src="/load-google-maps.js" data-callback="initMap" data-language="en" defer></script>
+  <script src="/nav-surface.js"></script>
 </body>
 </html>

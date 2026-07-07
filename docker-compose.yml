@@ -42,6 +42,10 @@ services:
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:5000/auth/google/callback}
       GOOGLE_MAPS_SERVER_API_KEY: ${GOOGLE_MAPS_SERVER_API_KEY:-}
       GEOCODING_TIMEOUT_MS: ${GEOCODING_TIMEOUT_MS:-7000}
+      GOOGLE_ROUTES_API_KEY: ${GOOGLE_ROUTES_API_KEY:-}
+      GOOGLE_ROUTES_TIMEOUT_MS: ${GOOGLE_ROUTES_TIMEOUT_MS:-8000}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+      GOOGLE_PLACES_TIMEOUT_MS: ${GOOGLE_PLACES_TIMEOUT_MS:-8000}
       TRAVEL_AI_PROVIDER: ${TRAVEL_AI_PROVIDER:-mock}
       AI_PROVIDER_TIMEOUT_MS: ${AI_PROVIDER_TIMEOUT_MS:-20000}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
@@ -66,6 +70,9 @@ services:
     build: ./frontend
     ports:
       - "8080:8080"
+    environment:
+      API_BASE_URL: ${FRONTEND_API_BASE_URL:-http://localhost:5000}
+      GOOGLE_MAPS_BROWSER_API_KEY: ${GOOGLE_MAPS_BROWSER_API_KEY:-}
     depends_on:
       backend:
         condition: service_healthy

@@ -89,7 +89,7 @@ async function loadUserData() {
         setProfileStatus('', 'info');
     } catch (error) {
         setProfileStatus('Session expired. Redirecting to login...', 'error');
-        window.location.href = '/login.html';
+        window.location.href = '/login';
     }
 }
 
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelButton = document.querySelector('.cancel-button');
     if (cancelButton) {
         cancelButton.addEventListener('click', () => {
-            window.location.href = '/profile.html';
+            window.location.href = '/profile';
         });
     }
 
@@ -176,7 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const updatedData = { name };
+            const updatedData = {
+                name,
+            };
             if (password) {
                 updatedData.password = password;
             }
@@ -191,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 setProfileStatus('Profile updated successfully. Redirecting...', 'success');
-                window.location.href = '/profile.html';
+                window.location.href = '/profile';
             } catch (error) {
                 setProfileStatus(getErrorMessage(error, 'Failed to update profile. Please try again.'), 'error');
             } finally {

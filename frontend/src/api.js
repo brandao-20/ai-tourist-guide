@@ -79,7 +79,7 @@ async function parseResponseBody(response) {
 
 function createNetworkError(error) {
   return new ApiRequestError(
-    'The API is unavailable. Check whether the backend is running and API_BASE_URL is correct.',
+    'The service is temporarily unavailable. Please try again shortly.',
     { status: 0, code: 'NETWORK_ERROR', data: { originalMessage: error?.message || 'Network request failed.' } }
   );
 }
@@ -133,6 +133,10 @@ export function apiPut(path, body, options = {}) {
   return apiFetch(path, { ...options, method: 'PUT', body });
 }
 
+export function apiPatch(path, body, options = {}) {
+  return apiFetch(path, { ...options, method: 'PATCH', body });
+}
+
 export function apiDelete(path, options = {}) {
   return apiFetch(path, { ...options, method: 'DELETE' });
 }
@@ -141,6 +145,7 @@ const api = {
   get: async (path, options = {}) => ({ data: await apiGet(path, options) }),
   post: async (path, body, options = {}) => ({ data: await apiPost(path, body, options) }),
   put: async (path, body, options = {}) => ({ data: await apiPut(path, body, options) }),
+  patch: async (path, body, options = {}) => ({ data: await apiPatch(path, body, options) }),
   delete: async (path, options = {}) => ({ data: await apiDelete(path, options) }),
 };
 

@@ -33,7 +33,7 @@ router.post('/register', async (req, res) => {
       user: result.value,
     });
   } catch (error) {
-    return sendServerError(res, 'Failed to register user', error, 'Error registering user.');
+    return sendServerError(res, 'Failed to register user', error, 'We could not create your account right now. Please try again.');
   }
 });
 
@@ -54,7 +54,7 @@ router.post('/login', async (req, res, next) => {
       user: result.value,
     });
   } catch (error) {
-    return sendServerError(res, 'Failed to authenticate user', error, 'Server error during login.');
+    return sendServerError(res, 'Failed to authenticate user', error, 'We could not sign you in. Check your details and try again.');
   }
 });
 

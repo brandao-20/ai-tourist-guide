@@ -16,13 +16,13 @@ router.get('/', (req, res) => {
   const countryCode = normalizeCountryCode(req.query.countryCode);
 
   if (!countryCode) {
-    return res.status(400).json({ error: "O parâmetro 'countryCode' é obrigatório." });
+    return res.status(400).json({ error: 'countryCode query parameter is required.' });
   }
 
   const cities = listCitiesByCountry(countryCode);
 
   if (cities.length === 0) {
-    return res.status(404).json({ message: `Nenhuma cidade encontrada para o país ${countryCode}.` });
+    return res.status(404).json({ message: `No cities found for country ${countryCode}.` });
   }
 
   return res.json({ cities });

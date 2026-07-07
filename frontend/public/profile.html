@@ -1,66 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="profile.css?v=2.0" rel="stylesheet">
-    <title>Profile - Personalized Tourist Guide</title>
-    <script src="/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="View your Personalized Tourist Guide AI account profile.">
+  <meta name="theme-color" content="#31543f">
+  <link rel="icon" href="/globe-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="profile.css?v=7.0" rel="stylesheet">
+  <title>Personalized Tourist Guide AI</title>
+  <script src="/config.js"></script>
 </head>
-<body>
-    <header class="site-header">
-        <nav class="navbar" aria-label="Main navigation">
-            <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-        </nav>
-    </header>
-
-    <main class="page-shell">
-        <section class="hero-section" aria-labelledby="profile-title">
-            <div class="profile-summary">
-                <img id="profile-pic" class="profile-pic" src="default-avatar.svg" alt="Profile picture">
-                <div>
-                    <p class="eyebrow">Account</p>
-                    <h1 id="profile-title">Profile</h1>
-                    <p id="user-name" class="profile-name">Traveller</p>
-                </div>
-            </div>
-            <button class="edit-button" type="button">Edit profile</button>
-        </section>
-
-        <section class="content-container personal-info-section" aria-labelledby="personal-info-title">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Private area</p>
-                    <h2 id="personal-info-title">Personal information</h2>
-                </div>
-            </div>
-
-            <p id="profile-status" class="status-message is-hidden" aria-live="polite"></p>
-
-            <div class="info-grid">
-                <label class="info-field" for="info-name">
-                    <span class="info-label">Name</span>
-                    <input type="text" id="info-name" value="" readonly>
-                </label>
-
-                <label class="info-field" for="info-email">
-                    <span class="info-label">Email</span>
-                    <input type="email" id="info-email" value="" readonly>
-                </label>
-
-                <label class="info-field" for="info-password">
-                    <span class="info-label">Password</span>
-                    <input type="text" id="info-password" value="Hidden for security" readonly>
-                </label>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-    </footer>
-
-    <script src="/build/profile.js"></script>
+<body class="app-page profile-page">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="navbar" aria-label="Application navigation">
+      <a href="/dashboard" class="brand" aria-label="Tourist Guide AI dashboard">Tourist Guide AI</a>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/plan-trip">Plan trip</a></li>
+        <li><a href="/saved-routes">Saved routes</a></li>
+        <li><a href="/profile" aria-current="page">Profile</a></li>
+        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main-content" class="page-shell profile-shell">
+    <section class="profile-hero" aria-labelledby="profile-title">
+      <div>
+        <span class="eyebrow">Profile</span>
+        <h1 id="profile-title">Your profile</h1>
+        <p>Review your account details before planning the next itinerary.</p>
+        <div class="hero-actions"><a href="/plan-trip" class="btn btn-primary">Plan a trip</a><a href="/edit-profile" class="btn btn-secondary">Edit profile</a></div>
+      </div>
+      <aside class="profile-summary-card">
+        <img id="profile-pic" src="default-avatar.svg" alt="Traveller profile picture">
+        <div><span>Traveller</span><strong id="user-name">Loading profile</strong></div>
+      </aside>
+    </section>
+    <div id="profile-status" class="form-feedback" role="status" aria-live="polite"></div>
+    <section class="content-card profile-details-card" aria-labelledby="profile-details-title">
+      <div class="section-heading section-heading--split"><div><h2 id="profile-details-title">Account details</h2></div><a href="/edit-profile" class="action-button action-button--primary">Edit profile</a></div>
+      <div class="info-grid">
+        <article class="info-card"><span>NM</span><h3>Name</h3><p id="profile-name">Loading...</p></article>
+        <article class="info-card"><span>EM</span><h3>Email</h3><p id="profile-email">Loading...</p></article>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-grid footer-grid--simple">
+      <section class="footer-brand" aria-label="Project summary">
+        <h2>Personalized Tourist Guide AI</h2>
+        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+      </section>
+      <section class="footer-column footer-column--project" aria-label="Project links">
+        <h3>Project</h3>
+        <a href="/contact">GitHub</a>
+        <a href="/contact">Professional profile</a>
+        <a href="/contact">Contact</a>
+      </section>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
+  </footer>
+  <script src="/build/profile.js"></script>
+  <script src="/nav-surface.js"></script>
 </body>
 </html>

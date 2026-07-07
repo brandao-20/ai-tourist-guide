@@ -5,11 +5,7 @@ const db = require('../models');
 const { appConfig, hasConfiguredValue } = require('../config/env');
 const { logServerError } = require('../utils/logger');
 const { setSessionUser, toPublicSessionUser } = require('../utils/sessionUser');
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 128;
-const MAX_NAME_LENGTH = 120;
+const { loginSchema, parseSchema, registerSchema } = require('../schemas/validationSchemas');
 
 function normalizeName(name) {
   return typeof name === 'string' ? name.trim().replace(/\s+/g, ' ') : '';
@@ -27,65 +23,13 @@ function getGoogleOAuthConfig() {
   return appConfig.googleOAuth;
 }
 
-function validateRegistrationInput({ name, email, password }) {
-  if (!name || !email || !password) {
-    return 'Name, email and password are required.';
-  }
-
-  if (name.length > MAX_NAME_LENGTH) {
-    return `Name must be ${MAX_NAME_LENGTH} characters or less.`;
-  }
-
-  if (!EMAIL_REGEX.test(email)) {
-    return 'Please provide a valid email address.';
-  }
-
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`;
-  }
-
-  if (password.length > MAX_PASSWORD_LENGTH) {
-    return `Password must be ${MAX_PASSWORD_LENGTH} characters or less.`;
-  }
-
-  return null;
-}
-
-function validateLoginInput({ email, password }) {
-  if (!email || !password) {
-    return 'Email and password are required.';
-  }
-
-  if (!EMAIL_REGEX.test(email)) {
-    return 'Please provide a valid email address.';
-  }
-
-  return null;
-}
 
 function normalizeRegistrationPayload(body = {}) {
-  const name = normalizeName(body.name);
-  const email = normalizeEmail(body.email);
-  const password = getPassword(body.password);
-  const validationError = validateRegistrationInput({ name, email, password });
-
-  if (validationError) {
-    return { error: validationError };
-  }
-
-  return { value: { name, email, password } };
+  return parseSchema(registerSchema, body);
 }
 
 function normalizeLoginPayload(body = {}) {
-  const email = normalizeEmail(body.email);
-  const password = getPassword(body.password);
-  const validationError = validateLoginInput({ email, password });
-
-  if (validationError) {
-    return { error: validationError };
-  }
-
-  return { value: { email, password } };
+  return parseSchema(loginSchema, body);
 }
 
 async function registerLocalUser(payload) {

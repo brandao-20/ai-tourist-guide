@@ -1,164 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Main App - Advanced Search</title>
-
-  <!-- Fonts and CSS -->
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-  <link href="mainapp.css?v=2.1" rel="stylesheet">
-
-  <!-- 1) Load jQuery BEFORE toastr -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <!-- 2) Load toastr AFTER jQuery -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <script src="/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generate personalised travel itineraries with OpenAI suggestions and an interactive Google map.">
+  <meta name="theme-color" content="#31543f">
+  <link rel="icon" href="/globe-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="mainapp.css?v=7.0" rel="stylesheet">
+  <title>Personalized Tourist Guide AI</title>
+  <script src="/config.js"></script>
 </head>
-<body>
-  <header>
-    <nav class="navbar">
-      <div class="container">
-        <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-      </div>
+<body class="app-page planner-page planner-page--classic">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="navbar" aria-label="Application navigation">
+      <a href="/dashboard" class="brand" aria-label="Tourist Guide AI dashboard">Tourist Guide AI</a>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/plan-trip" aria-current="page">Plan trip</a></li>
+        <li><a href="/saved-routes">Saved routes</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+      </ul>
     </nav>
   </header>
 
-  <section class="hero-section">
-    <div class="container hero-container">
-      <h1>Advanced Search</h1>
-    </div>
-  </section>
-
-  <div class="content-container">
-    <section class="search-section">
-      <!-- General Search Bar -->
-      <div class="overall-search-container">
-        <textarea
-          class="overall-search"
-          placeholder="Search all..."
-          aria-label="Overall Search"
-          rows="1"
-          maxlength="500"
-        ></textarea>
-      </div>
-
-      <!-- Filters (Countries, Cities, Attractions, Days) -->
-      <div class="filter-options">
-        <!-- Countries -->
-        <div class="dropdown">
-          <button class="dropdown-toggle">Select Countries</button>
-          <div id="countries-list" class="dropdown-menu">
-            <input
-              type="text"
-              class="dropdown-search"
-              placeholder="Search countries..."
-              aria-label="Search Countries"
-            />
-            <div class="dropdown-items"></div>
-          </div>
-        </div>
-
-        <!-- Cities -->
-        <div class="dropdown">
-          <button class="dropdown-toggle">Select Cities</button>
-          <div id="cities-list" class="dropdown-menu">
-            <input
-              type="text"
-              class="dropdown-search"
-              placeholder="Search cities..."
-              aria-label="Search Cities"
-            />
-            <div class="dropdown-items"></div>
-          </div>
-        </div>
-
-        <!-- Attractions -->
-        <div class="dropdown">
-          <button class="dropdown-toggle">Select Attractions</button>
-          <div id="attractions-list" class="dropdown-menu">
-            <input
-              type="text"
-              class="dropdown-search"
-              placeholder="Search attractions..."
-              aria-label="Search Attractions"
-            />
-            <div class="dropdown-items"></div>
-          </div>
-        </div>
-
-        <!-- Days -->
-        <div class="dropdown">
-          <button class="dropdown-toggle">Select Days</button>
-          <div id="days-list" class="dropdown-menu">
-            <input
-              type="text"
-              class="dropdown-search"
-              placeholder="Search days..."
-              aria-label="Search Days"
-            />
-            <div class="dropdown-items"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Search Button -->
-      <button id="search-button" class="search-button">Search</button>
-
-      <!-- Map Div -->
-      <div id="map" style="height: 500px; width: 100%; margin-top: 20px;"></div>
-
-      <!-- Monument List Div -->
-      <div class="monument-list">
-        <h2>Monuments to Visit:</h2>
-        <ol></ol>
-
-        <!-- Add Monument Button -->
-        <button id="add-button" class="add-button">Add Monument</button>
-
-        <!-- Transport Mode Selector -->
-        <div class="transport-mode-container" style="margin-top: 10px;">
-          <label for="travel-mode"><strong>Transport Mode:</strong></label>
-          <select id="travel-mode" class="travel-mode-select">
-            <option value="DRIVING" selected>Car</option>
-            <option value="WALKING">Walking</option>
-            <option value="BICYCLING">Bicycle</option>
-          </select>
-        </div>
-
-        <!-- Save Route Button -->
-        <button id="save-button" class="save-button" style="margin-top: 10px;">Save Route</button>
-
-        <!-- Favorite / Unfavorite Buttons -->
-        <button id="favorite-button" class="favorite-button">
-          Mark as Favorite
-        </button>
-        <button id="unfavorite-button" class="unfavorite-button" style="display: none;">
-          Remove from Favorites
-        </button>
-      </div>
-
-      <!-- Itinerary Div -->
-      <div class="itinerary-list">
-        <h2>Itinerary</h2>
-        <ol id="itinerary-ordered-list"></ol>
+  <main id="main-content" class="planner-shell planner-shell--classic">
+    <section class="classic-hero" aria-labelledby="planner-title">
+      <div>
+        <span class="eyebrow eyebrow--dark">Plan trip</span>
+        <h1 id="planner-title">Create your itinerary</h1>
+        <p>Choose a destination, select your interests and generate a driving route on the map.</p>
       </div>
     </section>
-  </div>
 
-  <footer>
-    <div class="container">
-      <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
+    <section class="classic-planner-card" aria-label="Trip planning workspace">
+      <div class="classic-search-bar">
+        <label class="sr-only" for="overall-search">Search request</label>
+        <textarea id="overall-search" class="overall-search form-control" rows="2" placeholder="Example: a relaxed cultural route with viewpoints and local food."></textarea>
+      </div>
+
+      <div class="filter-options filter-options--classic" aria-label="Trip filters">
+        <div class="dropdown" id="countries-list"><button class="dropdown-toggle" type="button" aria-expanded="false">Choose country</button><div class="dropdown-menu"><input class="dropdown-search" type="search" placeholder="Search countries"><div class="dropdown-items"></div></div></div>
+        <div class="dropdown" id="cities-list"><button class="dropdown-toggle" type="button" aria-expanded="false">Choose city</button><div class="dropdown-menu"><input class="dropdown-search" type="search" placeholder="Search cities"><div class="dropdown-items"></div></div></div>
+        <div class="dropdown" id="attractions-list"><button class="dropdown-toggle" type="button" aria-expanded="false">Choose interests</button><div class="dropdown-menu"><input class="dropdown-search" type="search" placeholder="Search interests"><div class="dropdown-items"></div></div></div>
+        <div class="dropdown" id="days-list"><button class="dropdown-toggle" type="button" aria-expanded="false">Choose duration</button><div class="dropdown-menu"><div class="dropdown-items"></div></div></div>
+      </div>
+
+      <div id="selection-summary" class="selection-summary" aria-live="polite"></div>
+      <div class="classic-actions classic-actions--single">
+        <button id="search-button" class="btn btn-dark" type="button">Generate itinerary</button>
+      </div>
+
+      <section class="classic-map-section" aria-labelledby="map-title">
+        <div class="classic-map-header">
+          <div>
+            <h2 id="map-title">Route map</h2>
+            <p class="driving-note">Driving route by default</p>
+          </div>
+          <button id="current-location-button" class="btn btn-secondary" type="button">Use current location</button>
+        </div>
+        <div id="map" class="map-canvas map-canvas--classic" role="region" aria-label="Trip route map"></div>
+        <p id="location-status" class="map-caption" aria-live="polite">Preparing the map around your location...</p>
+        <div class="map-panel__footer map-panel__footer--classic"><div id="route-stats" class="route-stats" aria-live="polite"></div><div class="route-action-buttons"><button id="center-route-button" class="btn btn-secondary" type="button" hidden>Center map</button><button id="save-button" class="btn btn-secondary" type="button" hidden>Build route</button><button id="favorite-button" class="btn btn-primary" type="button" hidden>Save route</button><button id="unfavorite-button" class="btn btn-secondary" type="button" hidden>Remove saved route</button><button id="add-button" class="btn btn-secondary" type="button" hidden>Add stop</button></div></div>
+      </section>
+
+      <section id="planner-results" class="classic-results-grid" hidden>
+        <article class="classic-result-card monument-list" aria-labelledby="stops-title"><h2 id="stops-title">Stops to visit</h2><ol></ol></article>
+        <article class="classic-result-card itinerary-list" aria-labelledby="itinerary-title"><h2 id="itinerary-title">Directions</h2><ol id="itinerary-ordered-list"></ol></article>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid footer-grid--simple">
+      <section class="footer-brand" aria-label="Project summary">
+        <h2>Personalized Tourist Guide AI</h2>
+        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+      </section>
+      <section class="footer-column footer-column--project" aria-label="Project links">
+        <h3>Project</h3>
+        <a href="/contact">GitHub</a>
+        <a href="/contact">Professional profile</a>
+        <a href="/contact">Contact</a>
+      </section>
     </div>
+    <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-
-  <!-- Main Script (compiled) -->
-  <script src="/build/mainapp.js" defer></script>
-
-  <!-- Google Maps API loader -->
+  <script src="/build/mainapp.js"></script>
   <script src="/load-google-maps.js" data-callback="initMap" data-language="en" defer></script>
-
+  <script src="/nav-surface.js"></script>
 </body>
 </html>

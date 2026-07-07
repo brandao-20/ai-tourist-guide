@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
-const SUPPORTED_AI_PROVIDERS = ['mock', 'ollama', 'openai'];
+const SUPPORTED_AI_PROVIDERS = ['mock', 'openai'];
 const DEFAULT_NODE_ENV = 'development';
 const DEFAULT_FRONTEND_URL = 'http://localhost:8080';
 const DEFAULT_SESSION_SECRET = 'development_session_secret_change_me';
@@ -91,8 +91,18 @@ function resolveSessionSecret(isProduction) {
 }
 
 function resolveAiProvider() {
-  const provider = readString('TRAVEL_AI_PROVIDER', 'mock').toLowerCase();
-  return SUPPORTED_AI_PROVIDERS.includes(provider) ? provider : 'mock';
+  const configuredProvider = readString('TRAVEL_AI_PROVIDER', '').toLowerCase();
+  const hasOpenAiKey = hasConfiguredValue(process.env.OPENAI_API_KEY);
+
+  if (configuredProvider === 'openai') {
+    return hasOpenAiKey ? 'openai' : 'mock';
+  }
+
+  if (configuredProvider === 'mock') {
+    return 'mock';
+  }
+
+  return hasOpenAiKey ? 'openai' : 'mock';
 }
 
 function buildConfig() {
@@ -101,6 +111,8 @@ function buildConfig() {
   const frontendUrl = normalizeUrl(process.env.FRONTEND_URL, DEFAULT_FRONTEND_URL);
   const corsOrigins = unique(parseCsv(process.env.CORS_ORIGINS, [frontendUrl]));
   const googleMapsApiKey = readString('GOOGLE_MAPS_SERVER_API_KEY') || readString('GOOGLE_MAPS_API_KEY');
+  const googleRoutesApiKey = readString('GOOGLE_ROUTES_API_KEY') || googleMapsApiKey;
+  const googlePlacesApiKey = readString('GOOGLE_PLACES_API_KEY') || googleMapsApiKey;
   const databaseUrl = readString('DATABASE_URL');
   const googleClientId = readString('GOOGLE_CLIENT_ID');
   const googleClientSecret = readString('GOOGLE_CLIENT_SECRET');
@@ -149,11 +161,17 @@ function buildConfig() {
       serverApiKey: hasConfiguredValue(googleMapsApiKey) ? googleMapsApiKey : '',
       geocodingTimeoutMs: parsePositiveInteger(process.env.GEOCODING_TIMEOUT_MS, 7000),
     },
+    googleRoutes: {
+      apiKey: hasConfiguredValue(googleRoutesApiKey) ? googleRoutesApiKey : '',
+      timeoutMs: parsePositiveInteger(process.env.GOOGLE_ROUTES_TIMEOUT_MS, 8000),
+    },
+    googlePlaces: {
+      apiKey: hasConfiguredValue(googlePlacesApiKey) ? googlePlacesApiKey : '',
+      timeoutMs: parsePositiveInteger(process.env.GOOGLE_PLACES_TIMEOUT_MS, 8000),
+    },
     ai: {
       provider: resolveAiProvider(),
       timeoutMs: parsePositiveInteger(process.env.AI_PROVIDER_TIMEOUT_MS, 20000),
-      ollamaBaseUrl: normalizeUrl(process.env.OLLAMA_BASE_URL, 'http://localhost:11434'),
-      ollamaModel: readString('OLLAMA_MODEL', 'llama3.1:8b'),
       openaiApiKey: readString('OPENAI_API_KEY'),
       openaiModel: readString('OPENAI_MODEL', 'gpt-4o-mini'),
     },

@@ -1,453 +1,170 @@
-body {
-    font-family: 'Raleway', sans-serif;
-    background: #dcdcdc;
-    color: #344e41;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+@import url("public.css?v=7.0");
+
+/* Classic planner polish: closer to the original Project III map-first format. */
+.planner-page--classic .planner-shell--classic {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto 48px;
+  padding-top: 20px;
 }
 
-.navbar {
-    color: #ffffff;
-    bottom: 19px;
-    text-align: center;
-    position: relative;
-    font-weight: bold;
-    padding: 10px;
-    z-index: 1000;
-    font-size: 0.8em;
-    margin-top: 30px; /* Mantido apenas um margin-top */
-    right: 614px; 
-    width: 95%;
-    border-radius: 15px 15px 0 0;
+.classic-hero {
+  border-radius: 22px;
+  padding: 22px 26px;
+  margin-bottom: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(236,242,232,.94));
+  border: 1px solid rgba(52, 78, 65, .12);
+  box-shadow: var(--shadow-soft);
 }
 
-.brand {
-    color: #ffffffec;
+.classic-hero h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  line-height: .95;
+  letter-spacing: -.06em;
 }
 
-.hero-section {
-    width: 95%;
-    padding: 10px 0;
-    text-align: center;
-    background: linear-gradient(340deg, #344E41 40%, #A3B18A 90%);
-    color: #ffffff;
-    font-size: 1.5em;
-    font-weight: bold;
-    border-radius: 15px;
-    margin-bottom: -41px; /* Mantido conforme teu CSS original */
-    position: relative;
-    bottom: 50px;
+.classic-hero p { max-width: 680px; margin: 0; color: var(--color-muted); }
+
+.classic-planner-card {
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(52, 78, 65, .13);
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
 }
 
-.content-container {
-    padding: 20px;
-    max-width: 1200px;
-    width: 100%; /* Garantir que ocupa toda a largura disponível */
-    margin: 0 auto;
+.classic-search-bar .overall-search {
+  min-height: 54px;
+  max-height: 120px;
+  resize: vertical;
+  font-size: 1rem;
+  border-radius: 16px;
 }
 
-.search-section {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
+.filter-options--classic {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
 }
 
-.filter-options {
-  display: flex;         /* Torna-os flexíveis */
-  flex-wrap: nowrap;     /* (opcional) se quiser quebrar linha ou não */
-  align-items: center;   /* Alinha verticalmente ao centro */
-  gap: 10px;             /* Espaço entre cada dropdown */
+.filter-options--classic .dropdown-toggle {
+  min-height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #344e41, #3a5a40);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.dropdown {
-    position: relative;
-    width: 100%;
-    max-width: 300px; /* Garantir que caiba lado a lado */
-    margin-bottom: 20px;
-    flex: 1 1 300px; /* Flexível para ajustar conforme o espaço disponível */
+.filter-options--classic .dropdown-toggle:focus {
+  border-color: rgba(163,177,138,.8);
+  box-shadow: 0 0 0 4px rgba(163,177,138,.24);
 }
 
-.dropdown-toggle {
-    width: 100%;
-    padding: 10px;
-    background-color: #344e41;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 4px;
-    font-size: 1em;
+.classic-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 18px;
 }
 
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 100%; /* Posiciona o menu logo abaixo do botão */
-    left: 0; /* Alinha à esquerda do botão */
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-height: 300px;
-    overflow-y: auto;
-    width: 100%;
-    z-index: 1000;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-top: 2px;
+.classic-actions .selection-summary {
+  flex: 1 1 100%;
+  justify-content: center;
+  margin: 0 0 2px;
 }
 
-.dropdown-menu.open {
-    display: block;
+.classic-actions .btn { min-width: 170px; }
+
+.classic-map-section {
+  border-radius: 18px;
+  border: 1px solid rgba(52, 78, 65, .12);
+  background: #f7faf4;
+  padding: 14px;
 }
 
-.dropdown-search {
-    width: 95%;
-    padding: 8px;
-    margin: 10px auto;
-    display: block;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.classic-map-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
-.dropdown-items {
-    max-height: 250px;
-    overflow-y: auto;
+.classic-map-header h2 {
+  margin: 4px 0 0;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  letter-spacing: -.05em;
 }
 
-.dropdown-item {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
+.classic-map-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.dropdown-item:hover {
-    background-color: #f5f5f5;
+.classic-map-tools select { min-width: 160px; }
+
+.map-canvas--classic {
+  min-height: 560px;
+  height: 68vh;
+  max-height: 720px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 78, 65, .18);
+  background: var(--color-mint);
 }
 
-.dropdown-item.selected {
-    background-color: #d4edda;
-    font-weight: bold;
+.map-caption {
+  margin: 10px 2px 0;
+  color: var(--color-muted);
+  font-size: .95rem;
 }
 
-/* Estilo para a mensagem "No results found." */
-.dropdown-item.no-results {
-    cursor: default;
-    color: #999;
-    font-style: italic;
+.map-panel__footer--classic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
-.search-button {
-    background: #344e41;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    display: block;
-    margin: 20px auto;
-    transition: background 0.3s;
+.classic-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
 }
 
-.search-button:hover {
-    background: #23372d;
+.classic-result-card {
+  border: 1px solid rgba(52, 78, 65, .12);
+  border-radius: 18px;
+  background: #fff;
+  padding: 18px;
+  box-shadow: 0 14px 34px rgba(39, 58, 47, .07);
 }
 
-footer {
-    background: linear-gradient(180deg, #3A5A40 0%, #344E41 100%);
-    color: #f0f0f0;
-    text-align: center;
-    padding: 20px;
-    font-size: 0.8em;
-    width: 95%;
-    border-radius: 15px 15px 0 0;
-    margin-top: 30px; /* Ajustado para melhor espaçamento */
+.classic-result-card h2 {
+  margin: 4px 0 14px;
+  font-size: clamp(1.55rem, 2.5vw, 2.3rem);
+  letter-spacing: -.05em;
 }
 
-.overall-search-container {
-    width: 100%;
-    max-width: 800px; /* Define uma largura máxima para a barra de pesquisa */
-    margin: 0 auto 20px auto; /* Centraliza a barra e adiciona margem inferior */
+.planner-page--classic .empty-state {
+  border: 1px dashed rgba(52, 78, 65, .2);
+  border-radius: 14px;
+  padding: 18px;
+  background: #fff;
 }
-
-.overall-search {
-    width: 100%;
-    padding: 10px 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 1em;
-    box-sizing: border-box;
-    resize: none; /* Remove a capacidade de redimensionar manualmente */
-    overflow-y: hidden; /* Oculta a barra de rolagem inicialmente */
-    line-height: 1.5em; /* Define a altura da linha para cálculo de altura */
-    min-height: 1.5em; /* Altura mínima para uma linha */
-    max-height: 4.5em; /* Altura máxima para 3 linhas (1.5em * 3) */
-    transition: height 0.2s ease; /* Adiciona transição suave */
-}
-
-
 
 @media (max-width: 900px) {
-    .filter-options {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .dropdown {
-        max-width: 100%;
-        flex: 1 1 100%;
-    }
-}
-/* Estilos para os itens da lista de monumentos */
-.monument-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-  }
-  
-  .monument-item span {
-    flex-grow: 1;
-  }
-  
-  /* Botões */
-  .remove-button,
-  .move-up-button,
-  .move-down-button,
-  .view-button,
-  .add-button,
-  .save-button {
-    border: none;
-    color: white;
-    padding: 5px 8px;
-    margin-left: 5px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
-  .favorite-button {
-    background-color: #ffc107; /* Tom de amarelo */
-    color: #ffffff; /* Cor do texto */
-    padding: 10px 20px;
-    font-size: 15px;
-    border: none;
-    border-radius: 8px; /* Bordas arredondadas */
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.2s;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Efeito hover para o botão Favoritar */
-.favorite-button:hover {
-    background-color: #e6ac00; /* Amarelo mais escuro ao passar o mouse */
-    transform: scale(1.0); /* Leve aumento no tamanho */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Sombra mais intensa */
-}
-
-/* Botão Desfavoritar */
-.unfavorite-button {
-    background-color: #e56; /* Vermelho suave */
-    color: #ffffff; /* Cor do texto */
-    padding: 10px 20px;
-    font-size: 15px;
-    border: none;
-    border-radius: 8px; /* Bordas arredondadas */
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.2s;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Efeito hover para o botão Desfavoritar */
-.unfavorite-button:hover {
-    background-color: #d44; /* Vermelho mais escuro ao passar o mouse */
-    transform: scale(1.0); /* Leve aumento no tamanho */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Sombra mais intensa */
-}
-  
-  /* Estilo para o botão "Ver" */
-  .view-button {
-    background-color: #f0ad4e; /* Laranja */
-  }
-  
-  .view-button:hover {
-    background-color: #ec971f;
-  }
-  
-  /* Estilos para os botões "Remover", "Mover para Cima" e "Mover para Baixo" */
-  .remove-button {
-    background-color: #ff4d4d; /* Vermelho */
-  }
-  
-  .remove-button:hover {
-    background-color: #e60000;
-  }
-  
-  .move-up-button,
-  .move-down-button {
-    background-color: #4CAF50; /* Verde para mover */
-  }
-  
-  .move-up-button:hover,
-  .move-down-button:hover {
-    background-color: #45a049;
-  }
-  
-  /* Estilo para o botão Salvar */
-  .save-button {
-    background-color: #008CBA; /* Azul */
-    padding: 10px 20px;
-    margin-top: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-  }
-  
-  .save-button:hover {
-    background-color: #005f6a;
-  }
-  
-  /* Estilo para o botão Adicionar Monumento */
-  .add-button {
-    background-color: #5bc0de; /* Azul claro */
-    padding: 10px 20px;
-    margin-top: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-  }
-  
-  .add-button:hover {
-    background-color: #31b0d5;
-  }
-  
-  /* Estilos para o Modal */
-  .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1001; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-  }
-  
-  .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-    max-width: 500px;
-    border-radius: 5px;
-  }
-  
-  .close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .close-button:hover,
-  .close-button:focus {
-    color: black;
-    text-decoration: none;
-  }
-  
-  #add-monument-input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-  }
-  
-  /* Estilo para o Loader */
-  #loader {
-    z-index: 1000; /* Para garantir que o loader fique acima de outros elementos */
-  }
-  .transport-mode-container {
-    display: flex;
-    align-items: center;
-  }
-  
-  /* Estilos para o rótulo */
-  .transport-mode-container label {
-    margin-right: 10px;
-  }
-  
-  /* Estilos para o seletor */
-  .travel-mode-select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-  }
-
-  /* mainapp.css */
-
-/* Estilos para o container da hora de partida */
-.departure-time-container {
-    display: flex;
-    align-items: center;
-  }
-  
-  /* Estilos para o rótulo */
-  .departure-time-container label {
-    margin-right: 10px;
-  }
-  
-  /* Estilos para o input de data e hora */
-  .departure-time-input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-  }
-  
-.empty-state {
-  color: #5f6f64;
-  font-style: italic;
-  padding: 12px 0;
-}
-
-.leg-item {
-  margin-bottom: 14px;
-  padding: 14px;
-  border: 1px solid #d8dfd8;
-  border-radius: 10px;
-  background: #fafbf9;
-}
-
-.leg-meta,
-.instructions-label {
-  color: #5f6f64;
-}
-
-.route-steps {
-  margin: 0;
-  padding-left: 24px;
-}
-
-.route-steps li {
-  margin-bottom: 6px;
-  line-height: 1.45;
-}
-
-button:disabled,
-.button--busy {
-  cursor: wait !important;
-  opacity: 0.65;
+  .filter-options--classic,
+  .classic-results-grid { grid-template-columns: 1fr; }
+  .classic-map-header { align-items: stretch; flex-direction: column; }
+  .classic-map-tools { flex-direction: column; align-items: stretch; }
+  .map-canvas--classic { height: 60vh; min-height: 420px; }
 }

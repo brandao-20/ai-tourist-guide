@@ -1,89 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile - Personalized Tourist Guide</title>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="edit_profile.css?v=2.0" rel="stylesheet">
-    <script src="/config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Edit your Personalized Tourist Guide AI profile and avatar.">
+  <meta name="theme-color" content="#31543f">
+  <link rel="icon" href="/globe-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="edit_profile.css?v=7.0" rel="stylesheet">
+  <title>Personalized Tourist Guide AI</title>
+  <script src="/config.js"></script>
 </head>
-<body>
-    <header class="site-header">
-        <nav class="navbar" aria-label="Main navigation">
-            <a href="/home_logged.html" class="brand">PERSONALIZED TOURIST GUIDE</a>
-        </nav>
-    </header>
-
-    <main class="page-shell">
-        <section class="hero-section" aria-labelledby="edit-profile-title">
-            <p class="eyebrow">Account settings</p>
-            <h1 id="edit-profile-title">Edit profile</h1>
-            <p>Update your display name, password or profile image.</p>
-        </section>
-
-        <section class="content-container edit-section" aria-labelledby="edit-info-title">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Profile details</p>
-                    <h2 id="edit-info-title">Edit information</h2>
-                </div>
-            </div>
-
-            <p id="edit-profile-status" class="status-message is-hidden" aria-live="polite"></p>
-
-            <div class="profile-picture">
-                <img id="profile-pic" class="profile-pic" src="default-avatar.svg" alt="Profile picture preview">
-                <button class="image-edit-button" id="edit-profile-pic" type="button" aria-label="Choose profile image">
-                    <i class="fas fa-pencil-alt"></i>
-                </button>
-                <input type="file" id="profileImageInput" name="profileImage" accept="image/jpeg,image/png,image/webp,image/gif">
-                <p class="helper-text">JPG, PNG, WEBP or GIF. Maximum 2 MB.</p>
-            </div>
-
-            <form class="edit-form">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <div class="input-container">
-                        <input type="text" id="name" autocomplete="name" maxlength="120" readonly>
-                        <button class="edit-button" id="edit-name" type="button" aria-label="Edit name">
-                            <i class="fas fa-pencil-alt"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">New password</label>
-                    <div class="input-container">
-                        <input type="password" id="password" autocomplete="new-password" placeholder="Leave blank to keep current password" readonly>
-                        <button class="edit-button" id="edit-password" type="button" aria-label="Edit password">
-                            <i class="fas fa-pencil-alt"></i>
-                        </button>
-                    </div>
-                    <p class="helper-text">Use at least 8 characters. Leave empty if you do not want to change it.</p>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email address</label>
-                    <div class="input-container input-container--readonly">
-                        <input type="email" id="email" autocomplete="email" readonly>
-                    </div>
-                    <p class="helper-text">Email changes are disabled for this portfolio version.</p>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="cancel-button">Cancel</button>
-                    <button type="submit" class="save-button">Save changes</button>
-                </div>
-            </form>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <p>&copy; 2024 Personalized Tourist Guide - All Rights Reserved.</p>
-    </footer>
-
-    <script src="/build/edit_profile.js"></script>
+<body class="app-page edit-profile-page">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <nav class="navbar" aria-label="Application navigation">
+      <a href="/dashboard" class="brand" aria-label="Tourist Guide AI dashboard">Tourist Guide AI</a>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/plan-trip">Plan trip</a></li>
+        <li><a href="/saved-routes">Saved routes</a></li>
+        <li><a href="/profile" aria-current="page">Profile</a></li>
+        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+      </ul>
+    </nav>
+  </header>
+  <main id="main-content" class="page-shell edit-profile-shell">
+    <section class="profile-hero" aria-labelledby="edit-profile-title">
+      <div>
+        <span class="eyebrow">Edit profile</span>
+        <h1 id="edit-profile-title">Edit your profile</h1>
+        <p>Update your name, password or avatar before recording your next route.</p>
+      </div>
+      <aside class="profile-summary-card">
+        <img id="profile-pic" src="default-avatar.svg" alt="Profile image preview">
+        <div><span>Avatar</span><strong>Preview</strong><button id="edit-profile-pic" type="button" class="action-button action-button--ghost">Choose image</button></div>
+        <input id="profileImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+      </aside>
+    </section>
+    <div id="edit-profile-status" class="form-feedback" role="status" aria-live="polite"></div>
+    <form class="edit-form content-card" novalidate>
+      <h2>Profile details</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <div class="input-shell"><input id="name" class="form-control" type="text" autocomplete="name" readonly><button id="edit-name" type="button" class="password-toggle" aria-label="Edit name">Edit</button></div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" class="form-control" type="email" autocomplete="email" readonly>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="password">New password</label>
+        <div class="input-shell"><input id="password" class="form-control" type="password" autocomplete="new-password" placeholder="Leave empty to keep current password" readonly><button id="edit-password" type="button" class="password-toggle" aria-label="Edit password">Edit</button></div>
+      </div>
+      <div class="toolbar-actions">
+        <button type="submit" class="save-button btn btn-primary">Save changes</button>
+        <button type="button" class="cancel-button btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-grid footer-grid--simple">
+      <section class="footer-brand" aria-label="Project summary">
+        <h2>Personalized Tourist Guide AI</h2>
+        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+      </section>
+      <section class="footer-column footer-column--project" aria-label="Project links">
+        <h3>Project</h3>
+        <a href="/contact">GitHub</a>
+        <a href="/contact">Professional profile</a>
+        <a href="/contact">Contact</a>
+      </section>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
+  </footer>
+  <script src="/build/edit_profile.js"></script>
+  <script src="/nav-surface.js"></script>
 </body>
 </html>

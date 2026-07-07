@@ -98,14 +98,17 @@ async function buildMonumentsWithCoordinates(monuments) {
   return monumentsWithCoordinates.length > 0 ? monumentsWithCoordinates : safeMonuments;
 }
 
-async function runItinerarySearch(searchPayload) {
-  const aiResult = await generateTravelItinerary(searchPayload);
+async function runItinerarySearch(searchPayload, options = {}) {
+  const aiResult = await generateTravelItinerary(searchPayload, {
+    userPreferences: options.userPreferences || null,
+  });
   const monuments = await buildMonumentsWithCoordinates(aiResult.monuments);
 
   return {
     provider: aiResult.provider,
     itinerary: aiResult.itinerary,
     monuments,
+    recommendation: aiResult.recommendation || null,
   };
 }
 

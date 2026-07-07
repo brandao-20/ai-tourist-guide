@@ -3,8 +3,8 @@ import { getApiUrl } from './config.js';
 import { setStatusMessage } from './ui.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GOOGLE_UNAVAILABLE_MESSAGE = 'Google sign-in is not configured in this demo. Use the local account form instead.';
-const GOOGLE_STATUS_ERROR_MESSAGE = 'Google sign-in availability could not be checked. Use the local account form for now.';
+const GOOGLE_UNAVAILABLE_MESSAGE = '';
+const GOOGLE_STATUS_ERROR_MESSAGE = '';
 
 export function isValidEmail(email) {
   return EMAIL_REGEX.test(String(email || '').trim());
@@ -12,6 +12,40 @@ export function isValidEmail(email) {
 
 export function buildFullName(firstName, lastName) {
   return `${firstName || ''} ${lastName || ''}`.replace(/\s+/g, ' ').trim();
+}
+
+
+export function setFieldError(input, errorElement, message = '') {
+  if (!input || !errorElement) {
+    return;
+  }
+
+  errorElement.textContent = message;
+  errorElement.classList.toggle('is-hidden', !message);
+
+  if (message) {
+    input.setAttribute('aria-invalid', 'true');
+    return;
+  }
+
+  input.removeAttribute('aria-invalid');
+}
+
+export function clearFieldErrors(fields = []) {
+  fields.forEach(({ input, errorElement }) => setFieldError(input, errorElement, ''));
+}
+
+export function setupPasswordToggle({ input, button }) {
+  if (!input || !button) {
+    return;
+  }
+
+  button.addEventListener('click', () => {
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    button.textContent = isHidden ? 'Hide' : 'Show';
+    button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+  });
 }
 
 export function getGoogleAuthErrorMessage(searchParams = new URLSearchParams(window.location.search)) {
@@ -26,6 +60,33 @@ export function getGoogleAuthErrorMessage(searchParams = new URLSearchParams(win
   }
 
   return 'Authentication could not be completed. Use local login or try again later.';
+}
+
+
+function getOAuthContainer(button) {
+  return button?.closest('.auth-provider-stack');
+}
+
+function hideOAuthButton(button, noteElement) {
+  const container = getOAuthContainer(button);
+  if (container) {
+    container.hidden = true;
+  }
+  if (button) {
+    button.hidden = true;
+    button.href = '#';
+    button.classList.add('is-disabled');
+    button.setAttribute('aria-disabled', 'true');
+  }
+  setOAuthNote(noteElement, '');
+}
+
+function showOAuthButton(button) {
+  const container = getOAuthContainer(button);
+  if (container) {
+    container.hidden = false;
+  }
+  button.hidden = false;
 }
 
 function disableOAuthButton(button, message) {
@@ -57,8 +118,7 @@ export async function setupGoogleOAuthButton({ button, noteElement, feedbackElem
     return;
   }
 
-  disableOAuthButton(button, 'Checking Google sign-in availability...');
-  setOAuthNote(noteElement, 'Checking Google sign-in availability...', 'info');
+  hideOAuthButton(button, noteElement);
 
   button.addEventListener('click', (event) => {
     if (button.getAttribute('aria-disabled') === 'true') {
@@ -76,15 +136,14 @@ export async function setupGoogleOAuthButton({ button, noteElement, feedbackElem
     const googleOAuthEnabled = Boolean(status?.capabilities?.auth?.googleOAuth);
 
     if (googleOAuthEnabled) {
+      showOAuthButton(button);
       enableOAuthButton(button);
-      setOAuthNote(noteElement, 'Google sign-in is available for this environment.', 'success');
+      setOAuthNote(noteElement, '', 'success');
       return;
     }
 
-    disableOAuthButton(button, GOOGLE_UNAVAILABLE_MESSAGE);
-    setOAuthNote(noteElement, GOOGLE_UNAVAILABLE_MESSAGE, 'warning');
+    hideOAuthButton(button, noteElement);
   } catch (error) {
-    disableOAuthButton(button, GOOGLE_STATUS_ERROR_MESSAGE);
-    setOAuthNote(noteElement, GOOGLE_STATUS_ERROR_MESSAGE, 'warning');
+    hideOAuthButton(button, noteElement);
   }
 }

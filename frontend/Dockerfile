@@ -17,6 +17,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY --from=build /usr/src/app/public ./public
+COPY --from=build /usr/src/app/server.js ./server.js
 
 EXPOSE 8080
 

@@ -1,315 +1,96 @@
-:root {
-    --color-primary: #344e41;
-    --color-primary-dark: #23372d;
-    --color-accent: #a3b18a;
-    --color-surface: #f7f7f3;
-    --color-muted: #667367;
-    --color-danger: #c0392b;
-    --shadow-card: 0 18px 50px rgba(35, 55, 45, 0.14);
+@import url("public.css?v=7.0");
+
+/* Dashboard restored towards the original Project III structure: welcome, explore map, recent route and saved routes. */
+.dashboard-shell--classic {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto 48px;
+  padding-top: 20px;
 }
 
-* {
-    box-sizing: border-box;
+.welcome-panel {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 18px;
+  padding: 26px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #344e41 0%, #3a5a40 58%, #a3b18a 135%);
+  color: #fff;
+  box-shadow: var(--shadow-soft);
 }
 
-body {
-    font-family: 'Raleway', sans-serif;
-    background: #dcdcdc;
-    color: var(--color-primary);
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+.welcome-panel::after {
+  content: "";
+  position: absolute;
+  right: 10%;
+  top: -70px;
+  width: 190px;
+  height: 190px;
+  border-radius: 999px;
+  background: rgba(218, 215, 205, .18);
 }
 
-a {
-    color: inherit;
+.welcome-panel__content { position: relative; z-index: 1; }
+.welcome-panel .eyebrow,
+.welcome-panel h1,
+.welcome-panel p { color: #fff; }
+.welcome-panel h1 {
+  margin: 10px 0;
+  font-size: clamp(2.3rem, 5vw, 4.5rem);
+  line-height: .94;
+  letter-spacing: -.06em;
+}
+.welcome-panel p { max-width: 640px; opacity: .9; }
+.welcome-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  border: 4px solid rgba(255,255,255,.8);
+  object-fit: cover;
+  margin: 12px 0 2px;
+  background: rgba(255,255,255,.3);
+}
+.welcome-panel .profile-summary-card { position: relative; z-index: 1; min-width: 260px; }
+
+.classic-map-card {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid rgba(52, 78, 65, .13);
+  border-radius: 22px;
+  background: rgba(255,255,255,.96);
+  box-shadow: var(--shadow-soft);
 }
 
-.site-header {
-    width: min(1180px, calc(100% - 32px));
-    margin: 24px auto 0;
+.classic-map-card .section-heading { margin-bottom: 12px; }
+.classic-map-card h2 {
+  margin: 4px 0 0;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: -.05em;
 }
 
-.navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 14px 18px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: #ffffff;
-    box-shadow: var(--shadow-card);
+.mini-map--hero {
+  width: 100%;
+  min-height: 360px;
+  height: 48vh;
+  max-height: 560px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(52, 78, 65, .16);
+  background: var(--color-mint);
 }
 
-.brand {
-    color: #ffffff;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-decoration: none;
+.favorites-grid--classic {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
 }
 
-.logout-btn,
-.card-action,
-.state-card__link {
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    font: inherit;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-}
-
-.logout-btn {
-    background: rgba(255, 255, 255, 0.94);
-    color: var(--color-danger);
-    padding: 9px 16px;
-}
-
-.logout-btn:hover,
-.card-action:hover,
-.state-card__link:hover {
-    transform: translateY(-1px);
-}
-
-.page-shell {
-    width: min(1180px, calc(100% - 32px));
-    margin: 20px auto 36px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-.hero-section,
-.dashboard-card {
-    background: var(--color-surface);
-    border: 1px solid rgba(52, 78, 65, 0.1);
-    border-radius: 24px;
-    box-shadow: var(--shadow-card);
-}
-
-.hero-section {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 32px;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-    color: #ffffff;
-}
-
-.eyebrow {
-    margin: 0 0 8px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.82;
-}
-
-.hero-section h1,
-.dashboard-card h2,
-.state-card h3,
-.favorite-card h3 {
-    margin: 0;
-}
-
-.hero-section h1 {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-}
-
-.hero-copy {
-    max-width: 620px;
-    margin: 12px 0 0;
-    line-height: 1.55;
-}
-
-.profile-link {
-    min-width: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 16px;
-    color: #ffffff;
-    text-align: center;
-    text-decoration: none;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.12);
-}
-
-.profile-pic {
-    width: 86px;
-    height: 86px;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.78);
-    object-fit: cover;
-    background: #ffffff;
-}
-
-.profile-name {
-    font-weight: 700;
-}
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-}
-
-.dashboard-card {
-    padding: 22px;
-}
-
-.card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.card-action,
-.state-card__link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-primary);
-    color: #ffffff;
-    padding: 9px 16px;
-    white-space: nowrap;
-}
-
-.map-container,
-.favorite-mini-map {
-    width: 100%;
-    min-height: 310px;
-    border: 3px solid var(--color-accent);
-    border-radius: 18px;
-    background: #e9eee4;
-    overflow: hidden;
-}
-
-.favorites-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 18px;
-    min-height: 160px;
-}
-
-.favorite-mini-map-wrapper,
-.favorite-card {
-    position: relative;
-    display: block;
-    min-height: 260px;
-    border-radius: 18px;
-    overflow: hidden;
-}
-
-.favorite-mini-map {
-    height: 100%;
-    min-height: 260px;
-}
-
-.favorite-name {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    margin: 0;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.92);
-    color: var(--color-primary);
-    font-weight: 700;
-    box-shadow: 0 8px 20px rgba(35, 55, 45, 0.18);
-}
-
-.favorite-card {
-    padding: 22px;
-    background: #edf2e7;
-    color: var(--color-primary);
-    text-decoration: none;
-    border: 1px solid rgba(52, 78, 65, 0.12);
-}
-
-.favorite-card p,
-.state-card p {
-    color: var(--color-muted);
-    line-height: 1.55;
-}
-
-.state-card {
-    width: 100%;
-    min-height: inherit;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 28px;
-    text-align: center;
-    border: 2px dashed rgba(52, 78, 65, 0.25);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.58);
-}
-
-.site-footer {
-    width: min(1180px, calc(100% - 32px));
-    margin: auto auto 0;
-    padding: 18px;
-    border-radius: 18px 18px 0 0;
-    background: linear-gradient(180deg, #3a5a40 0%, var(--color-primary) 100%);
-    color: #f0f0f0;
-    text-align: center;
-    font-size: 0.85rem;
-}
-
-@media (max-width: 860px) {
-    .hero-section,
-    .card-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .profile-link {
-        width: 100%;
-    }
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 520px) {
-    .site-header,
-    .page-shell,
-    .site-footer {
-        width: min(100% - 20px, 1180px);
-    }
-
-    .navbar,
-    .hero-section,
-    .dashboard-card {
-        border-radius: 16px;
-    }
-
-    .hero-section,
-    .dashboard-card {
-        padding: 18px;
-    }
-
-    .navbar {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .logout-btn,
-    .card-action {
-        width: 100%;
-    }
+@media (max-width: 820px) {
+  .welcome-panel { grid-template-columns: 1fr; }
+  .welcome-panel .profile-summary-card { min-width: 0; }
+  .mini-map--hero { height: 42vh; min-height: 320px; }
 }

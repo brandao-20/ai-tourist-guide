@@ -2,7 +2,7 @@
   "name": "personalized-tourist-guide-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "Clean portfolio version of an academic personalized tourist guide with map-based itineraries and AI-assisted planning.",
+  "description": "Professional AI-assisted travel planning application with personalised itineraries, maps and saved routes.",
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
@@ -13,9 +13,25 @@
     "check:backend": "npm run check:syntax --prefix backend",
     "check:frontend": "npm run check:syntax --prefix frontend",
     "check": "npm run check:backend && npm run check:frontend",
-    "db:sync": "npm run db:sync --prefix backend"
+    "db:sync": "npm run db:sync --prefix backend",
+    "smoke:test": "node scripts/smoke-test.js",
+    "dev": "docker compose up --build",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v && docker compose up --build",
+    "seed:demo": "npm run seed:demo --prefix backend",
+    "security:scan": "node scripts/security-scan.js",
+    "release:audit": "node scripts/release-audit.js",
+    "check:release": "npm run check && npm run test:unit && npm run security:scan && npm run release:audit",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "vitest": "^4.1.10"
   }
 }

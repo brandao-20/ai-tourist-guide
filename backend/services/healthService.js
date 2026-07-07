@@ -38,6 +38,12 @@ async function checkDatabase() {
   }
 }
 
+function checkGoogleMapsServerKey() {
+  return {
+    status: appConfig.googleMaps.serverApiKey ? 'ok' : 'optional',
+  };
+}
+
 function getPublicCapabilities() {
   return {
     auth: {
@@ -48,8 +54,16 @@ function getPublicCapabilities() {
       provider: appConfig.ai.provider,
     },
     maps: {
+      required: false,
       browserKeyExpected: true,
       serverGeocoding: Boolean(appConfig.googleMaps.serverApiKey),
+      routePlanning: appConfig.googleMaps.serverApiKey ? 'google-maps' : 'list-fallback',
+    },
+    googleRoutes: {
+      enabled: Boolean(appConfig.googleRoutes.apiKey),
+    },
+    googlePlaces: {
+      enabled: Boolean(appConfig.googlePlaces.apiKey),
     },
   };
 }
@@ -70,6 +84,7 @@ function getCapabilitiesStatus() {
 
 async function getReadinessStatus() {
   const database = await checkDatabase();
+  const googleMapsServerKey = checkGoogleMapsServerKey();
   const ready = database.status === 'ok';
 
   return {
@@ -78,6 +93,7 @@ async function getReadinessStatus() {
       ...getBaseStatus(ready ? 'ready' : 'degraded'),
       checks: {
         database,
+        googleMapsServerKey,
       },
       capabilities: getPublicCapabilities(),
     },

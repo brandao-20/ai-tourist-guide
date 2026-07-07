@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "npm run db:sync && npm run start"]

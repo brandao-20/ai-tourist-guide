@@ -3,6 +3,8 @@ function normalizeSessionEmail(req) {
   return typeof email === 'string' ? email.trim().toLowerCase() : '';
 }
 
+const { normalizeTravelPreferences } = require('../services/userPreferenceService');
+
 function toPublicSessionUser(user) {
   if (!user) {
     return null;
@@ -13,6 +15,7 @@ function toPublicSessionUser(user) {
     name: user.name,
     email: user.email,
     profileImage: user.profileImage || null,
+    travelPreferences: normalizeTravelPreferences(user.travelPreferences),
   };
 }
 

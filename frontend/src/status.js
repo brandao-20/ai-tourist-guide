@@ -55,13 +55,32 @@ function formatBoolean(value) {
   return value ? 'Enabled' : 'Disabled';
 }
 
+function hasConfiguredBrowserMapKey() {
+  const value = window.APP_CONFIG?.GOOGLE_MAPS_BROWSER_API_KEY;
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return Boolean(normalized) && ![
+    'your_google_maps_browser_api_key',
+    'replace_with_google_maps_browser_api_key',
+    'change_me_google_maps_browser_api_key',
+  ].includes(normalized);
+}
+
 function getFrontendCard() {
+  const browserMapsConfigured = hasConfiguredBrowserMapKey();
+
   return createStatusCard({
     title: 'Frontend',
-    state: 'ok',
-    description: 'The static frontend is being served correctly.',
+    state: browserMapsConfigured ? 'ok' : 'warning',
+    description: browserMapsConfigured
+      ? 'The static frontend is served and the Google Maps browser key is configured.'
+      : 'The static frontend is served, but route planning is blocked until the Google Maps browser key is configured.',
     details: [
       { label: 'Runtime config', value: window.APP_CONFIG ? 'Loaded' : 'Using defaults' },
+      { label: 'Google Maps browser key', value: browserMapsConfigured ? 'Configured' : 'Missing' },
     ],
   });
 }
@@ -83,6 +102,7 @@ function getBackendHealthCard(health) {
 
 function getReadinessCard(status) {
   const databaseStatus = status?.checks?.database?.status || 'unknown';
+  const googleMapsServerKeyStatus = status?.checks?.googleMapsServerKey?.status || 'unknown';
 
   return createStatusCard({
     title: 'Readiness',
@@ -93,6 +113,7 @@ function getReadinessCard(status) {
     details: [
       { label: 'API status', value: status?.status || 'Unknown' },
       { label: 'Database', value: databaseStatus },
+      { label: 'Google Maps server key', value: googleMapsServerKeyStatus },
     ],
   });
 }
@@ -108,7 +129,9 @@ function getCapabilitiesCard(capabilities) {
       { label: 'Local auth', value: formatBoolean(publicCapabilities.auth?.local) },
       { label: 'Google OAuth', value: formatBoolean(publicCapabilities.auth?.googleOAuth) },
       { label: 'AI provider', value: publicCapabilities.ai?.provider || 'Unknown' },
+      { label: 'Google Maps required', value: formatBoolean(publicCapabilities.maps?.required) },
       { label: 'Server geocoding', value: formatBoolean(publicCapabilities.maps?.serverGeocoding) },
+      { label: 'Route planning', value: publicCapabilities.maps?.routePlanning || 'Unknown' },
     ],
   });
 }

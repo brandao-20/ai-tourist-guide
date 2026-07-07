@@ -1,235 +1,261 @@
 # Personalized Tourist Guide AI
 
-Portfolio-ready version of an academic web application for personalized tourist recommendations, interactive map exploration and AI-assisted itinerary planning.
+Personalized Tourist Guide AI is a full-stack travel planning application for creating personalised itineraries from a destination, available time and travel preferences. Users can generate route suggestions, review recommended stops, use an interactive Google Maps layer when configured, save routes and continue planning later.
 
-The project combines a static JavaScript/Rollup frontend, a Node.js/Express backend, PostgreSQL/PostGIS storage, Google Maps integration and a configurable AI layer that can run in **mock**, **local model/Ollama** or **OpenAI** mode.
+The product is designed as a clean public repository: the UI is user-facing, the configuration is environment-based and optional external providers degrade to safe local fallbacks.
 
-> This repository is a cleaned and restructured version of the original academic project, prepared for public portfolio usage. Sensitive data, hardcoded API keys, personal uploads and private contact details were removed.
+## Core features
 
-## Features
+- Public landing page with product-focused navigation.
+- Account creation and local sign-in.
+- Authenticated dashboard with recent routes, recent searches and active preferences.
+- Trip planner with country, city, interest and duration filters.
+- Preference-aware local recommendation engine.
+- Optional Google Maps, Google Routes and Google Places integrations.
+- Saved routes library with search, sorting, details and remove actions.
+- Route detail page with itinerary timeline, map fallback and export actions.
+- User profile and travel preferences editor.
+- Safe profile image upload with size/type validation.
+- Runtime validation with Zod.
+- Unit tests with Vitest and browser-flow tests with Playwright.
+- Docker Compose setup for frontend, backend and PostgreSQL/PostGIS.
 
-- User registration and login with centralized input validation and safe session responses.
-- Optional Google OAuth authentication without storing provider tokens; the frontend detects when it is unavailable and keeps local login usable.
-- Interactive Google Maps-based exploration.
-- Country/city filtering using a local cities dataset, without a browser dependency on external country APIs.
-- Personalized travel search with itinerary generation.
-- Configurable AI provider:
-  - `mock` for free local testing without API costs;
-  - `ollama` for local LLM inference;
-  - `openai` for API-based generation if explicitly configured.
-- Optional Google Geocoding support for itinerary places, with server-side timeout and sanitized error logging.
-- Favourite itinerary saving with sanitized public responses.
-- Recent search persistence with server-side JSON payload validation.
-- User profile editing and safe profile image upload with stale upload cleanup.
-- Docker Compose setup with PostgreSQL/PostGIS, backend and frontend services.
-- Safe API health/status/capabilities endpoints for local checks, Docker readiness and frontend feature detection.
-- Lightweight frontend static server with a `/health` endpoint, custom 404 page and public status page.
-
-## Tech Stack
+## Stack
 
 ### Frontend
 
+- HTML
+- CSS with custom design tokens
 - JavaScript
-- HTML/CSS
 - Rollup
-- Native Fetch API
-- Google Maps JavaScript API
+- Google Maps JavaScript API when configured
 
 ### Backend
 
 - Node.js
-- Express.js
-- Passport.js
+- Express
+- Passport
 - Sequelize
 - PostgreSQL/PostGIS
+- Zod
 - Multer
-- Google Geocoding API
 
-### AI / Recommendation Layer
+### Optional providers
 
-- Mock provider for deterministic local demos
-- Ollama-compatible local model provider
-- Optional OpenAI provider
+- Local recommendation engine by default
+- Optional OpenAI provider for live itinerary generation
+- Optional Google Maps, Routes and Places adapters
 
-### DevOps / Tooling
-
-- Docker
-- Docker Compose
-- Git/GitHub
-- Environment-based configuration
-
-## Repository Structure
+## Repository structure
 
 ```text
 .
-├── backend/                 # Express API, authentication, AI provider and persistence
-│   ├── config/              # Centralized environment and database configuration
-│   ├── data/
-│   ├── middleware/          # Authenticated-user resolution and safe uploads
-│   ├── models/             # Sequelize models for users, favourites and recent searches
-│   ├── routes/
-│   ├── scripts/
-│   ├── services/           # AI, geocoding, city catalog, health, profile and persisted itinerary services
-│   └── server.js
-├── frontend/                # Static JavaScript/Rollup frontend and public pages
-│   ├── public/              # HTML, CSS, assets and runtime browser config
-│   ├── src/                 # Page-specific JavaScript bundles
-│   └── server.js            # Minimal static server with /health and 404 handling
-├── package.json             # Root convenience scripts only
+├── backend/                 # Express API, models, routes, services and validation schemas
+├── frontend/                # Static frontend pages, Rollup entries and public assets
+├── scripts/                 # Local verification and release checks
+├── tests/                   # Vitest unit tests and Playwright end-to-end tests
 ├── docker-compose.yml
 ├── .env.example
-├── AUTHORS.md
+├── package.json
 └── README.md
 ```
 
-## Getting Started
+## Environment setup
 
-### 1. Clone the repository
+Copy the example file and create your local environment file:
 
 ```bash
-git clone https://github.com/brandao-20/personalized-tourist-guide-ai.git
-cd personalized-tourist-guide-ai
+copy .env.example .env
 ```
 
-### 2. Configure environment variables
-
-Create a local `.env` file:
+On macOS/Linux, use:
 
 ```bash
 cp .env.example .env
 ```
 
-Update values as needed. Runtime settings are read centrally from `backend/config/env.js`; the backend loads the root `.env` file, including CORS origins, session cookies, database settings, AI provider settings and external API timeouts. The default AI provider is `mock`, so the application can be tested without paid AI APIs. Country and city dropdowns are served from `backend/data/cities.json`, so the main search form does not depend on the Rest Countries API.
+Edit `.env` with your local values. Never commit a real `.env` file.
 
-Useful local defaults:
+Key values:
 
 ```env
 FRONTEND_URL=http://localhost:8080
+FRONTEND_API_BASE_URL=http://localhost:5000
 CORS_ORIGINS=http://localhost:8080
-JSON_BODY_LIMIT=10mb
-HEALTHCHECK_TIMEOUT_MS=3000
-SESSION_COOKIE_SAMESITE=lax
-DATABASE_URL=
+SESSION_SECRET=replace_with_a_long_random_value
+DB_HOST=db
+DB_PORT=5432
+DB_NAME=tourist_guide
+DB_USER=postgres
+DB_PASSWORD=postgres
+TRAVEL_AI_PROVIDER=openai
+GOOGLE_MAPS_BROWSER_API_KEY=
+GOOGLE_MAPS_SERVER_API_KEY=
+GOOGLE_ROUTES_API_KEY=
+GOOGLE_PLACES_API_KEY=
 ```
 
-For production-like deployments, `DATABASE_URL` can be used instead of the individual `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` and `DB_NAME` values.
+Google keys are optional for local development. When they are not configured, the app keeps the itinerary available as a list and uses local fallback data where possible.
 
-### 3. Configure frontend runtime settings
+## Run with Docker Compose
 
-Edit `frontend/public/config.js`:
-
-```js
-window.APP_CONFIG = {
-  API_BASE_URL: 'http://localhost:5000',
-  GOOGLE_MAPS_BROWSER_API_KEY: 'your_restricted_browser_key',
-};
-```
-
-For public repositories, never commit real API keys. Browser keys should be restricted in Google Cloud by HTTP referrer and API scope.
-
-The backend can optionally use `GOOGLE_MAPS_SERVER_API_KEY` for server-side geocoding. If it is empty, itinerary generation still works, but returned monuments may not have coordinates until manually adjusted in the UI.
-
-### 4. Install dependencies for local development
-
-If you want to run the backend/frontend directly on the host machine, install each package independently:
-
-```bash
-npm run install:all
-```
-
-The root package does not contain runtime dependencies; it only exposes convenience scripts for the backend and frontend packages.
-
-### 5. Run with Docker Compose
+From the project root:
 
 ```bash
 docker compose up --build
 ```
 
-Default local services:
+Default local URLs:
 
 - Frontend: `http://localhost:8080`
-- Frontend health: `http://localhost:8080/health`
-- Frontend public status page: `http://localhost:8080/status.html`
 - Backend API: `http://localhost:5000`
-- PostgreSQL/PostGIS: host port `5434`
+- PostgreSQL/PostGIS host port: `5434`
 
-Docker Compose waits for PostgreSQL to become healthy before starting the backend, waits for the backend health endpoint before starting the frontend, and checks the frontend through its own `/health` endpoint.
-
-Safe API checks:
-
-- `GET /health` on the frontend confirms that the static demo server is alive.
-- `GET /api/health` confirms that the API process is alive.
-- `GET /api/capabilities` reports public feature flags such as local auth, Google OAuth availability, AI provider and geocoding mode without checking the database.
-- `GET /api/status` checks database readiness and reports the same public capability flags, without exposing secrets or raw external provider responses.
-
-### 6. Run syntax checks
+Stop containers:
 
 ```bash
-npm run check
+docker compose down
 ```
 
-This validates the main backend and frontend JavaScript files without requiring production secrets.
-
-### 7. Synchronize database tables
-
-If you are using Docker Compose:
+Reset local containers and database volumes only when you intentionally want a clean database:
 
 ```bash
-docker compose exec backend npm run db:sync
+docker compose down -v
+docker compose up --build
 ```
 
-If you are running the backend directly on the host machine after `npm run install:all`:
+## Run without Docker
+
+Install dependencies:
+
+```bash
+npm install
+npm install --prefix backend
+npm install --prefix frontend
+```
+
+Build frontend bundles:
+
+```bash
+npm run build:frontend
+```
+
+Start backend:
+
+```bash
+npm run start:backend
+```
+
+Start frontend in another terminal:
+
+```bash
+npm run start:frontend
+```
+
+## Database synchronisation
+
+The backend runs the database synchronisation step before starting in Docker. To run it manually:
 
 ```bash
 npm run db:sync
 ```
 
-For first-time local/demo setup, `db:sync` creates the Sequelize model tables directly. This repository intentionally does not keep partial Sequelize CLI migration/config artefacts from the old academic project.
+For an existing local PostgreSQL database, the sync step also checks the active `Users` table and adds missing compatibility columns such as `travel_preferences`, `profileImage` and `google_id` when needed.
 
-For development schema updates only, set this in `.env` before running the sync command:
+For controlled local schema updates, set this value before syncing:
 
 ```env
 DB_SYNC_ALTER=true
 ```
 
-`DB_SYNC_ALTER=true` is blocked when `NODE_ENV=production` so public/hosted deployments do not accidentally mutate schemas at runtime.
+`DB_SYNC_ALTER=true` is blocked in production.
 
-## AI Provider Configuration
+## Testing and verification
 
-The backend uses `TRAVEL_AI_PROVIDER` to choose the itinerary generation provider. Provider responses are parsed and normalized before reaching the frontend; raw provider output is not exposed by the API. Saved itineraries and recent searches are also serialized through backend services so database-only fields such as `user_id` are not returned to the browser.
-
-Optional timeout settings:
-
-```env
-AI_PROVIDER_TIMEOUT_MS=20000
-GEOCODING_TIMEOUT_MS=7000
-```
-
-### Mock mode
-
-```env
-TRAVEL_AI_PROVIDER=mock
-```
-
-Best for portfolio demos, screenshots and local development without API costs.
-
-### Local model mode with Ollama
-
-```env
-TRAVEL_AI_PROVIDER=ollama
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
-```
-
-Run Ollama locally and pull a model, for example:
+Syntax checks:
 
 ```bash
-ollama pull llama3.1:8b
+npm run check
 ```
 
-This is the preferred direction for a more personal and cost-controlled version of the project.
+Unit tests:
 
-### OpenAI mode
+```bash
+npm run test:unit
+```
+
+Playwright browser tests:
+
+```bash
+npx playwright install
+npm run test:e2e
+```
+
+Smoke test against a running local stack:
+
+```bash
+npm run smoke:test
+```
+
+Security and release checks:
+
+```bash
+npm run security:scan
+npm run release:audit
+npm run check:release
+```
+
+## Optional Google configuration
+
+### Google Maps JavaScript API
+
+Used by the browser map layer.
+
+```env
+GOOGLE_MAPS_BROWSER_API_KEY=your_restricted_browser_key
+```
+
+Recommended API: Maps JavaScript API.
+
+### Google server-side key
+
+Used by backend geocoding helpers.
+
+```env
+GOOGLE_MAPS_SERVER_API_KEY=your_restricted_server_key
+```
+
+Recommended API: Geocoding API.
+
+### Google Routes API
+
+Prepared as an optional backend adapter for distance, duration and route metadata.
+
+```env
+GOOGLE_ROUTES_API_KEY=your_restricted_routes_key
+GOOGLE_ROUTES_TIMEOUT_MS=7000
+```
+
+### Google Places API
+
+Prepared as an optional backend adapter for place search, addresses, ratings and metadata.
+
+```env
+GOOGLE_PLACES_API_KEY=your_restricted_places_key
+GOOGLE_PLACES_TIMEOUT_MS=7000
+```
+
+Keep all keys restricted by referrer, API scope and environment.
+
+## Optional AI providers
+
+The app works with the local recommendation engine by default:
+
+```env
+TRAVEL_AI_PROVIDER=openai
+```
+
+OpenAI provider for the final demo:
 
 ```env
 TRAVEL_AI_PROVIDER=openai
@@ -237,56 +263,20 @@ OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-Use only when explicitly needed.
+When `OPENAI_API_KEY` is empty, the backend uses the local fallback route generator so the UI remains testable without spending API credits.
 
+External providers are optional. Do not commit provider credentials.
 
-## Public Safety Notes
+## Public release safety
 
-- Do not commit a real `.env` file, API keys, OAuth secrets or database passwords.
-- `backend/uploads/` should only keep `.gitkeep`; uploaded profile images are runtime files and are ignored by Git/Docker.
-- Profile image uploads are limited to JPEG, PNG, WebP and GIF files up to 2 MB. Replacing a profile image removes the previous stored upload when it belongs to the managed uploads folder.
-- Session responses use a small public user shape only: `id`, `name`, `email` and `profileImage`.
-- Runtime configuration is centralized in `backend/config/env.js`, avoiding scattered environment parsing and unsafe fallbacks.
-- Health/status/capabilities responses expose only safe operational metadata and public feature flags, never environment secrets or raw error objects.
-- The public `/status.html` page consumes those safe endpoints and helps diagnose missing backend/configuration during demos.
-- Unknown frontend routes now return a branded `404.html` page instead of a raw static-server response.
-- Authentication logic is centralized in `backend/services/authService.js`, keeping route files small and avoiding token persistence. The public login/register pages disable Google sign-in automatically when OAuth credentials are not configured.
-- Sequelize models now define validation, indexes, ownership relations and cascade cleanup for user-owned favourites/recent searches.
-- Legacy academic authentication, attraction CRUD, partial migration and Sequelize CLI config files were removed; the public API now exposes only the routes used by the current app.
+Before publishing:
 
-## Portfolio Roadmap
-
-Planned improvements for the public portfolio version:
-
-- Replace generic LLM prompting with a dedicated recommendation pipeline.
-- Add a local recommendation model trained on curated tourism/attraction data.
-- Add attraction scoring based on user preferences, distance, category and trip duration.
-- Reintroduce attraction catalog CRUD only after a real data model, admin use case and validation rules exist.
-- Improve frontend UI consistency and responsiveness.
-- Add automated end-to-end smoke tests for auth, search, favourites and profile flows.
-- Continue splitting large frontend/backend modules where it improves readability.
-- Add screenshots and demo video/GIF.
-- Add automated tests for authentication, itinerary generation and favourites.
-- Add explicit production migrations when the schema becomes stable.
-- Add seed data for reproducible demos.
-
-## Security Notes
-
-The cleaned repository removes:
-
-- hardcoded Google Maps API keys;
-- personal profile uploads;
-- personal contact details;
-- hardcoded database passwords;
-- unused legacy authentication/attraction CRUD modules;
-- partial legacy migration/config files that did not match the active models;
-- private runtime configuration.
-
-Before making further versions public, check for secrets with tools such as:
-
-```bash
-git grep -n "AIza\|OPENAI_API_KEY\|PASSWORD\|SECRET\|PRIVATE_KEY"
-```
+- confirm `.env` is not committed;
+- keep `backend/uploads/` as runtime-only storage;
+- restrict all API keys;
+- run `npm run check:release`;
+- review the public UI for user-facing copy only;
+- verify account creation, sign-in, planning, saved routes and profile editing manually.
 
 ## Authors
 

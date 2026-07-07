@@ -1,5 +1,6 @@
 const { appConfig } = require('../config/env');
 const db = require('../models');
+const { runSchemaMaintenance } = require('../db/schemaMaintenance');
 
 function getSyncOptions() {
   if (appConfig.database.syncAlter && appConfig.isProduction) {
@@ -21,7 +22,9 @@ async function syncDatabase() {
   const syncOptions = getSyncOptions();
 
   await db.sequelize.authenticate();
+  await runSchemaMaintenance();
   await db.sequelize.sync(syncOptions);
+  await runSchemaMaintenance();
 
   console.log(`Database synchronized successfully. alter=${Boolean(syncOptions.alter)}`);
   await closeDatabaseConnection();

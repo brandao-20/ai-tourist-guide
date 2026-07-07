@@ -37,6 +37,8 @@ function readOption(name, fallback) {
 const host = readOption('host', process.env.HOST || '127.0.0.1');
 const requestedPort = Number(readOption('port', process.env.PORT || '8080'));
 const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 8080;
+const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+const googleMapsBrowserApiKey = process.env.GOOGLE_MAPS_BROWSER_API_KEY || '';
 
 function sendJson(res, statusCode, payload) {
   const body = JSON.stringify(payload);
@@ -48,9 +50,78 @@ function sendJson(res, statusCode, payload) {
   res.end(body);
 }
 
+function sendRuntimeConfig(res) {
+  const body = `window.APP_CONFIG = ${JSON.stringify({
+    API_BASE_URL: apiBaseUrl,
+    GOOGLE_MAPS_BROWSER_API_KEY: googleMapsBrowserApiKey,
+  }, null, 2)};
+`;
+
+  res.writeHead(200, {
+    'Content-Type': 'application/javascript; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  res.end(body);
+}
+
 function isInsidePublicDir(filePath) {
   const relativePath = path.relative(publicDir, filePath);
   return relativePath && !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+}
+
+
+const routeAliases = new Map([
+  ['/home', '/index.html'],
+  ['/features', '/features.html'],
+  ['/contact', '/contact.html'],
+  ['/sign-in', '/login.html'],
+  ['/login', '/login.html'],
+  ['/create-account', '/register.html'],
+  ['/register', '/register.html'],
+  ['/dashboard', '/home_logged.html'],
+  ['/plan-trip', '/mainapp.html'],
+  ['/saved-routes', '/favorites.html'],
+  ['/profile', '/profile.html'],
+  ['/edit-profile', '/edit_profile.html'],
+  ['/route-details', '/route_details.html'],
+  ['/about', '/features.html'],
+  ['/learnmore', '/features.html'],
+  ['/status', '/features.html'],
+]);
+
+const cleanPathAliases = new Map([
+  ['/index.html', '/'],
+  ['/features.html', '/features'],
+  ['/contact.html', '/contact'],
+  ['/login.html', '/login'],
+  ['/register.html', '/register'],
+  ['/home_logged.html', '/dashboard'],
+  ['/mainapp.html', '/plan-trip'],
+  ['/favorites.html', '/saved-routes'],
+  ['/profile.html', '/profile'],
+  ['/edit_profile.html', '/edit-profile'],
+  ['/route_details.html', '/route-details'],
+  ['/about.html', '/features'],
+  ['/learnmore.html', '/features'],
+  ['/status.html', '/features'],
+]);
+
+function redirect(res, location, statusCode = 302) {
+  res.writeHead(statusCode, {
+    Location: location,
+    'Cache-Control': 'no-store',
+  });
+  res.end();
+}
+
+function getCleanRedirect(pathname, search = '') {
+  const cleanPath = cleanPathAliases.get(pathname);
+  if (!cleanPath) {
+    return null;
+  }
+  return `${cleanPath}${search || ''}`;
 }
 
 async function fileExists(filePath) {
@@ -75,7 +146,8 @@ function getCacheHeader(filePath) {
 
 async function resolveStaticFile(urlPathname) {
   const decodedPath = decodeURIComponent(urlPathname);
-  const normalizedPath = decodedPath === '/' ? '/index.html' : decodedPath;
+  const aliasedPath = routeAliases.get(decodedPath) || decodedPath;
+  const normalizedPath = aliasedPath === '/' ? '/index.html' : aliasedPath;
   const safePath = path.normalize(normalizedPath).replace(/^([.][.][\/\\])+/, '');
   const requestedPath = path.join(publicDir, safePath);
 
@@ -142,6 +214,17 @@ const server = createServer(async (req, res) => {
         service: 'personalized-tourist-guide-ai-frontend',
         timestamp: new Date().toISOString(),
       });
+      return;
+    }
+
+    if (requestUrl.pathname === '/config.js') {
+      sendRuntimeConfig(res);
+      return;
+    }
+
+    const cleanRedirect = getCleanRedirect(requestUrl.pathname, requestUrl.search);
+    if (cleanRedirect && ['GET', 'HEAD'].includes(req.method)) {
+      redirect(res, cleanRedirect, 301);
       return;
     }
 

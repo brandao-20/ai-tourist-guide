@@ -1,9 +1,10 @@
 const express = require('express');
 const requireDbUser = require('../middleware/requireDbUser');
 const {
-  createFavoriteItinerary,
+  createOrUpdateFavoriteItinerary,
   listFavoriteItineraries,
   findFavoriteItinerary,
+  updateFavoriteItineraryName,
   deleteFavoriteItinerary,
 } = require('../services/favoriteItineraryService');
 const {
@@ -14,6 +15,7 @@ const {
 } = require('../utils/httpResponses');
 const {
   normalizeFavoritePayload,
+  normalizeFavoriteNamePayload,
   parsePositiveIntegerParam,
 } = require('../utils/payloadValidation');
 
@@ -28,10 +30,14 @@ router.post('/', async (req, res) => {
       return sendValidationError(res, favoritePayload.error);
     }
 
-    const favorite = await createFavoriteItinerary(req.authenticatedUserId, favoritePayload.value);
+    const { action, favorite } = await createOrUpdateFavoriteItinerary(req.authenticatedUserId, favoritePayload.value);
+    const statusCode = action === 'updated' ? 200 : 201;
 
-    return sendJson(res, 201, {
-      message: 'Favorite itinerary saved successfully.',
+    return sendJson(res, statusCode, {
+      message: action === 'updated'
+        ? 'Existing favorite itinerary updated successfully.'
+        : 'Favorite itinerary saved successfully.',
+      action,
       favoriteId: favorite.id,
       favorite,
     });
@@ -78,6 +84,44 @@ router.get('/:id', async (req, res) => {
       'Failed to get favorite itinerary',
       error,
       'Could not get favorite itinerary.'
+    );
+  }
+});
+
+
+router.patch('/:id', async (req, res) => {
+  try {
+    const favoriteId = parsePositiveIntegerParam(req.params.id);
+    if (!favoriteId) {
+      return sendValidationError(res, 'Invalid favorite itinerary ID.');
+    }
+
+    const namePayload = normalizeFavoriteNamePayload(req.body);
+    if (namePayload.error) {
+      return sendValidationError(res, namePayload.error);
+    }
+
+    const favorite = await updateFavoriteItineraryName(
+      req.authenticatedUserId,
+      favoriteId,
+      namePayload.value.name
+    );
+
+    if (!favorite) {
+      return sendNotFound(res, 'Favorite itinerary not found.');
+    }
+
+    return sendJson(res, 200, {
+      message: 'Favorite itinerary renamed successfully.',
+      favoriteId: favorite.id,
+      favorite,
+    });
+  } catch (error) {
+    return sendServerError(
+      res,
+      'Failed to rename favorite itinerary',
+      error,
+      'Could not rename favorite itinerary.'
     );
   }
 });
