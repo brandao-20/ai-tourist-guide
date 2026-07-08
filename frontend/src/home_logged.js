@@ -1,5 +1,6 @@
 import { apiGet } from './api.js';
-import { getApiUrl, getUploadUrl, getGoogleMapsBrowserApiKey } from './config.js';
+import { getUploadUrl, getGoogleMapsBrowserApiKey } from './config.js';
+import { setupLogoutButton } from './session.js';
 import { getFallbackLocation, getPreferredMapLocation } from './location.js';
 
 const DEFAULT_LOCATION = getFallbackLocation();
@@ -483,15 +484,14 @@ async function loadFavorites() {
         favoritesContainer.removeAttribute('aria-busy');
         updateFavoritesMeta(favoritesArray);
 
+        const savedRoutesSection = getElement('dashboard-saved-routes-section');
         if (!Array.isArray(favoritesArray) || favoritesArray.length === 0) {
-            replaceWithState(
-                favoritesContainer,
-                'No saved routes yet',
-                'Create your first itinerary and save it for later.',
-                null
-            );
+            savedRoutesSection?.classList.add('is-hidden');
+            favoritesContainer.innerHTML = '';
             return favoritesArray;
         }
+
+        savedRoutesSection?.classList.remove('is-hidden');
 
         favoritesArray.forEach((favorite) => {
             if (!favorite.map_data?.routes) {
@@ -561,19 +561,18 @@ async function loadRecentSearch() {
 
     try {
         const recentSearch = await apiGet('/recent_search');
+        const recentSection = getElement('recent-route-section');
         if (!recentSearch?.directions?.routes) {
             if (recentMapContainer) {
                 recentMapContainer.classList.add('is-hidden');
             }
+            recentSection?.classList.add('is-hidden');
             setDashboardMetric('recent-route-state', 'Empty');
-            replaceWithState(
-                recentSummary,
-                'No recent route yet',
-                'Your latest generated itinerary will appear here.',
-                null
-            );
+            recentSummary.innerHTML = '';
             return null;
         }
+
+        recentSection?.classList.remove('is-hidden');
 
         setDashboardMetric('recent-route-state', 'Ready');
         if (recentMapContainer) {
@@ -601,25 +600,16 @@ async function loadRecentSearch() {
         if (recentMapContainer) {
             recentMapContainer.classList.add('is-hidden');
         }
+        getElement('recent-route-section')?.classList.add('is-hidden');
         setDashboardMetric('recent-route-state', 'Empty');
-        replaceWithState(
-            recentSummary,
-            'No recent route yet',
-            'Your latest generated itinerary will appear here.',
-            null
-        );
+        recentSummary.innerHTML = '';
         return null;
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const logoutButton = getElement('logout-btn');
+    setupLogoutButton();
     getElement('dashboard-location-button')?.addEventListener('click', forceDashboardLocation);
-    if (logoutButton) {
-        logoutButton.addEventListener('click', () => {
-            window.location.href = getApiUrl('/logout');
-        });
-    }
 
     let user;
     try {

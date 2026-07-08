@@ -95,12 +95,18 @@ function updateDropdownToggleLabel(dropdown, type, selectedSet) {
   }
 
   const count = selectedSet?.size || 0;
+  toggle.classList.toggle('has-selection', count > 0);
+
   if (type === 'day' && count > 0) {
     const selectedValue = Array.from(selectedSet)[0];
-    const selectedLabel = selectedValue === '1' ? '1 day' : `${selectedValue} days`;
-    toggle.textContent = selectedLabel;
+    toggle.textContent = selectedValue === '1' ? '1 day' : `${selectedValue} days`;
+  } else if (count > 0) {
+    const labels = getSelectedLabels(dropdown, selectedSet);
+    const visible = labels.slice(0, 2).join(', ');
+    const extra = labels.length > 2 ? ` +${labels.length - 2}` : '';
+    toggle.textContent = `${visible}${extra}`;
   } else {
-    toggle.textContent = count > 0 ? `${count} ${LABEL_BY_TYPE[type]} selected` : `Choose ${LABEL_BY_TYPE[type]}`;
+    toggle.textContent = `Choose ${LABEL_BY_TYPE[type]}`;
   }
   toggle.setAttribute('aria-expanded', dropdown.classList.contains('open') ? 'true' : 'false');
 }
@@ -424,7 +430,7 @@ export function createSearchFormController({ apiGet, notify }) {
 
   function validatePayload(payload) {
     const errors = [];
-    // Notes are helpful but optional: selected filters are enough to create a demo route.
+    // Notes are helpful but optional: selected filters are enough to create a route.
     if (payload.selectedCountries.length === 0) {
       errors.push('Please select at least one country.');
     }

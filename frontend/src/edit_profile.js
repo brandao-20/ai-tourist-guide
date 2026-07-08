@@ -2,6 +2,8 @@ import { apiGet, apiPut } from './api.js';
 import { getUploadUrl } from './config.js';
 import { getErrorMessage, setButtonBusy, setStatusMessage } from './ui.js';
 
+import { setupLogoutButton } from './session.js';
+setupLogoutButton();
 const DEFAULT_AVATAR = 'default-avatar.svg';
 const MAX_CLIENT_IMAGE_SIZE_BYTES = 2 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -47,22 +49,6 @@ function previewSelectedImage(file) {
     reader.readAsDataURL(file);
 }
 
-function toggleEdit(inputElement, buttonElement) {
-    if (!inputElement || !buttonElement) {
-        return;
-    }
-
-    const isReadOnly = inputElement.readOnly;
-    inputElement.readOnly = !isReadOnly;
-    buttonElement.innerHTML = isReadOnly
-        ? '<i class="fas fa-check"></i>'
-        : '<i class="fas fa-pencil-alt"></i>';
-
-    if (isReadOnly) {
-        inputElement.focus();
-    }
-}
-
 async function loadUserData() {
     setProfileStatus('Loading profile...', 'info');
 
@@ -97,22 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFile = null;
 
     loadUserData();
-
-    const editNameButton = getElement('edit-name');
-    if (editNameButton) {
-        editNameButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            toggleEdit(getElement('name'), editNameButton);
-        });
-    }
-
-    const editPasswordButton = getElement('edit-password');
-    if (editPasswordButton) {
-        editPasswordButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            toggleEdit(getElement('password'), editPasswordButton);
-        });
-    }
 
     const cancelButton = document.querySelector('.cancel-button');
     if (cancelButton) {

@@ -14,7 +14,6 @@ const REQUIRED_FILES = [
   'backend/package.json',
   'frontend/package.json',
   'frontend/public/index.html',
-  'frontend/public/features.html',
   'frontend/public/contact.html',
   'frontend/public/login.html',
   'frontend/public/register.html',
@@ -31,7 +30,6 @@ const REQUIRED_FILES = [
 const REQUIRED_IGNORES = ['.env', 'node_modules/', 'frontend/public/build/', 'backend/uploads/*'];
 const PUBLIC_HTML_FILES = [
   'frontend/public/index.html',
-  'frontend/public/features.html',
   'frontend/public/contact.html',
   'frontend/public/login.html',
   'frontend/public/register.html',
@@ -76,13 +74,13 @@ const envExample = read('.env.example');
 });
 
 const homeHtml = read('frontend/public/index.html');
-['Home', 'Features', 'Contact', 'Sign in', 'Create account'].forEach((label) => {
+['Home', 'Contact', 'Sign in', 'Create account'].forEach((label) => {
   if (!homeHtml.includes(label)) {
     errors.push(`Public homepage navigation is missing: ${label}`);
   }
 });
 
-['Status', 'Start local demo', 'Smoke tests', 'Docker', 'Academic portfolio project'].forEach((forbiddenText) => {
+['Status', 'Start local demo', 'Smoke tests', 'Docker', 'Academic portfolio project', 'portfolio-ready demo', 'portfolio baseline', 'demo baseline'].forEach((forbiddenText) => {
   if (homeHtml.includes(forbiddenText)) {
     errors.push(`Public homepage still exposes technical/reviewer wording: ${forbiddenText}`);
   }

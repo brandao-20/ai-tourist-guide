@@ -1,4 +1,4 @@
-@import url("public.css?v=7.0");
+@import url("public.css?v=10.0");
 
 /* Dashboard restored towards the original Project III structure: welcome, explore map, recent route and saved routes. */
 .dashboard-shell--classic {
@@ -93,4 +93,82 @@
   .welcome-panel { grid-template-columns: 1fr; }
   .welcome-panel .profile-summary-card { min-width: 0; }
   .mini-map--hero { height: 42vh; min-height: 320px; }
+}
+
+/* v9 dashboard refinements requested in final UI pass. */
+.welcome-panel::after {
+  content: none !important;
+  display: none !important;
+}
+
+.welcome-panel {
+  min-height: 250px !important;
+}
+
+.welcome-panel h1 {
+  white-space: nowrap;
+  font-size: clamp(2.55rem, 4.2vw, 4.05rem) !important;
+  letter-spacing: -.06em;
+}
+
+.dashboard-profile-card {
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.dashboard-profile-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: 0 20px 46px rgba(20,40,31,.20);
+}
+
+.dashboard-profile-card img {
+  width: 86px;
+  height: 86px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.78);
+  background: #fff;
+}
+
+.dashboard-profile-card strong {
+  white-space: nowrap;
+}
+
+@media (max-width: 820px) {
+  .welcome-panel h1 {
+    white-space: normal;
+  }
+}
+
+/* v10 dashboard profile card: static card, avatar-only micro interaction. */
+.dashboard-profile-card {
+  text-decoration: none !important;
+  cursor: default;
+  transition: none !important;
+}
+
+.dashboard-profile-card:hover {
+  transform: none !important;
+  background: rgba(255,255,255,.12) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.dashboard-profile-card .profile-avatar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dashboard-profile-card .profile-avatar-link img {
+  transition: transform .16s ease;
+}
+
+.dashboard-profile-card .profile-avatar-link:hover img,
+.dashboard-profile-card .profile-avatar-link:focus-visible img {
+  transform: scale(1.035);
 }

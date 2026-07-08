@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="home_logged.css?v=7.0" rel="stylesheet">
+  <link href="home_logged.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -23,7 +23,7 @@
         <li><a href="/plan-trip">Plan trip</a></li>
         <li><a href="/saved-routes">Saved routes</a></li>
         <li><a href="/profile">Profile</a></li>
-        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+        <li><a href="/logout" class="logout-btn" data-logout-link>Sign out</a></li>
       </ul>
     </nav>
   </header>
@@ -31,29 +31,31 @@
   <main id="main-content" class="page-shell page-shell--app dashboard-shell dashboard-shell--classic">
     <section class="welcome-panel" aria-labelledby="dashboard-title">
       <div class="welcome-panel__content">
-        <span class="eyebrow eyebrow--dark">Welcome</span>
-        <img id="profile-pic" class="welcome-avatar" src="default-avatar.svg" alt="Traveller profile picture">
-        <h1 id="dashboard-title">Welcome back, <span id="hero-user-name">traveller</span></h1>
-        <p>Start from the map, continue your latest route or reopen saved itineraries.</p>
-        <div class="hero-actions"><a href="/plan-trip" class="btn btn-dark">Explore map</a><a href="/saved-routes" class="btn btn-light">Saved routes</a></div>
+        <h1 id="dashboard-title">Welcome back</h1>
+        <p>Start from the map or reopen a saved route.</p>
       </div>
-      <aside class="profile-summary-card profile-summary-card--light" aria-label="Profile summary"><div><span>Signed in as</span><strong id="user-name">Traveller</strong><a href="/profile">View profile</a></div></aside>
+      <aside class="profile-summary-card dashboard-profile-card" aria-label="Signed-in account">
+        <a class="profile-avatar-link" href="/profile" aria-label="Open profile">
+          <img id="dashboard-profile-pic" src="default-avatar.svg" alt="Traveller profile picture">
+        </a>
+        <div><span>Signed in as</span><strong id="user-name">Traveller</strong></div>
+      </aside>
     </section>
 
     <section class="classic-map-card classic-map-card--explore" aria-labelledby="explore-title">
-      <div class="section-heading section-heading--split"><div><span class="eyebrow eyebrow--dark">Explore</span><h2 id="explore-title">Start from your map</h2></div><div class="header-actions"><button id="dashboard-location-button" class="action-button" type="button">Use current location</button><a href="/plan-trip" class="action-button action-button--primary">Open planner</a></div></div>
+      <div class="section-heading section-heading--split"><div><h2 id="explore-title">Start from your map</h2></div><div class="header-actions"><button id="dashboard-location-button" class="action-button" type="button">Use current location</button><a href="/plan-trip" class="action-button action-button--primary">Open planner</a></div></div>
       <div id="mini-map" class="mini-map mini-map--hero" tabindex="0" role="button" aria-label="Open planner"></div>
-      <p id="mini-map-caption" class="map-caption">Preparing your location preview.</p>
+      <p id="mini-map-caption" class="map-caption">Current location preview. Open the planner to build a route.</p>
     </section>
 
-    <section class="classic-map-card" aria-labelledby="recent-title">
-      <div class="section-heading section-heading--split"><div><span class="eyebrow eyebrow--dark">Latest route</span><h2 id="recent-title">Continue where you stopped</h2></div></div>
+    <section id="recent-route-section" class="classic-map-card is-hidden" aria-labelledby="recent-title">
+      <div class="section-heading section-heading--split"><div><h2 id="recent-title">Continue where you stopped</h2></div></div>
       <div id="recent-map" class="mini-map mini-map--hero is-hidden" tabindex="0" role="button" aria-label="Open latest route"></div>
       <div id="recent-summary" class="favorites-grid favorites-grid--classic" aria-live="polite"></div>
     </section>
 
-    <section class="classic-map-card" aria-labelledby="saved-routes-title">
-      <div class="section-heading section-heading--split"><div><span class="eyebrow eyebrow--dark">Saved routes</span><h2 id="saved-routes-title"><span id="favorites-title">Your saved routes</span></h2></div><a href="/saved-routes" class="action-button">View all</a></div>
+    <section id="dashboard-saved-routes-section" class="classic-map-card is-hidden" aria-labelledby="saved-routes-title">
+      <div class="section-heading section-heading--split"><div><h2 id="saved-routes-title"><span id="favorites-title">Your saved routes</span></h2></div><a href="/saved-routes" class="action-button">View all</a></div>
       <div id="favorites-container" class="favorites-grid favorites-grid--classic" aria-live="polite"></div>
     </section>
   </main>
@@ -62,18 +64,17 @@
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/home_logged.js"></script>
+  <script src="/build/home_logged.js?v=12.0"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>

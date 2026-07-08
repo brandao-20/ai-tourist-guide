@@ -3,8 +3,8 @@ import { getApiUrl } from './config.js';
 import { setStatusMessage } from './ui.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GOOGLE_UNAVAILABLE_MESSAGE = '';
-const GOOGLE_STATUS_ERROR_MESSAGE = '';
+const GOOGLE_UNAVAILABLE_MESSAGE = 'Google sign-in is not configured yet. Add Google OAuth credentials to enable it.';
+const GOOGLE_STATUS_ERROR_MESSAGE = 'Google sign-in status is temporarily unavailable. Email sign-in is still available.';
 
 export function isValidEmail(email) {
   return EMAIL_REGEX.test(String(email || '').trim());
@@ -70,15 +70,15 @@ function getOAuthContainer(button) {
 function hideOAuthButton(button, noteElement) {
   const container = getOAuthContainer(button);
   if (container) {
-    container.hidden = true;
+    container.hidden = false;
   }
   if (button) {
-    button.hidden = true;
+    button.hidden = false;
     button.href = '#';
     button.classList.add('is-disabled');
     button.setAttribute('aria-disabled', 'true');
   }
-  setOAuthNote(noteElement, '');
+  setOAuthNote(noteElement, GOOGLE_UNAVAILABLE_MESSAGE, 'info');
 }
 
 function showOAuthButton(button) {
@@ -118,7 +118,9 @@ export async function setupGoogleOAuthButton({ button, noteElement, feedbackElem
     return;
   }
 
-  hideOAuthButton(button, noteElement);
+  showOAuthButton(button);
+  disableOAuthButton(button, GOOGLE_UNAVAILABLE_MESSAGE);
+  setOAuthNote(noteElement, GOOGLE_UNAVAILABLE_MESSAGE, 'info');
 
   button.addEventListener('click', (event) => {
     if (button.getAttribute('aria-disabled') === 'true') {
@@ -142,8 +144,12 @@ export async function setupGoogleOAuthButton({ button, noteElement, feedbackElem
       return;
     }
 
-    hideOAuthButton(button, noteElement);
+    showOAuthButton(button);
+    disableOAuthButton(button, GOOGLE_UNAVAILABLE_MESSAGE);
+    setOAuthNote(noteElement, GOOGLE_UNAVAILABLE_MESSAGE, 'info');
   } catch (error) {
-    hideOAuthButton(button, noteElement);
+    showOAuthButton(button);
+    disableOAuthButton(button, GOOGLE_STATUS_ERROR_MESSAGE);
+    setOAuthNote(noteElement, GOOGLE_STATUS_ERROR_MESSAGE, 'warning');
   }
 }

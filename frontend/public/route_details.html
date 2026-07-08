@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="route_details.css?v=5.0" rel="stylesheet">
+  <link href="route_details.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -23,14 +23,13 @@
         <li><a href="/plan-trip">Plan trip</a></li>
         <li><a href="/saved-routes" aria-current="page">Saved routes</a></li>
         <li><a href="/profile">Profile</a></li>
-        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+        <li><a href="/logout" class="logout-btn" data-logout-link>Sign out</a></li>
       </ul>
     </nav>
   </header>
   <main id="main-content" class="page-shell">
     <section class="hero-section" aria-labelledby="route-title">
       <div class="hero-copy">
-        <span class="eyebrow">Saved route</span>
         <h1 id="route-title">Route details</h1>
         <p id="route-description">Review stops, itinerary details and saved route context.</p>
         <div class="hero-actions"><a href="/saved-routes" class="btn btn-secondary">Back to saved routes</a><a href="/plan-trip" class="btn btn-primary">Plan another trip</a></div>
@@ -44,7 +43,7 @@
 
     <section class="route-shell content-card" aria-labelledby="route-overview-title">
       <div class="route-toolbar">
-        <div><span class="eyebrow eyebrow--dark">Overview</span><h2 id="route-overview-title">Route overview</h2></div>
+        <div><h2 id="route-overview-title">Route overview</h2></div>
         <div class="toolbar-actions">
           <a id="open-google-maps-link" class="action-button action-button--ghost is-disabled" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Open in Google Maps</a>
           <button id="print-route-button" class="action-button action-button--ghost" type="button" disabled>Print</button>
@@ -63,17 +62,17 @@
       </div>
       <div class="details-layout">
         <section class="map-panel" aria-labelledby="map-title">
-          <div class="section-heading"><div><span class="eyebrow eyebrow--dark">Map</span><h2 id="map-title">Route preview</h2></div><span id="route-mode-pill" class="pill">Saved route</span></div>
+          <div class="section-heading"><div><h2 id="map-title">Route map</h2></div><span id="route-mode-pill" class="pill">Saved route</span></div>
           <div id="map" class="map-container" role="region" aria-label="Saved route map preview"></div>
           <div id="route-mini-summary" class="route-mini-summary" aria-live="polite"><span>Origin</span><strong>Loading route...</strong><span>Destination</span><strong>Loading route...</strong></div>
         </section>
         <section class="stops-panel" aria-labelledby="stops-title">
-          <div class="section-heading"><div><span class="eyebrow eyebrow--dark">Stops</span><h2 id="stops-title">Itinerary stops</h2></div><span id="stops-count-pill" class="pill">0 stops</span></div>
+          <div class="section-heading"><div><h2 id="stops-title">Stops to visit</h2></div><span id="stops-count-pill" class="pill">0 stops</span></div>
           <div id="monuments-container" class="stops-list" aria-live="polite"></div>
         </section>
       </div>
       <section class="directions-panel" aria-labelledby="directions-title">
-        <div class="section-heading"><div><span class="eyebrow eyebrow--dark">Timeline</span><h2 id="directions-title">Route legs</h2></div></div>
+        <div class="section-heading"><div><h2 id="directions-title">Directions</h2></div></div>
         <div id="custom-itinerary-container" class="directions-list" aria-live="polite"></div>
       </section>
     </section>
@@ -82,18 +81,17 @@
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/route_details.js"></script>
+  <script src="/build/route_details.js?v=12.0"></script>
   <script src="/load-google-maps.js" data-callback="initMap" data-language="en" defer></script>
   <script src="/nav-surface.js"></script>
 </body>

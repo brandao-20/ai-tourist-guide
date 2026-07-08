@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="mainapp.css?v=7.0" rel="stylesheet">
+  <link href="mainapp.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -23,7 +23,7 @@
         <li><a href="/plan-trip" aria-current="page">Plan trip</a></li>
         <li><a href="/saved-routes">Saved routes</a></li>
         <li><a href="/profile">Profile</a></li>
-        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+        <li><a href="/logout" class="logout-btn" data-logout-link>Sign out</a></li>
       </ul>
     </nav>
   </header>
@@ -31,7 +31,6 @@
   <main id="main-content" class="planner-shell planner-shell--classic">
     <section class="classic-hero" aria-labelledby="planner-title">
       <div>
-        <span class="eyebrow eyebrow--dark">Plan trip</span>
         <h1 id="planner-title">Create your itinerary</h1>
         <p>Choose a destination, select your interests and generate a driving route on the map.</p>
       </div>
@@ -79,18 +78,17 @@
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/mainapp.js"></script>
+  <script src="/build/mainapp.js?v=12.0"></script>
   <script src="/load-google-maps.js" data-callback="initMap" data-language="en" defer></script>
   <script src="/nav-surface.js"></script>
 </body>

@@ -74,7 +74,7 @@ function isInsidePublicDir(filePath) {
 
 const routeAliases = new Map([
   ['/home', '/index.html'],
-  ['/features', '/features.html'],
+  ['/features', '/index.html'],
   ['/contact', '/contact.html'],
   ['/sign-in', '/login.html'],
   ['/login', '/login.html'],
@@ -86,14 +86,15 @@ const routeAliases = new Map([
   ['/profile', '/profile.html'],
   ['/edit-profile', '/edit_profile.html'],
   ['/route-details', '/route_details.html'],
-  ['/about', '/features.html'],
-  ['/learnmore', '/features.html'],
-  ['/status', '/features.html'],
+  ['/about', '/index.html'],
+  ['/learnmore', '/index.html'],
+  ['/status', '/index.html'],
 ]);
 
 const cleanPathAliases = new Map([
   ['/index.html', '/'],
-  ['/features.html', '/features'],
+  ['/features', '/'],
+  ['/features.html', '/'],
   ['/contact.html', '/contact'],
   ['/login.html', '/login'],
   ['/register.html', '/register'],
@@ -103,9 +104,9 @@ const cleanPathAliases = new Map([
   ['/profile.html', '/profile'],
   ['/edit_profile.html', '/edit-profile'],
   ['/route_details.html', '/route-details'],
-  ['/about.html', '/features'],
-  ['/learnmore.html', '/features'],
-  ['/status.html', '/features'],
+  ['/about.html', '/'],
+  ['/learnmore.html', '/'],
+  ['/status.html', '/'],
 ]);
 
 function redirect(res, location, statusCode = 302) {
@@ -219,6 +220,11 @@ const server = createServer(async (req, res) => {
 
     if (requestUrl.pathname === '/config.js') {
       sendRuntimeConfig(res);
+      return;
+    }
+
+    if (requestUrl.pathname === '/logout' && ['GET', 'HEAD'].includes(req.method)) {
+      redirect(res, `${apiBaseUrl.replace(/\/$/, '')}/logout`, 302);
       return;
     }
 

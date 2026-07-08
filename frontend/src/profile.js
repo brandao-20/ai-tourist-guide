@@ -2,6 +2,8 @@ import { apiGet } from './api.js';
 import { getUploadUrl } from './config.js';
 import { setStatusMessage } from './ui.js';
 
+import { setupLogoutButton } from './session.js';
+setupLogoutButton();
 const DEFAULT_AVATAR = 'default-avatar.svg';
 
 function setText(id, value) {

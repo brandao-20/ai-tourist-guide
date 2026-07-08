@@ -7,6 +7,8 @@ import { configureNotifications, createNotifier } from './mainapp/notifications.
 import { createSearchFormController } from './mainapp/searchForm.js';
 import { getBrowserMapLocation, getFallbackLocation, getPreferredMapLocation } from './location.js';
 
+import { setupLogoutButton } from './session.js';
+setupLogoutButton();
 const DEFAULT_LOCATION = getFallbackLocation();
 
 const DEFAULT_MAP_OPTIONS = {

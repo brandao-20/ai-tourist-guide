@@ -55,7 +55,7 @@ app.use('/api', healthRoutes);
 app.use(createSessionRouter({ frontendUrl: appConfig.server.frontendUrl }));
 
 function redirectToLoginWithAuthError(res, reason = 'google_failed') {
-  res.redirect(`${appConfig.server.frontendUrl}/login.html?auth=${encodeURIComponent(reason)}`);
+  res.redirect(`${appConfig.server.frontendUrl}/login?auth=${encodeURIComponent(reason)}`);
 }
 
 if (googleOAuthEnabled) {
@@ -75,7 +75,7 @@ if (googleOAuthEnabled) {
         }
 
         setSessionUser(req, user);
-        res.redirect(`${appConfig.server.frontendUrl}/home_logged.html`);
+        res.redirect(`${appConfig.server.frontendUrl}/dashboard`);
       });
     })(req, res, next);
   });

@@ -8,7 +8,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "node server.js",
-    "check:syntax": "node --check server.js && node --check src/api.js && node --check src/authPage.js && node --check src/config.js && node --check src/edit_profile.js && node --check src/home_logged.js && node --check src/login.js && node --check src/mainapp.js && node --check src/mainapp/loader.js && node --check src/mainapp/mapItinerary.js && node --check src/mainapp/manualMonumentModal.js && node --check src/mainapp/notifications.js && node --check src/mainapp/searchForm.js && node --check src/profile.js && node --check src/register.js && node --check src/route_details.js && node --check src/favorites.js && node --check src/routeExport.js && node --check src/status.js && node --check src/ui.js && node --check rollup.config.js && node --check public/load-google-maps.js"
+    "check:syntax": "node --check server.js && node --check src/api.js && node --check src/authPage.js && node --check src/config.js && node --check src/edit_profile.js && node --check src/home_logged.js && node --check src/login.js && node --check src/mainapp.js && node --check src/mainapp/loader.js && node --check src/mainapp/mapItinerary.js && node --check src/mainapp/manualMonumentModal.js && node --check src/mainapp/notifications.js && node --check src/mainapp/searchForm.js && node --check src/profile.js && node --check src/register.js && node --check src/route_details.js && node --check src/favorites.js && node --check src/routeExport.js && node --check src/session.js && node --check src/status.js && node --check src/ui.js && node --check rollup.config.js && node --check public/load-google-maps.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.0",

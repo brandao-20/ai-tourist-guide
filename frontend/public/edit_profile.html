@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="edit_profile.css?v=7.0" rel="stylesheet">
+  <link href="edit_profile.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -23,16 +23,15 @@
         <li><a href="/plan-trip">Plan trip</a></li>
         <li><a href="/saved-routes">Saved routes</a></li>
         <li><a href="/profile" aria-current="page">Profile</a></li>
-        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+        <li><a href="/logout" class="logout-btn" data-logout-link>Sign out</a></li>
       </ul>
     </nav>
   </header>
   <main id="main-content" class="page-shell edit-profile-shell">
     <section class="profile-hero" aria-labelledby="edit-profile-title">
       <div>
-        <span class="eyebrow">Edit profile</span>
         <h1 id="edit-profile-title">Edit your profile</h1>
-        <p>Update your name, password or avatar before recording your next route.</p>
+        <p>Update your name, password or avatar.</p>
       </div>
       <aside class="profile-summary-card">
         <img id="profile-pic" src="default-avatar.svg" alt="Profile image preview">
@@ -40,13 +39,13 @@
         <input id="profileImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
       </aside>
     </section>
-    <div id="edit-profile-status" class="form-feedback" role="status" aria-live="polite"></div>
+    <div id="edit-profile-status" class="form-feedback is-hidden" role="status" aria-live="polite"></div>
     <form class="edit-form content-card" novalidate>
       <h2>Profile details</h2>
       <div class="form-grid">
         <div class="form-group">
           <label for="name">Name</label>
-          <div class="input-shell"><input id="name" class="form-control" type="text" autocomplete="name" readonly><button id="edit-name" type="button" class="password-toggle" aria-label="Edit name">Edit</button></div>
+          <input id="name" class="form-control" type="text" autocomplete="name">
         </div>
         <div class="form-group">
           <label for="email">Email</label>
@@ -55,7 +54,7 @@
       </div>
       <div class="form-group">
         <label for="password">New password</label>
-        <div class="input-shell"><input id="password" class="form-control" type="password" autocomplete="new-password" placeholder="Leave empty to keep current password" readonly><button id="edit-password" type="button" class="password-toggle" aria-label="Edit password">Edit</button></div>
+        <input id="password" class="form-control" type="password" autocomplete="new-password" placeholder="Leave empty to keep current password">
       </div>
       <div class="toolbar-actions">
         <button type="submit" class="save-button btn btn-primary">Save changes</button>
@@ -67,18 +66,17 @@
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/edit_profile.js"></script>
+  <script src="/build/edit_profile.js?v=12.0"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>

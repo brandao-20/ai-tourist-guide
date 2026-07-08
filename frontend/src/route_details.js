@@ -16,6 +16,8 @@ import {
 } from './ui.js';
 import { getFallbackLocation, getPreferredMapLocation } from './location.js';
 
+import { setupLogoutButton } from './session.js';
+setupLogoutButton();
 const DEFAULT_LOCATION = getFallbackLocation();
 
 const DEFAULT_MAP_OPTIONS = {

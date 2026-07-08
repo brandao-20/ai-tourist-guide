@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="favorites.css?v=5.0" rel="stylesheet">
+  <link href="favorites.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -23,32 +23,31 @@
         <li><a href="/plan-trip">Plan trip</a></li>
         <li><a href="/saved-routes" aria-current="page">Saved routes</a></li>
         <li><a href="/profile">Profile</a></li>
-        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+        <li><a href="/logout" class="logout-btn" data-logout-link>Sign out</a></li>
       </ul>
     </nav>
   </header>
   <main id="main-content" class="page-shell page-shell--app library-shell">
-    <section class="dashboard-hero dashboard-hero--compact" aria-labelledby="library-title"><div><span class="eyebrow eyebrow--dark">Saved routes</span><h1 id="library-title">Your saved routes</h1><p>Reopen, export or remove itineraries you want to keep organised.</p></div><div class="hero-actions"><a href="/plan-trip" class="btn btn-dark">Plan a trip</a></div></section>
+    <section class="dashboard-hero dashboard-hero--compact" aria-labelledby="library-title"><div><h1 id="library-title">Your saved routes</h1><p>Reopen, export or remove itineraries you want to keep organised.</p></div><div class="hero-actions"><a href="/plan-trip" class="btn btn-dark">Plan a trip</a></div></section>
     <section class="overview-grid dashboard-metrics" aria-label="Saved route statistics"><article class="metric-card"><span>Total routes</span><strong id="metric-total">—</strong></article><article class="metric-card"><span>Total stops</span><strong id="metric-stops">—</strong></article><article class="metric-card"><span>Last update</span><strong id="metric-updated">—</strong></article></section>
-    <section class="content-card" aria-labelledby="saved-routes-heading"><div class="library-toolbar"><div><span class="eyebrow eyebrow--dark">Route library</span><h2 id="saved-routes-heading">Saved routes</h2></div><div class="toolbar-controls"><label class="sr-only" for="favorite-search">Search saved routes</label><input id="favorite-search" class="form-control form-control--compact" type="search" placeholder="Search city, stop or route"><label class="sr-only" for="favorite-sort">Sort saved routes</label><select id="favorite-sort" class="form-control form-control--compact"><option value="updated-desc">Recently updated</option><option value="name-asc">Name A–Z</option><option value="stops-desc">Most stops</option><option value="days-desc">Most days</option></select></div></div><div id="library-status" class="form-feedback" role="status" aria-live="polite"></div><div id="favorites-empty" class="empty-state empty-state--center is-hidden"><span class="empty-state__badge">Map</span><h3>You do not have any saved routes yet.</h3><p>Create your first itinerary and save it for later.</p><a href="/plan-trip" class="btn btn-primary">Plan a trip</a></div><div id="favorites-grid" class="favorites-grid" aria-live="polite"></div></section>
-    <dialog id="rename-dialog" class="rename-dialog"><form method="dialog" class="rename-card"><span class="eyebrow eyebrow--dark">Rename route</span><h2>Update saved route name</h2><label for="rename-input">Route name</label><input id="rename-input" class="form-control" type="text" maxlength="120"><div id="rename-error" class="form-feedback is-hidden" role="status" aria-live="polite"></div><div class="toolbar-actions"><button id="rename-save" class="btn btn-primary" type="submit">Save name</button><button id="rename-cancel" class="btn btn-secondary" type="button">Cancel</button></div></form></dialog>
+    <section class="content-card" aria-labelledby="saved-routes-heading"><div class="library-toolbar"><div><h2 id="saved-routes-heading">Saved routes</h2></div><div class="toolbar-controls"><label class="sr-only" for="favorite-search">Search saved routes</label><input id="favorite-search" class="form-control form-control--compact" type="search" placeholder="Search city, stop or route"><label class="sr-only" for="favorite-sort">Sort saved routes</label><select id="favorite-sort" class="form-control form-control--compact"><option value="updated-desc">Recently updated</option><option value="name-asc">Name A–Z</option><option value="stops-desc">Most stops</option><option value="days-desc">Most days</option></select></div></div><div id="library-status" class="form-feedback is-hidden" role="status" aria-live="polite"></div><div id="favorites-empty" class="empty-state empty-state--center is-hidden"><h3>You do not have any saved routes yet.</h3><p>Create your first itinerary and save it for later.</p><a href="/plan-trip" class="btn btn-primary">Plan a trip</a></div><div id="favorites-grid" class="favorites-grid" aria-live="polite"></div></section>
+    <dialog id="rename-dialog" class="rename-dialog"><form method="dialog" class="rename-card"><h2>Update saved route name</h2><label for="rename-input">Route name</label><input id="rename-input" class="form-control" type="text" maxlength="120"><div id="rename-error" class="form-feedback is-hidden" role="status" aria-live="polite"></div><div class="toolbar-actions"><button id="rename-save" class="btn btn-primary" type="submit">Save name</button><button id="rename-cancel" class="btn btn-secondary" type="button">Cancel</button></div></form></dialog>
   </main>
   <footer class="site-footer">
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/favorites.js"></script>
+  <script src="/build/favorites.js?v=12.0"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>

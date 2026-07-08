@@ -5,17 +5,16 @@ test('homepage and public navigation are product-focused', async ({ page }) => {
 
   await expect(page).toHaveTitle(/Personalized Tourist Guide AI/);
   await expect(page.getByRole('heading', { name: /Plan trips around the map/i })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Features' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Features' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Contact' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Create account' }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Status' })).toHaveCount(0);
 });
 
-test('features page replaces separate about and flow pages', async ({ page }) => {
+test('legacy features route redirects to the homepage', async ({ page }) => {
   await page.goto('/features');
-  await expect(page.getByRole('heading', { name: /AI itineraries with a map-first flow/i })).toBeVisible();
-  await expect(page.getByText('Docker')).toHaveCount(0);
-  await expect(page.getByText('Smoke tests')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/$|\/index\.html$/);
+  await expect(page.getByRole('heading', { name: /Plan trips around the map/i })).toBeVisible();
 });
 
 test('auth pages hide unavailable Google sign-in by default', async ({ page }) => {

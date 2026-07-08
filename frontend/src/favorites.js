@@ -3,6 +3,8 @@ import { getGoogleMapsBrowserApiKey } from './config.js';
 import { downloadRouteHtml, downloadRouteJson } from './routeExport.js';
 import { getErrorMessage, setButtonBusy, setStatusMessage, clearStatusMessage } from './ui.js';
 
+import { setupLogoutButton } from './session.js';
+setupLogoutButton();
 const DEFAULT_MAP_CENTER = { lat: 39.6, lng: -8.0 };
 
 const state = {
@@ -304,6 +306,8 @@ function sortFavorites(favorites, sortValue) {
 function applyFilters() {
   const grid = getElement('favorites-grid');
   const emptyState = getElement('favorites-empty');
+  const metrics = document.querySelector('.dashboard-metrics');
+  const toolbar = document.querySelector('.library-toolbar');
   const query = normalizeText(getElement('favorite-search')?.value || '');
   const sortValue = getElement('favorite-sort')?.value || 'updated-desc';
 
@@ -315,6 +319,8 @@ function applyFilters() {
   grid.setAttribute('aria-busy', 'false');
 
   if (state.favorites.length === 0) {
+    metrics?.classList.add('is-hidden');
+    toolbar?.classList.add('is-empty');
     emptyState.classList.remove('is-hidden');
     grid.classList.add('is-hidden');
     emptyState.querySelector('h3').textContent = 'You do not have any saved routes yet.';
@@ -322,6 +328,9 @@ function applyFilters() {
     setStatusMessage(getElement('library-status'), 'No saved routes yet.', 'info');
     return;
   }
+
+  metrics?.classList.remove('is-hidden');
+  toolbar?.classList.remove('is-empty');
 
   if (state.filteredFavorites.length === 0) {
     emptyState.classList.remove('is-hidden');
@@ -332,6 +341,8 @@ function applyFilters() {
     return;
   }
 
+  metrics?.classList.remove('is-hidden');
+  toolbar?.classList.remove('is-empty');
   emptyState.classList.add('is-hidden');
   grid.classList.remove('is-hidden');
   setStatusMessage(

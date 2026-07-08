@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="profile.css?v=7.0" rel="stylesheet">
+  <link href="profile.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -23,29 +23,28 @@
         <li><a href="/plan-trip">Plan trip</a></li>
         <li><a href="/saved-routes">Saved routes</a></li>
         <li><a href="/profile" aria-current="page">Profile</a></li>
-        <li><button id="logout-btn" class="logout-btn" type="button">Sign out</button></li>
+        <li><a href="/logout" class="logout-btn" data-logout-link>Sign out</a></li>
       </ul>
     </nav>
   </header>
   <main id="main-content" class="page-shell profile-shell">
     <section class="profile-hero" aria-labelledby="profile-title">
       <div>
-        <span class="eyebrow">Profile</span>
         <h1 id="profile-title">Your profile</h1>
         <p>Review your account details before planning the next itinerary.</p>
-        <div class="hero-actions"><a href="/plan-trip" class="btn btn-primary">Plan a trip</a><a href="/edit-profile" class="btn btn-secondary">Edit profile</a></div>
+        <div class="hero-actions"><a href="/plan-trip" class="btn btn-dark">Plan a trip</a><a href="/edit-profile" class="btn btn-secondary">Edit profile</a></div>
       </div>
       <aside class="profile-summary-card">
         <img id="profile-pic" src="default-avatar.svg" alt="Traveller profile picture">
         <div><span>Traveller</span><strong id="user-name">Loading profile</strong></div>
       </aside>
     </section>
-    <div id="profile-status" class="form-feedback" role="status" aria-live="polite"></div>
+    <div id="profile-status" class="form-feedback is-hidden" role="status" aria-live="polite"></div>
     <section class="content-card profile-details-card" aria-labelledby="profile-details-title">
       <div class="section-heading section-heading--split"><div><h2 id="profile-details-title">Account details</h2></div><a href="/edit-profile" class="action-button action-button--primary">Edit profile</a></div>
       <div class="info-grid">
-        <article class="info-card"><span>NM</span><h3>Name</h3><p id="profile-name">Loading...</p></article>
-        <article class="info-card"><span>EM</span><h3>Email</h3><p id="profile-email">Loading...</p></article>
+        <article class="info-card"><h3>Name</h3><p id="profile-name">Loading...</p></article>
+        <article class="info-card"><h3>Email</h3><p id="profile-email">Loading...</p></article>
       </div>
     </section>
   </main>
@@ -53,18 +52,17 @@
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/profile.js"></script>
+  <script src="/build/profile.js?v=12.0"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>

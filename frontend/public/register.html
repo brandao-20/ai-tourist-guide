@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="public.css?v=5.0" rel="stylesheet">
+  <link href="public.css?v=12.0" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -22,21 +22,20 @@
       <a href="/" class="brand" aria-label="Tourist Guide AI home">Tourist Guide AI</a>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
-        <li><a href="/features">Features</a></li>
         <li><a href="/contact">Contact</a></li>
         <li><a href="/login">Sign in</a></li>
         <li><a href="/register" class="nav-action nav-action--primary" aria-current="page">Create account</a></li>
       </ul>
     </nav>
   </header>
-  <main id="main-content" class="auth-shell auth-shell--compact">
-    <section class="auth-intro auth-intro--compact" aria-labelledby="register-title">
-      <div><span class="eyebrow">Create account</span><h1 id="register-title">Build reusable routes</h1><p>Save itineraries and continue later</p></div>
-      <div class="auth-showcase" aria-label="Account benefits"><div class="auth-route-card auth-route-card--compact"><div class="route-step"><span>01</span><p>Generate itinerary</p></div><div class="route-step"><span>02</span><p>Save routes</p></div><div class="route-step"><span>03</span><p>Review routes</p></div><div class="route-step"><span>04</span><p>Continue later</p></div></div></div>
-    </section>
-    <section class="auth-card auth-card--refined" aria-label="Create account form">
-      <div class="auth-card__header"><span class="eyebrow eyebrow--dark">New account</span><h1>Create account</h1><p>Save your routes and continue planning</p></div>
-      <div class="auth-provider-stack" aria-label="Authentication providers" hidden><a href="#" class="oauth-button google-register" aria-describedby="register-oauth-note"><img src="google-icon2.png" alt="" class="google-icon" aria-hidden="true"><span>Continue with Google</span></a><p id="register-oauth-note" class="auth-note is-hidden" role="status" aria-live="polite"></p></div>
+  <main id="main-content" class="auth-shell auth-shell--single-wide auth-shell--register">
+    <section class="auth-card auth-card--refined auth-card--large" aria-label="Create account form">
+      <div class="auth-card__header">
+        <span class="auth-kicker auth-kicker--card">New traveller account</span>
+        <h1>Create account</h1>
+        <p>Save your routes and continue planning.</p>
+      </div>
+      <div class="auth-provider-stack" aria-label="Authentication providers"><a href="#" class="oauth-button google-register" aria-describedby="register-oauth-note"><img src="google-icon2.png" alt="" class="google-icon" aria-hidden="true"><span>Continue with Google</span></a><p id="register-oauth-note" class="auth-note is-hidden" role="status" aria-live="polite"></p></div>
       <div class="divider">or create account with email</div>
       <div id="register-feedback" class="form-feedback is-hidden" role="status" aria-live="polite"></div>
       <form id="register-form" novalidate>
@@ -45,25 +44,24 @@
         <div class="form-group"><label for="password">Password</label><div class="input-shell"><input type="password" id="password" class="form-control" placeholder="At least 8 characters" autocomplete="new-password" aria-describedby="register-password-error" required><button type="button" class="password-toggle" data-toggle-password="password" aria-label="Show password">Show</button></div><p id="register-password-error" class="field-error is-hidden"></p></div>
         <button type="submit" class="btn btn-dark btn-full">Create account</button>
       </form>
-      <p class="auth-links">Already have an account? <a href="/login">Sign in</a>.</p>
+      <p class="auth-links">Already have an account? <a href="/login">Sign in.</a></p>
     </section>
   </main>
   <footer class="site-footer">
     <div class="footer-grid footer-grid--simple">
       <section class="footer-brand" aria-label="Project summary">
         <h2>Personalized Tourist Guide AI</h2>
-        <p>Interactive tourist itineraries with Google Maps, saved routes and OpenAI-powered suggestions.</p>
+        <p>Personalised travel planning with interactive maps, saved routes and AI-assisted suggestions.</p>
       </section>
-      <section class="footer-column footer-column--project" aria-label="Project links">
-        <h3>Project</h3>
-        <a href="/contact">GitHub</a>
-        <a href="/contact">Professional profile</a>
-        <a href="/contact">Contact</a>
+      <section class="footer-column footer-column--project" aria-label="Social media links">
+        <h3>Social Media</h3>
+        <a href="https://github.com/brandao-20/personalized-tourist-guide-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/in/brandao20/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </section>
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/register.js"></script>
+  <script src="/build/register.js?v=12.0"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>
