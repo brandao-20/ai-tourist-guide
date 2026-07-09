@@ -1,5 +1,4 @@
-@import url("public.css?v=10.0");
-
+/* Application layout refinements */
 /* Dashboard restored towards the original Project III structure: welcome, explore map, recent route and saved routes. */
 .dashboard-shell--classic {
   width: min(1120px, calc(100% - 32px));
@@ -22,16 +21,6 @@
   box-shadow: var(--shadow-soft);
 }
 
-.welcome-panel::after {
-  content: "";
-  position: absolute;
-  right: 10%;
-  top: -70px;
-  width: 190px;
-  height: 190px;
-  border-radius: 999px;
-  background: rgba(218, 215, 205, .18);
-}
 
 .welcome-panel__content { position: relative; z-index: 1; }
 .welcome-panel .eyebrow,
@@ -96,11 +85,6 @@
 }
 
 /* v9 dashboard refinements requested in final UI pass. */
-.welcome-panel::after {
-  content: none !important;
-  display: none !important;
-}
-
 .welcome-panel {
   min-height: 250px !important;
 }
@@ -109,18 +93,6 @@
   white-space: nowrap;
   font-size: clamp(2.55rem, 4.2vw, 4.05rem) !important;
   letter-spacing: -.06em;
-}
-
-.dashboard-profile-card {
-  text-decoration: none !important;
-  cursor: pointer;
-  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
-}
-
-.dashboard-profile-card:hover {
-  transform: translateY(-2px);
-  background: rgba(255,255,255,.92) !important;
-  box-shadow: 0 20px 46px rgba(20,40,31,.20);
 }
 
 .dashboard-profile-card img {

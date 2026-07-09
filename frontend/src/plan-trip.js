@@ -1,13 +1,15 @@
 import { apiDelete, apiGet, apiPost } from './api.js';
 import { getErrorMessage, isValidNumericId, setButtonBusy, showFavoriteNameModal } from './ui.js';
-import { showLoadingIndicator, hideLoadingIndicator } from './mainapp/loader.js';
-import { createMapItineraryController } from './mainapp/mapItinerary.js';
-import { createManualMonumentController } from './mainapp/manualMonumentModal.js';
-import { configureNotifications, createNotifier } from './mainapp/notifications.js';
-import { createSearchFormController } from './mainapp/searchForm.js';
+import { showLoadingIndicator, hideLoadingIndicator } from './plan-trip/loader.js';
+import { createMapItineraryController } from './plan-trip/mapItinerary.js';
+import { createManualMonumentController } from './plan-trip/manualMonumentModal.js';
+import { configureNotifications, createNotifier } from './plan-trip/notifications.js';
+import { createSearchFormController } from './plan-trip/searchForm.js';
 import { getBrowserMapLocation, getFallbackLocation, getPreferredMapLocation } from './location.js';
+import { createMapMarker } from './mapMarker.js';
+import { loadGoogleMapsScript } from './googleMapsLoader.js';
 
-import { setupLogoutButton } from './session.js';
+import { requireAuthenticatedSession, setupLogoutButton } from './session.js';
 setupLogoutButton();
 const DEFAULT_LOCATION = getFallbackLocation();
 
@@ -24,6 +26,16 @@ const MAP_UNAVAILABLE_MESSAGES = {
   script_load_failed: 'The interactive map could not be loaded. Your itinerary is still available as a list.',
   default: 'The interactive map is temporarily unavailable. Your itinerary is still available as a list.',
 };
+
+let plannerSessionPromise = null;
+
+function ensurePlannerSession() {
+  if (!plannerSessionPromise) {
+    plannerSessionPromise = requireAuthenticatedSession({ next: '/plan-trip' });
+  }
+
+  return plannerSessionPromise;
+}
 
 const state = {
   appInitialized: false,
@@ -92,18 +104,11 @@ function setUserLocationMarker(location) {
     state.userLocationMarker.setMap(null);
   }
 
-  state.userLocationMarker = new google.maps.Marker({
+  state.userLocationMarker = createMapMarker({
     position: { lat: location.lat, lng: location.lng },
     map: window.myMap,
     title: location.label || 'Map preview location',
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 8,
-      fillColor: '#31543f',
-      fillOpacity: 1,
-      strokeColor: '#ffffff',
-      strokeWeight: 3,
-    },
+    variant: 'dot',
   });
 }
 
@@ -113,7 +118,7 @@ async function centerMapOnPreferredLocation() {
   }
 
   setLocationStatus('Requesting browser location...');
-  const location = await getPreferredMapLocation();
+  const location = await getPreferredMapLocation({ allowCache: false, requestBrowser: false });
   applyMapLocation(location);
 }
 
@@ -184,9 +189,14 @@ function clearMapFallbackState() {
   setPlannerControlsDisabled(false);
 }
 
-window.initMap = function initMap() {
+async function initializeInteractiveMap({ skipSessionCheck = false } = {}) {
+  const user = skipSessionCheck ? true : await ensurePlannerSession();
+  if (!user) {
+    return;
+  }
+
   if (!window.google?.maps) {
-    window.initMapUnavailable('default');
+    initializeMapUnavailable('default', { skipSessionCheck: true });
     return;
   }
 
@@ -196,7 +206,12 @@ window.initMap = function initMap() {
   centerMapOnPreferredLocation();
 };
 
-window.initMapUnavailable = function initMapUnavailable(reason = 'default') {
+async function initializeMapUnavailable(reason = 'default', { skipSessionCheck = false } = {}) {
+  const user = skipSessionCheck ? true : await ensurePlannerSession();
+  if (!user) {
+    return;
+  }
+
   configureNotifications();
   const notify = createNotifier();
   window.myMap = null;
@@ -204,7 +219,30 @@ window.initMapUnavailable = function initMapUnavailable(reason = 'default') {
   setConfigurationRequiredState(reason);
   initializeApp({ mapEnabled: false });
   notify.warning('The interactive map is temporarily unavailable. Your itinerary is still available as a list.');
-};
+}
+
+window.initMap = initializeInteractiveMap;
+window.initMapUnavailable = initializeMapUnavailable;
+
+async function bootPlanner() {
+  const user = await ensurePlannerSession();
+  if (!user) {
+    return;
+  }
+
+  try {
+    await loadGoogleMapsScript({ language: 'en', libraries: ['routes'] });
+    await initializeInteractiveMap({ skipSessionCheck: true });
+  } catch (error) {
+    await initializeMapUnavailable(error.reason || 'default', { skipSessionCheck: true });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootPlanner, { once: true });
+} else {
+  bootPlanner();
+}
 
 function readRecentSearchFromStorage() {
   const urlParams = new URLSearchParams(window.location.search);

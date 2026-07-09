@@ -73,40 +73,30 @@ function isInsidePublicDir(filePath) {
 
 
 const routeAliases = new Map([
-  ['/home', '/index.html'],
-  ['/features', '/index.html'],
   ['/contact', '/contact.html'],
   ['/sign-in', '/login.html'],
   ['/login', '/login.html'],
   ['/create-account', '/register.html'],
   ['/register', '/register.html'],
-  ['/dashboard', '/home_logged.html'],
-  ['/plan-trip', '/mainapp.html'],
-  ['/saved-routes', '/favorites.html'],
+  ['/dashboard', '/dashboard.html'],
+  ['/plan-trip', '/plan-trip.html'],
+  ['/saved-routes', '/saved-routes.html'],
   ['/profile', '/profile.html'],
-  ['/edit-profile', '/edit_profile.html'],
-  ['/route-details', '/route_details.html'],
-  ['/about', '/index.html'],
-  ['/learnmore', '/index.html'],
-  ['/status', '/index.html'],
+  ['/edit-profile', '/edit-profile.html'],
+  ['/route-details', '/route-details.html'],
 ]);
 
 const cleanPathAliases = new Map([
   ['/index.html', '/'],
-  ['/features', '/'],
-  ['/features.html', '/'],
   ['/contact.html', '/contact'],
   ['/login.html', '/login'],
   ['/register.html', '/register'],
-  ['/home_logged.html', '/dashboard'],
-  ['/mainapp.html', '/plan-trip'],
-  ['/favorites.html', '/saved-routes'],
+  ['/dashboard.html', '/dashboard'],
+  ['/plan-trip.html', '/plan-trip'],
+  ['/saved-routes.html', '/saved-routes'],
   ['/profile.html', '/profile'],
-  ['/edit_profile.html', '/edit-profile'],
-  ['/route_details.html', '/route-details'],
-  ['/about.html', '/'],
-  ['/learnmore.html', '/'],
-  ['/status.html', '/'],
+  ['/edit-profile.html', '/edit-profile'],
+  ['/route-details.html', '/route-details'],
 ]);
 
 function redirect(res, location, statusCode = 302) {

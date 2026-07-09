@@ -25,7 +25,7 @@ The product is designed as a clean public repository: the UI is user-facing, the
 ### Frontend
 
 - HTML
-- CSS with custom design tokens
+- CSS with custom design tokens, source styles and generated `public/app.css`
 - JavaScript
 - Rollup
 - Google Maps JavaScript API when configured
@@ -51,7 +51,7 @@ The product is designed as a clean public repository: the UI is user-facing, the
 ```text
 .
 ├── backend/                 # Express API, models, routes, services and validation schemas
-├── frontend/                # Static frontend pages, Rollup entries and public assets
+├── frontend/                # Static pages, Rollup entries, generated app.css and public assets
 ├── scripts/                 # Local verification and release checks
 ├── tests/                   # Vitest unit tests and Playwright end-to-end tests
 ├── docker-compose.yml
@@ -126,12 +126,10 @@ docker compose up --build
 
 ## Run without Docker
 
-Install dependencies:
+Install all workspace dependencies from the project root:
 
 ```bash
 npm install
-npm install --prefix backend
-npm install --prefix frontend
 ```
 
 Build frontend bundles:

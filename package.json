@@ -3,23 +3,28 @@
   "version": "1.0.0",
   "private": true,
   "description": "Professional AI-assisted travel planning application with personalised itineraries, maps and saved routes.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "install:all": "npm install --prefix backend && npm install --prefix frontend",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend",
-    "start:backend": "npm start --prefix backend",
-    "start:frontend": "npm start --prefix frontend",
-    "build:frontend": "npm run build --prefix frontend",
-    "check:backend": "npm run check:syntax --prefix backend",
-    "check:frontend": "npm run check:syntax --prefix frontend",
-    "check": "npm run check:backend && npm run check:frontend",
-    "db:sync": "npm run db:sync --prefix backend",
+    "install:all": "npm install",
+    "dev:backend": "npm run dev --workspace personalized-tourist-guide-ai-backend",
+    "dev:frontend": "npm run dev --workspace personalized-tourist-guide-ai-frontend",
+    "start:backend": "npm start --workspace personalized-tourist-guide-ai-backend",
+    "start:frontend": "npm start --workspace personalized-tourist-guide-ai-frontend",
+    "build:frontend": "npm run build --workspace personalized-tourist-guide-ai-frontend",
+    "check:syntax": "node scripts/check-syntax.js backend frontend scripts tests",
+    "check:backend": "node scripts/check-syntax.js backend",
+    "check:frontend": "node scripts/check-syntax.js frontend",
+    "check": "npm run check:syntax",
+    "db:sync": "npm run db:sync --workspace personalized-tourist-guide-ai-backend",
     "smoke:test": "node scripts/smoke-test.js",
     "dev": "docker compose up --build",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v && docker compose up --build",
-    "seed:demo": "npm run seed:demo --prefix backend",
+    "seed:demo": "npm run seed:demo --workspace personalized-tourist-guide-ai-backend",
     "security:scan": "node scripts/security-scan.js",
     "release:audit": "node scripts/release-audit.js",
     "check:release": "npm run check && npm run test:unit && npm run security:scan && npm run release:audit",
@@ -33,5 +38,9 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "uuid": "11.1.1",
+    "dottie": "2.0.7"
   }
 }

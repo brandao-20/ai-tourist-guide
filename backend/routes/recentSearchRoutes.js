@@ -7,7 +7,6 @@ const {
 const {
   sendJson,
   sendValidationError,
-  sendNotFound,
   sendServerError,
 } = require('../utils/httpResponses');
 const { normalizeRecentSearchPayload } = require('../utils/payloadValidation');
@@ -43,11 +42,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const recentSearch = await findLatestRecentSearch(req.authenticatedUserId);
-    if (!recentSearch) {
-      return sendNotFound(res, 'No recent search found.');
-    }
-
-    return sendJson(res, 200, recentSearch);
+    return sendJson(res, 200, recentSearch || null);
   } catch (error) {
     return sendServerError(
       res,

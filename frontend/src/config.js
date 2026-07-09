@@ -1,3 +1,5 @@
+export const DEFAULT_AVATAR = 'default-avatar.svg';
+
 export function getApiBaseUrl() {
   return window.APP_CONFIG?.API_BASE_URL || 'http://localhost:5000';
 }

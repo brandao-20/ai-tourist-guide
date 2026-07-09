@@ -10,6 +10,7 @@ const REQUIRED_FILES = [
   'LICENSE',
   '.env.example',
   '.gitignore',
+  '.dockerignore',
   'docker-compose.yml',
   'backend/package.json',
   'frontend/package.json',
@@ -17,13 +18,24 @@ const REQUIRED_FILES = [
   'frontend/public/contact.html',
   'frontend/public/login.html',
   'frontend/public/register.html',
-  'frontend/public/home_logged.html',
-  'frontend/public/mainapp.html',
-  'frontend/public/favorites.html',
+  'frontend/public/app.css',
+  'frontend/public/dashboard.html',
+  'frontend/public/plan-trip.html',
+  'frontend/public/saved-routes.html',
   'frontend/public/profile.html',
-  'frontend/public/route_details.html',
-  'frontend/src/favorites.js',
+  'frontend/public/edit-profile.html',
+  'frontend/public/route-details.html',
+  'frontend/src/dashboard.js',
+  'frontend/src/plan-trip.js',
+  'frontend/src/saved-routes.js',
+  'frontend/src/edit-profile.js',
+  'frontend/src/route-details.js',
   'frontend/src/routeExport.js',
+  'frontend/src/styles/tokens.css',
+  'frontend/src/styles/base.css',
+  'frontend/src/styles/layout.css',
+  'frontend/src/styles/components.css',
+  'frontend/src/styles/pages.css',
   '.github/workflows/ci.yml',
 ];
 
@@ -48,6 +60,31 @@ const errors = [];
 REQUIRED_FILES.forEach((file) => {
   if (!exists(file)) {
     errors.push(`Missing required release file: ${file}`);
+  }
+});
+
+const REMOVED_FILES = [
+  'backend/package-lock.json',
+  'frontend/package-lock.json',
+  'frontend/public/config.js',
+  'frontend/public/public.css',
+  'frontend/public/home_logged.css',
+  'frontend/public/mainapp.css',
+  'frontend/public/home_logged.html',
+  'frontend/public/mainapp.html',
+  'frontend/public/favorites.html',
+  'frontend/public/edit_profile.html',
+  'frontend/public/route_details.html',
+  'frontend/src/home_logged.js',
+  'frontend/src/mainapp.js',
+  'frontend/src/favorites.js',
+  'frontend/src/edit_profile.js',
+  'frontend/src/route_details.js',
+];
+
+REMOVED_FILES.forEach((file) => {
+  if (exists(file)) {
+    errors.push(`Removed legacy file still exists: ${file}`);
   }
 });
 
@@ -86,7 +123,7 @@ const homeHtml = read('frontend/public/index.html');
   }
 });
 
-const authenticatedHtml = read('frontend/public/home_logged.html');
+const authenticatedHtml = read('frontend/public/dashboard.html');
 ['Dashboard', 'Plan trip', 'Saved routes', 'Profile', 'Sign out'].forEach((label) => {
   if (!authenticatedHtml.includes(label)) {
     errors.push(`Authenticated navigation is missing: ${label}`);

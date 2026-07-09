@@ -178,16 +178,6 @@ const recentSearchSchema = z.object({
   directions: storedJsonSchema({ fieldName: 'directions', allowNull: true }),
 });
 
-const routeExportSchema = z.object({
-  routeId: z.coerce.number().int().positive().optional(),
-  format: z.enum(['json', 'html', 'print']).optional(),
-});
-
-const providerPayloadSchema = z.object({
-  provider: z.enum(['mock', 'ollama', 'openai']).default('mock'),
-  prompt: z.string().max(4000).optional(),
-  stops: z.array(z.unknown()).optional(),
-}).passthrough();
 
 function firstZodMessage(error) {
   return error?.issues?.[0]?.message || 'Invalid request payload.';
@@ -207,10 +197,8 @@ module.exports = {
   loginSchema,
   parseSchema,
   profileUpdateSchema,
-  providerPayloadSchema,
   recentSearchSchema,
   registerSchema,
-  routeExportSchema,
   savedRouteCreateSchema,
   savedRouteNameSchema,
   travelPreferencesSchema,

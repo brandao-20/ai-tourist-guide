@@ -1,22 +1,5 @@
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function stripHtml(value) {
-  const text = String(value ?? '');
-  if (typeof document === 'undefined') {
-    return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-  }
-
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = text;
-  return (wrapper.textContent || wrapper.innerText || '').replace(/\s+/g, ' ').trim();
-}
+import { formatDateTime, formatDistance, formatDuration } from './formatters.js';
+import { escapeHtml, stripHtml } from './ui.js';
 
 function normalizeText(value, fallback = 'Not available') {
   const normalized = String(value ?? '').trim();
@@ -64,39 +47,6 @@ function summarizeLegs(legs) {
     }),
     { distanceMeters: 0, durationSeconds: 0 }
   );
-}
-
-function formatDistance(meters) {
-  if (!meters) return 'Not available';
-  if (meters < 1000) return `${Math.round(meters)} m`;
-
-  const kilometers = meters / 1000;
-  return `${kilometers.toFixed(kilometers >= 10 ? 0 : 1)} km`;
-}
-
-function formatDuration(seconds) {
-  if (!seconds) return 'Not available';
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.round((seconds % 3600) / 60);
-
-  if (hours <= 0) return `${Math.max(minutes, 1)} min`;
-  return minutes > 0 ? `${hours} h ${minutes} min` : `${hours} h`;
-}
-
-function formatDate(value) {
-  if (!value) return 'Not available';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Not available';
-
-  return new Intl.DateTimeFormat('en', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
 }
 
 function getRouteName(routeDetails = {}) {
@@ -151,9 +101,9 @@ export function createRouteExportModel(routeDetails = {}, mapsUrl = null) {
       stops: monuments.length,
       days: days.length || Number(getItinerary(routeDetails).durationDays || 0) || null,
       legs: legs.length,
-      distance: formatDistance(totals.distanceMeters),
+      distance: formatDistance(totals.distanceMeters, 'Not available'),
       distanceMeters: totals.distanceMeters,
-      duration: formatDuration(totals.durationSeconds),
+      duration: formatDuration(totals.durationSeconds, 'Not available'),
       durationSeconds: totals.durationSeconds,
       travelMode: getTravelMode(routeDetails),
       googleMapsUrl,
@@ -292,7 +242,7 @@ export function createRouteExportHtml(routeDetails = {}, mapsUrl = null) {
     ol { margin: 10px 0 0; padding-left: 24px; }
     footer { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--muted); font-size: .9rem; }
     @media (max-width: 720px) { .meta-grid { grid-template-columns: 1fr 1fr; } main { width: min(100% - 18px, 980px); } }
-    @media print { body { background: #fff; } main { width: auto; margin: 0; padding: 0; box-shadow: none; } header { color: #24382e; background: #fff; border: 1px solid var(--border); } a::after { content: ' (' attr(href) ')'; font-weight: 400; } }
+    @media print { body { background: #fff; } main { width: auto; margin: 0; padding: 0; box-shadow: none; } header { color: #24382e; background: #fff; border: 1px solid var(--border); } }
   </style>
 </head>
 <body>
@@ -300,7 +250,7 @@ export function createRouteExportHtml(routeDetails = {}, mapsUrl = null) {
     <header>
       <p class="eyebrow">Saved itinerary export</p>
       <h1>${escapeHtml(model.name)}</h1>
-      <p>Generated ${escapeHtml(formatDate(model.generatedAt))}. ${routeLink}</p>
+      <p>Generated ${escapeHtml(formatDateTime(model.generatedAt))}. ${routeLink}</p>
     </header>
 
     <section class="meta-grid" aria-label="Route summary">
@@ -322,7 +272,7 @@ export function createRouteExportHtml(routeDetails = {}, mapsUrl = null) {
 
     <footer>
       <p>Exported from Personalized Tourist Guide AI. Review live traffic, opening hours and restrictions directly in Google Maps before travelling.</p>
-      <p>Saved: ${escapeHtml(formatDate(model.savedAt))} · Updated: ${escapeHtml(formatDate(model.updatedAt))}</p>
+      <p>Saved: ${escapeHtml(formatDateTime(model.savedAt))} · Updated: ${escapeHtml(formatDateTime(model.updatedAt))}</p>
     </footer>
   </main>
 </body>

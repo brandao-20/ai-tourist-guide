@@ -1,4 +1,5 @@
 import { escapeHtml, stripHtml } from '../ui.js';
+import { createMapMarker, openMarkerInfoWindow } from '../mapMarker.js';
 
 function hasValidCoordinates(monument) {
   return (
@@ -140,6 +141,9 @@ function renderMonumentList(monuments, actions) {
     li.dataset.index = String(index);
     li.dataset.position = String(index + 1).padStart(2, '0');
 
+    const positionBadge = createTextElement('span', String(index + 1).padStart(2, '0'), 'monument-index');
+    positionBadge.setAttribute('aria-hidden', 'true');
+
     const monumentInfo = document.createElement('div');
     monumentInfo.className = 'monument-info';
     monumentInfo.append(
@@ -156,7 +160,7 @@ function renderMonumentList(monuments, actions) {
       createMonumentButton('↓', 'move-down-button', () => actions.moveDown(index), `Move ${getMonumentLabel(monument)} down`)
     );
 
-    li.append(monumentInfo, actionGroup);
+    li.append(positionBadge, monumentInfo, actionGroup);
     monumentList.appendChild(li);
   });
 }
@@ -545,25 +549,23 @@ export function createMapItineraryController({
         lat: monument.coordinates.lat,
         lng: monument.coordinates.lng,
       };
-      const marker = new google.maps.Marker({
+      const marker = createMapMarker({
         position,
         map: window.myMap,
         title: monument.name,
-        label: {
-          text: String(state.markers.length + 1),
-          color: '#ffffff',
-          fontWeight: '900',
-        },
+        label: String(state.markers.length + 1),
       });
       const infoWindow = new google.maps.InfoWindow({
         content: `<h3>${escapeHtml(monument.name)}</h3><p>${escapeHtml(monument.address)}</p>`,
       });
 
-      marker.addListener('click', () => {
-        infoWindow.open(window.myMap, marker);
+      marker?.addListener('click', () => {
+        openMarkerInfoWindow(infoWindow, window.myMap, marker);
       });
-      marker.infoWindow = infoWindow;
-      state.markers.push(marker);
+      if (marker) {
+        marker.infoWindow = infoWindow;
+        state.markers.push(marker);
+      }
       bounds.extend(position);
     });
 

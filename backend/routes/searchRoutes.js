@@ -2,10 +2,11 @@ const express = require('express');
 const { runItinerarySearch } = require('../services/itinerarySearchService');
 const { logServerError } = require('../utils/logger');
 const { normalizeSearchPayload } = require('../utils/payloadValidation');
+const requireDbUser = require('../middleware/requireDbUser');
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', requireDbUser, async (req, res) => {
   const searchPayload = normalizeSearchPayload(req.body);
 
   if (searchPayload.error) {

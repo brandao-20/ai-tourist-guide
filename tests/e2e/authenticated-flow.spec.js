@@ -13,11 +13,11 @@ test('authenticated user can open core travel pages', async ({ page }) => {
   await expect(page).toHaveURL(/dashboard/);
 
   await page.getByRole('link', { name: 'Plan trip' }).click();
-  await expect(page.getByRole('heading', { name: /Build your itinerary on the map/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Create your itinerary/i })).toBeVisible();
 
   await page.goto('/saved-routes');
-  await expect(page.getByRole('heading', { name: 'Your saved routes.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your saved routes' })).toBeVisible();
 
   await page.goto('/profile');
-  await expect(page.getByRole('heading', { name: /Your travel profile/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Your profile/i })).toBeVisible();
 });

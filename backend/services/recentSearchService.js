@@ -1,12 +1,5 @@
 const db = require('../models');
-
-function toPlainModel(model) {
-  if (!model) {
-    return null;
-  }
-
-  return typeof model.get === 'function' ? model.get({ plain: true }) : model;
-}
+const { toPlainModel } = require('../utils/sequelizeHelpers');
 
 function serializeRecentSearch(recentSearch) {
   const plainRecentSearch = toPlainModel(recentSearch);

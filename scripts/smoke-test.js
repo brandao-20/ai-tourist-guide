@@ -103,7 +103,7 @@ async function checkFrontendMapsConfig() {
   const configJs = await response.text();
   assert(
     hasConfiguredBrowserMapKeyFromConfig(configJs),
-    'Google Maps browser key is missing in frontend/public/config.js.'
+    'Google Maps browser key is missing in the dynamic frontend /config.js response.'
   );
 }
 

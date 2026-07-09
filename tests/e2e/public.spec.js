@@ -11,10 +11,11 @@ test('homepage and public navigation are product-focused', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Status' })).toHaveCount(0);
 });
 
-test('legacy features route redirects to the homepage', async ({ page }) => {
-  await page.goto('/features');
-  await expect(page).toHaveURL(/\/$|\/index\.html$/);
-  await expect(page.getByRole('heading', { name: /Plan trips around the map/i })).toBeVisible();
+test('removed legacy public routes return the not found page', async ({ page }) => {
+  const response = await page.goto('/features');
+
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole('heading', { name: /This page does not exist/i })).toBeVisible();
 });
 
 test('auth pages hide unavailable Google sign-in by default', async ({ page }) => {

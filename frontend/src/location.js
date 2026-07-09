@@ -11,7 +11,7 @@ const GEOLOCATION_OPTIONS = Object.freeze({
   maximumAge: 300000,
 });
 
-const STORAGE_KEY = 'ptg:lastKnownLocation';
+const STORAGE_KEY = 'ptg:userConfirmedLocation';
 
 function canUseBrowserLocation() {
   return typeof navigator !== 'undefined' && Boolean(navigator.geolocation);
@@ -110,17 +110,21 @@ export async function getBrowserMapLocation() {
   return location;
 }
 
-export async function getPreferredMapLocation({ allowCache = true } = {}) {
-  try {
-    return await getBrowserMapLocation();
-  } catch (error) {
-    if (allowCache) {
-      const cachedLocation = readCachedLocation();
-      if (cachedLocation) {
-        return cachedLocation;
-      }
+export async function getPreferredMapLocation({ allowCache = true, requestBrowser = true } = {}) {
+  if (requestBrowser) {
+    try {
+      return await getBrowserMapLocation();
+    } catch (error) {
+      // Fall through to a confirmed cached location or the configured default.
     }
-
-    return getFallbackLocation();
   }
+
+  if (allowCache) {
+    const cachedLocation = readCachedLocation();
+    if (cachedLocation) {
+      return cachedLocation;
+    }
+  }
+
+  return getFallbackLocation();
 }

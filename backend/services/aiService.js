@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { appConfig } = require('../config/env');
 const { generateRecommendationPlan } = require('./recommendationEngineService');
+const { logServerWarning } = require('../utils/logger');
 
 const MAX_ITINERARY_DAYS = 14;
 const MAX_ACTIVITIES_PER_DAY = 6;
@@ -203,32 +204,47 @@ async function getProviderResponse(provider, prompt) {
   return null;
 }
 
+function generateLocalFallback(input, options = {}, provider = 'mock') {
+  return {
+    provider: provider === 'mock' ? provider : `${provider}-fallback-local-scoring-v1`,
+    ...generateRecommendationPlan(input, options.userPreferences),
+  };
+}
+
+function logProviderFallback(provider, error) {
+  logServerWarning('AI provider unavailable; using local recommendation fallback.', {
+    provider,
+    message: error?.message,
+    code: error?.code,
+    status: error?.response?.status,
+  });
+}
+
 async function generateTravelItinerary(input, options = {}) {
   const provider = getProvider();
 
   if (provider === 'mock') {
+    return generateLocalFallback(input, options, provider);
+  }
+
+  try {
+    const prompt = buildTravelPrompt(input);
+    const rawContent = await getProviderResponse(provider, prompt);
+    const parsed = extractJson(rawContent);
+    const normalizedPayload = normalizeGeneratedPayload(parsed);
+
+    if (normalizedPayload.itinerary.length === 0 || normalizedPayload.monuments.length === 0) {
+      return generateLocalFallback(input, options, provider);
+    }
+
     return {
       provider,
-      ...generateRecommendationPlan(input, options.userPreferences),
+      ...normalizedPayload,
     };
+  } catch (error) {
+    logProviderFallback(provider, error);
+    return generateLocalFallback(input, options, provider);
   }
-
-  const prompt = buildTravelPrompt(input);
-  const rawContent = await getProviderResponse(provider, prompt);
-  const parsed = extractJson(rawContent);
-  const normalizedPayload = normalizeGeneratedPayload(parsed);
-
-  if (normalizedPayload.itinerary.length === 0 || normalizedPayload.monuments.length === 0) {
-    return {
-      provider: `${provider}-fallback-local-scoring-v1`,
-      ...generateRecommendationPlan(input, options.userPreferences),
-    };
-  }
-
-  return {
-    provider,
-    ...normalizedPayload,
-  };
 }
 
 module.exports = {

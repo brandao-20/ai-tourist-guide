@@ -1,9 +1,10 @@
 import { apiDelete, apiGet, apiPatch } from './api.js';
-import { getGoogleMapsBrowserApiKey } from './config.js';
 import { downloadRouteHtml, downloadRouteJson } from './routeExport.js';
-import { getErrorMessage, setButtonBusy, setStatusMessage, clearStatusMessage } from './ui.js';
+import { clearStatusMessage, getElement, getErrorMessage, setButtonBusy, setStatusMessage } from './ui.js';
+import { formatDate } from './formatters.js';
+import { loadGoogleMapsScript } from './googleMapsLoader.js';
 
-import { setupLogoutButton } from './session.js';
+import { requireAuthenticatedSession, setupLogoutButton } from './session.js';
 setupLogoutButton();
 const DEFAULT_MAP_CENTER = { lat: 39.6, lng: -8.0 };
 
@@ -13,21 +14,6 @@ const state = {
   mapsReady: false,
   renameFavoriteId: null,
 };
-
-function getElement(id) {
-  return document.getElementById(id);
-}
-
-function formatDate(value) {
-  if (!value) return 'Unknown';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Unknown';
-  return new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-}
 
 function normalizeText(value) {
   return String(value || '').trim().toLowerCase();
@@ -61,7 +47,7 @@ function getRouteSummary(favorite) {
     legs: legs.length,
     firstStop: firstLeg?.start_address || firstMonument?.name || 'Origin unavailable',
     lastStop: lastLeg?.end_address || lastMonument?.name || 'Destination unavailable',
-    updatedAt: formatDate(favorite?.updatedAt || favorite?.createdAt),
+    updatedAt: formatDate(favorite?.updatedAt || favorite?.createdAt, 'Unknown'),
   };
 }
 
@@ -73,29 +59,6 @@ function getSearchableText(favorite) {
     ...monuments.flatMap((monument) => [monument?.name, monument?.city, monument?.address, monument?.category]),
     ...legs.flatMap((leg) => [leg?.start_address, leg?.end_address]),
   ].map(normalizeText).join(' ');
-}
-
-function loadGoogleMapsScript() {
-  return new Promise((resolve, reject) => {
-    if (window.google?.maps) {
-      resolve();
-      return;
-    }
-
-    const apiKey = getGoogleMapsBrowserApiKey();
-    if (!apiKey) {
-      reject(new Error('Map preview is unavailable.'));
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Map preview could not be loaded.'));
-    document.head.appendChild(script);
-  });
 }
 
 function createElement(tagName, className, text = '') {
@@ -284,7 +247,7 @@ function updateMetrics(favorites) {
 
   getElement('metric-total').textContent = String(favorites.length);
   getElement('metric-stops').textContent = String(totalStops);
-  getElement('metric-updated').textContent = latest ? formatDate(latest) : '—';
+  getElement('metric-updated').textContent = latest ? formatDate(latest, 'Unknown') : '—';
 }
 
 function sortFavorites(favorites, sortValue) {
@@ -370,7 +333,7 @@ async function loadFavorites() {
     applyFilters();
   } catch (error) {
     if (error?.status === 401) {
-      window.location.href = '/login';
+      await requireAuthenticatedSession({ next: '/saved-routes' });
       return;
     }
 
@@ -389,15 +352,13 @@ function bindControls() {
 document.addEventListener('DOMContentLoaded', async () => {
   bindControls();
 
-  try {
-    await apiGet('/user');
-  } catch (error) {
-    window.location.href = '/login';
+  const user = await requireAuthenticatedSession({ next: '/saved-routes' });
+  if (!user) {
     return;
   }
 
   try {
-    await loadGoogleMapsScript();
+    await loadGoogleMapsScript({ libraries: ['routes'] });
     state.mapsReady = true;
   } catch (error) {
     setStatusMessage(getElement('library-status'), 'Map previews are temporarily unavailable. Saved routes are still available as cards and lists.', 'info');

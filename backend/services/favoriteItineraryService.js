@@ -1,3 +1,5 @@
+const { toPlainModel } = require('../utils/sequelizeHelpers');
+
 let dbInstance;
 
 function getDb() {
@@ -10,14 +12,6 @@ function getDb() {
 const DEFAULT_FAVORITE_NAME = 'Untitled itinerary';
 const MAX_SIGNATURE_STOPS = 25;
 const COORDINATE_PRECISION = 5;
-
-function toPlainModel(model) {
-  if (!model) {
-    return null;
-  }
-
-  return typeof model.get === 'function' ? model.get({ plain: true }) : model;
-}
 
 function serializeFavoriteItinerary(favorite) {
   const plainFavorite = toPlainModel(favorite);
@@ -224,10 +218,6 @@ async function createOrUpdateFavoriteItinerary(userId, favoritePayload) {
   };
 }
 
-async function createFavoriteItinerary(userId, favoritePayload) {
-  const { favorite } = await createOrUpdateFavoriteItinerary(userId, favoritePayload);
-  return favorite;
-}
 
 async function listFavoriteItineraries(userId) {
   const db = getDb();
@@ -278,7 +268,6 @@ async function deleteFavoriteItinerary(userId, favoriteId) {
 
 module.exports = {
   buildRouteSignature,
-  createFavoriteItinerary,
   createOrUpdateFavoriteItinerary,
   listFavoriteItineraries,
   findFavoriteItinerary,

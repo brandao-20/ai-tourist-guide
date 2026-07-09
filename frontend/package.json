@@ -5,18 +5,17 @@
   "type": "module",
   "description": "Static JavaScript/Rollup frontend for Personalized Tourist Guide AI.",
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
+    "build": "node ../node_modules/rollup/dist/bin/rollup -c",
+    "dev": "node ../node_modules/rollup/dist/bin/rollup -c -w",
     "start": "node server.js",
-    "check:syntax": "node --check server.js && node --check src/api.js && node --check src/authPage.js && node --check src/config.js && node --check src/edit_profile.js && node --check src/home_logged.js && node --check src/login.js && node --check src/mainapp.js && node --check src/mainapp/loader.js && node --check src/mainapp/mapItinerary.js && node --check src/mainapp/manualMonumentModal.js && node --check src/mainapp/notifications.js && node --check src/mainapp/searchForm.js && node --check src/profile.js && node --check src/register.js && node --check src/route_details.js && node --check src/favorites.js && node --check src/routeExport.js && node --check src/session.js && node --check src/status.js && node --check src/ui.js && node --check rollup.config.js && node --check public/load-google-maps.js"
+    "check:syntax": "node ../scripts/check-syntax.js frontend"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-terser": "^0.4.0",
-    "rollup": "^3.15.0",
-    "rollup-plugin-css-only": "^4.3.0",
-    "rollup-plugin-livereload": "^2.0.0"
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^1.0.0",
+    "rollup": "^4.62.2",
+    "rollup-plugin-livereload": "^2.0.5"
   },
   "engines": {
     "node": ">=18"

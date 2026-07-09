@@ -59,8 +59,6 @@ function loadCities() {
 
 const citiesData = loadCities();
 const displayNames = getRegionDisplayNames();
-const countryNameToCode = new Map();
-const citiesByName = new Map();
 
 function getCountryName(countryCode) {
   if (!displayNames) {
@@ -70,36 +68,7 @@ function getCountryName(countryCode) {
   return displayNames.of(countryCode) || countryCode;
 }
 
-function indexCatalog() {
-  const countryCodes = new Set(citiesData.map((city) => city.country));
-  countryCodes.forEach((code) => {
-    countryNameToCode.set(normalizeLookupText(getCountryName(code)), code);
-    countryNameToCode.set(normalizeLookupText(code), code);
-  });
 
-  citiesData.forEach((city) => {
-    const key = normalizeLookupText(city.name);
-    if (!citiesByName.has(key)) {
-      citiesByName.set(key, []);
-    }
-    citiesByName.get(key).push(city);
-  });
-
-  citiesByName.forEach((cities) => {
-    cities.sort((a, b) => b.population - a.population);
-  });
-}
-
-indexCatalog();
-
-function resolveCountryCode(value) {
-  const directCode = normalizeCountryCode(value);
-  if (directCode.length === 2 && countryNameToCode.has(directCode.toLowerCase())) {
-    return directCode;
-  }
-
-  return countryNameToCode.get(normalizeLookupText(value)) || '';
-}
 
 function listCountries() {
   const countryCodes = Array.from(new Set(citiesData.map((city) => city.country)));
@@ -127,25 +96,9 @@ function listCitiesByCountry(countryCode) {
     .slice(0, MAX_CITIES_PER_COUNTRY);
 }
 
-function findCityByName(cityName, countryCode = '') {
-  const candidates = citiesByName.get(normalizeLookupText(cityName)) || [];
-  const normalizedCountryCode = normalizeCountryCode(countryCode);
-
-  if (normalizedCountryCode) {
-    const countryMatch = candidates.find((city) => city.country === normalizedCountryCode);
-    if (countryMatch) {
-      return countryMatch;
-    }
-  }
-
-  return candidates[0] || null;
-}
-
 module.exports = {
-  findCityByName,
   getCountryName,
   listCountries,
   listCitiesByCountry,
   normalizeCountryCode,
-  resolveCountryCode,
 };

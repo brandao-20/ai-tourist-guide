@@ -1,5 +1,4 @@
-@import url("public.css?v=10.0");
-
+/* Page-specific planner refinements */
 /* Classic planner polish: closer to the original Project III map-first format. */
 .planner-page--classic .planner-shell--classic {
   width: min(1120px, calc(100% - 32px));

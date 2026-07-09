@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { appConfig } = require('../config/env');
+const { logServerWarning } = require('../utils/logger');
 
 const ROUTES_ENDPOINT = 'https://routes.googleapis.com/directions/v2:computeRoutes';
 
@@ -46,30 +47,39 @@ async function computeRouteMetadata(stops = [], options = {}) {
     units: 'METRIC',
   };
 
-  const response = await axios.post(ROUTES_ENDPOINT, payload, {
-    timeout: appConfig.googleRoutes.timeoutMs,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': appConfig.googleRoutes.apiKey,
-      'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.distanceMeters,routes.legs.duration',
-    },
-  });
+  try {
+    const response = await axios.post(ROUTES_ENDPOINT, payload, {
+      timeout: appConfig.googleRoutes.timeoutMs,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': appConfig.googleRoutes.apiKey,
+        'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.distanceMeters,routes.legs.duration',
+      },
+    });
 
-  const route = response.data?.routes?.[0] || null;
-  if (!route) {
+    const route = response.data?.routes?.[0] || null;
+    if (!route) {
+      return { configured: true, metadata: null };
+    }
+
+    return {
+      configured: true,
+      metadata: {
+        distanceMeters: route.distanceMeters || null,
+        duration: route.duration || null,
+        encodedPolyline: route.polyline?.encodedPolyline || null,
+        legs: Array.isArray(route.legs) ? route.legs : [],
+        source: 'google-routes-api',
+      },
+    };
+  } catch (error) {
+    logServerWarning('Google Routes metadata unavailable; returning null metadata.', {
+      status: error.response?.status,
+      code: error.code,
+      message: error.message,
+    });
     return { configured: true, metadata: null };
   }
-
-  return {
-    configured: true,
-    metadata: {
-      distanceMeters: route.distanceMeters || null,
-      duration: route.duration || null,
-      encodedPolyline: route.polyline?.encodedPolyline || null,
-      legs: Array.isArray(route.legs) ? route.legs : [],
-      source: 'google-routes-api',
-    },
-  };
 }
 
 module.exports = {

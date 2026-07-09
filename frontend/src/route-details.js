@@ -15,9 +15,11 @@ import {
   stripHtml,
 } from './ui.js';
 import { getFallbackLocation, getPreferredMapLocation } from './location.js';
+import { createMapMarker, openMarkerInfoWindow } from './mapMarker.js';
+import { formatDistance, formatDuration } from './formatters.js';
+import { loadGoogleMapsScript } from './googleMapsLoader.js';
 
-import { setupLogoutButton } from './session.js';
-setupLogoutButton();
+import { requireAuthenticatedSession, setupLogoutButton } from './session.js';
 const DEFAULT_LOCATION = getFallbackLocation();
 
 const DEFAULT_MAP_OPTIONS = {
@@ -89,34 +91,6 @@ function getTravelModeLabel(directionsResult) {
 
 function parseGoogleMetricValue(metric) {
   return typeof metric?.value === 'number' && Number.isFinite(metric.value) ? metric.value : 0;
-}
-
-function formatDistance(meters) {
-  if (!meters) {
-    return '—';
-  }
-
-  if (meters < 1000) {
-    return `${Math.round(meters)} m`;
-  }
-
-  const kilometers = meters / 1000;
-  return `${kilometers.toFixed(kilometers >= 10 ? 0 : 1)} km`;
-}
-
-function formatDuration(seconds) {
-  if (!seconds) {
-    return '—';
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.round((seconds % 3600) / 60);
-
-  if (hours <= 0) {
-    return `${Math.max(minutes, 1)} min`;
-  }
-
-  return minutes > 0 ? `${hours} h ${minutes} min` : `${hours} h`;
 }
 
 function summarizeDirections(directionsResult) {
@@ -420,7 +394,7 @@ function renderMarkersAndRoute(monuments, directionsResult) {
       lng: monument.coordinates.lng,
     };
 
-    const marker = new google.maps.Marker({
+    const marker = createMapMarker({
       position,
       map,
       label: String(index + 1),
@@ -431,11 +405,13 @@ function renderMarkersAndRoute(monuments, directionsResult) {
       content: `<strong>${escapeHtml(monument.name || 'Stop')}</strong><p>${escapeHtml(getMonumentLocation(monument))}</p>`,
     });
 
-    marker.addListener('click', () => {
-      infoWindow.open(map, marker);
+    marker?.addListener('click', () => {
+      openMarkerInfoWindow(infoWindow, map, marker);
     });
 
-    routeMarkers.push(marker);
+    if (marker) {
+      routeMarkers.push(marker);
+    }
     bounds.extend(position);
     markerCount += 1;
   });
@@ -606,6 +582,11 @@ async function loadRouteDetails() {
     currentRouteDetails = routeDetails;
     displayRouteDetails(routeDetails);
   } catch (error) {
+    if (error?.status === 401) {
+      await requireAuthenticatedSession({ next: `${window.location.pathname}${window.location.search}` });
+      return;
+    }
+
     renderRoutePlaceholder('Could not load route', getErrorMessage(error));
     setRouteStatus('Could not load this route. Please try again later.', 'error');
     setTextContent('hero-route-status', 'Error');
@@ -614,7 +595,7 @@ async function loadRouteDetails() {
   }
 }
 
-window.initMap = function initMap() {
+function initializeInteractiveRouteMap() {
   const mapElement = document.getElementById('map');
   if (!mapElement) {
     setRouteStatus('Map container not found.', 'error');
@@ -622,7 +603,7 @@ window.initMap = function initMap() {
   }
 
   if (!window.google?.maps) {
-    window.initMapUnavailable('default');
+    initializeRouteMapUnavailable('default');
     return;
   }
 
@@ -630,7 +611,7 @@ window.initMap = function initMap() {
     mapElement.classList.remove('map-container--fallback');
     mapElement.innerHTML = '';
     map = new google.maps.Map(mapElement, DEFAULT_MAP_OPTIONS);
-    getPreferredMapLocation().then((location) => {
+    getPreferredMapLocation({ allowCache: false, requestBrowser: false }).then((location) => {
       if (!currentRouteDetails && map) {
         map.setCenter({ lat: location.lat, lng: location.lng });
         map.setZoom(location.source === 'browser' ? 13 : DEFAULT_MAP_OPTIONS.zoom);
@@ -651,9 +632,9 @@ window.initMap = function initMap() {
   } catch (error) {
     setRouteStatus('Could not initialize Google Maps. Please refresh the page.', 'error');
   }
-};
+}
 
-window.initMapUnavailable = function initMapUnavailable(reason = 'default') {
+function initializeRouteMapUnavailable(reason = 'default') {
   const message = reason === 'missing_browser_api_key'
     ? 'The interactive map is temporarily unavailable.'
     : 'The interactive map could not be loaded.';
@@ -664,7 +645,27 @@ window.initMapUnavailable = function initMapUnavailable(reason = 'default') {
   setupFavoriteToggle();
   loadRouteDetails();
   setRouteStatus('The map is temporarily unavailable, but your itinerary is still available.', 'warning');
-};
+}
+
+window.initMap = initializeInteractiveRouteMap;
+window.initMapUnavailable = initializeRouteMapUnavailable;
+
+async function bootRouteDetails() {
+  setupLogoutButton();
+  bindExportActions();
+
+  const user = await requireAuthenticatedSession({ next: `${window.location.pathname}${window.location.search}` });
+  if (!user) {
+    return;
+  }
+
+  try {
+    await loadGoogleMapsScript({ language: 'en', libraries: ['routes'] });
+    initializeInteractiveRouteMap();
+  } catch (error) {
+    initializeRouteMapUnavailable(error.reason || 'default');
+  }
+}
 
 async function removeFavorite(button) {
   if (!isValidNumericId(favoriteRouteId)) {
@@ -743,7 +744,7 @@ function toggleFavorite() {
 
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bindExportActions);
+  document.addEventListener('DOMContentLoaded', bootRouteDetails, { once: true });
 } else {
-  bindExportActions();
+  bootRouteDetails();
 }

@@ -1,0 +1,106 @@
+/* Shared component refinements reserved for future UI components. */
+
+.app-map-marker {
+  align-items: center;
+  background: #31543f;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(27, 42, 32, 0.24);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  height: 2rem;
+  justify-content: center;
+  line-height: 1;
+  min-width: 2rem;
+  padding: 0 0.42rem;
+  position: absolute;
+  user-select: none;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.app-map-marker__tail {
+  border-left: 0.34rem solid transparent;
+  border-right: 0.34rem solid transparent;
+  border-top: 0.48rem solid #31543f;
+  bottom: -0.4rem;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.app-map-marker:focus-visible {
+  outline: 3px solid rgba(49, 84, 63, 0.3);
+  outline-offset: 3px;
+}
+
+.app-map-marker--dot {
+  height: 1.15rem;
+  min-width: 1.15rem;
+  padding: 0;
+}
+
+.app-map-marker--dot .app-map-marker__tail {
+  display: none;
+}
+
+/* In-app notifications */
+.toast-stack {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 3000;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast-message {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 14px 14px 16px;
+  border: 1px solid var(--color-border);
+  border-left: 5px solid var(--color-forest);
+  border-radius: 18px;
+  background: rgba(255,255,255,.96);
+  box-shadow: var(--shadow-card);
+  color: var(--color-forest-dark);
+  font-weight: 800;
+  line-height: 1.35;
+  pointer-events: auto;
+  animation: toast-in .18s ease-out;
+}
+
+.toast-message--success { border-left-color: var(--color-forest); }
+.toast-message--warning { border-left-color: var(--color-warning); }
+.toast-message--error { border-left-color: var(--color-danger); }
+.toast-message--leaving { animation: toast-out .18s ease-in forwards; }
+
+.toast-message__close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(49,84,63,.10);
+  color: var(--color-forest-dark);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+  to { opacity: 0; transform: translateY(-6px); }
+}

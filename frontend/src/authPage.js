@@ -67,20 +67,6 @@ function getOAuthContainer(button) {
   return button?.closest('.auth-provider-stack');
 }
 
-function hideOAuthButton(button, noteElement) {
-  const container = getOAuthContainer(button);
-  if (container) {
-    container.hidden = false;
-  }
-  if (button) {
-    button.hidden = false;
-    button.href = '#';
-    button.classList.add('is-disabled');
-    button.setAttribute('aria-disabled', 'true');
-  }
-  setOAuthNote(noteElement, GOOGLE_UNAVAILABLE_MESSAGE, 'info');
-}
-
 function showOAuthButton(button) {
   const container = getOAuthContainer(button);
   if (container) {

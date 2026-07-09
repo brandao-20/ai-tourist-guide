@@ -1,3 +1,7 @@
+export function getElement(id) {
+  return document.getElementById(id);
+}
+
 export function escapeHtml(value = '') {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -8,7 +12,15 @@ export function escapeHtml(value = '') {
 }
 
 export function stripHtml(value = '') {
-  return String(value)
+  const text = String(value);
+
+  if (typeof document !== 'undefined') {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = text;
+    return (wrapper.textContent || wrapper.innerText || '').replace(/\s+/g, ' ').trim();
+  }
+
+  return text
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

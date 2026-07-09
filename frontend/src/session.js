@@ -29,3 +29,34 @@ export function setupLogoutButton(selector = '.logout-btn, [data-logout-link]') 
 
   bindLogoutLinks();
 }
+
+export async function getCurrentSessionUser() {
+  try {
+    const response = await fetch(getApiUrl('/api/user'), {
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function requireAuthenticatedSession({ redirectTo = '/login', next = window.location.pathname } = {}) {
+  const user = await getCurrentSessionUser();
+
+  if (user) {
+    return user;
+  }
+
+  const target = new URL(redirectTo, window.location.origin);
+  target.searchParams.set('next', next || window.location.pathname);
+  window.location.replace(target.pathname + target.search);
+  return null;
+}
+
