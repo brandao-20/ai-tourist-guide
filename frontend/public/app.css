@@ -654,6 +654,7 @@ h1 { letter-spacing: -.075em; }
 }
 .generated-day-item,
 .leg-item { padding:16px; border:1px solid var(--color-border); border-radius:18px; background:#fff; }
+.generated-day-summary { margin: 6px 0 0; color: var(--color-muted); font-size: .95rem; line-height: 1.55; }
 .empty-state--center { text-align:center; display:grid; justify-items:center; gap: 10px; }
 .library-shell { display:grid; gap: 24px; }
 .library-toolbar { display:flex; justify-content:space-between; gap:20px; align-items:end; margin-bottom: 18px; }
@@ -1854,6 +1855,186 @@ p,
   white-space: nowrap;
 }
 
+/* Route continuity and long-itinerary presentation refinements. */
+.btn-primary:hover,
+.hero-actions .btn-primary:hover,
+.route-details-page .hero-actions .btn-primary:hover {
+  background: var(--color-forest-dark) !important;
+  color: #fff !important;
+  border-color: var(--color-forest-dark) !important;
+}
+
+.itinerary-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin: -6px 0 14px;
+}
+
+.itinerary-control-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-cream-soft);
+  color: var(--color-forest-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.itinerary-control-button:hover {
+  background: var(--color-mint);
+}
+
+.generated-day-item--accordion,
+.generated-day-item--accordion.generated-day-item {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.day-plan-card {
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(31,58,44,.06);
+  overflow: hidden;
+}
+
+.day-plan-card + .day-plan-card {
+  margin-top: 10px;
+}
+
+.day-plan-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 15px 16px;
+  color: var(--color-forest-dark);
+  cursor: pointer;
+  list-style: none;
+}
+
+.day-plan-summary::-webkit-details-marker { display: none; }
+
+.day-plan-summary:hover {
+  background: var(--color-cream-soft);
+}
+
+.day-plan-summary__text {
+  display: grid;
+  gap: 3px;
+}
+
+.day-plan-summary__text span,
+.day-plan-count {
+  color: var(--color-muted);
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.day-plan-index,
+.stop-index,
+.leg-index {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--color-forest);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.day-plan-count {
+  border-radius: var(--radius-pill);
+  background: var(--color-mint);
+  color: var(--color-forest-dark);
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.day-plan-body {
+  padding: 0 16px 16px 58px;
+}
+
+.day-plan-activities {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.day-plan-activities li {
+  padding: 11px 12px;
+  border: 1px solid rgba(49,84,63,.1);
+  border-radius: 14px;
+  background: var(--color-cream-soft);
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.route-details-day-card {
+  box-shadow: none;
+}
+
+.route-details-day-stops {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px 58px;
+}
+
+.route-details-day-stops .stop-card {
+  box-shadow: none;
+  border-radius: 14px;
+}
+
+.directions-day-card {
+  margin-bottom: 12px;
+}
+
+.route-overview-note {
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.route-overview-note h3 {
+  margin-bottom: 8px;
+}
+
+.route-overview-note p:last-child {
+  margin-bottom: 0;
+}
+
+.route-details-page .stops-list,
+.route-details-page .directions-list {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .day-plan-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .day-plan-count {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .day-plan-body,
+  .route-details-day-stops {
+    padding-left: 16px;
+  }
+}
+
 /* Application layout refinements */
 /* Dashboard restored towards the original Project III structure: welcome, explore map, recent route and saved routes. */
 .dashboard-shell--classic {
@@ -2108,6 +2289,108 @@ p,
   to { opacity: 0; transform: translateY(-6px); }
 }
 
+/* Planner save dialog */
+.modal {
+  align-items: center;
+  background: rgba(20, 35, 27, 0.62);
+  display: none;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 4200;
+}
+
+.favorite-modal .modal-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 28px;
+  box-shadow: var(--shadow-soft);
+  color: var(--color-forest-dark);
+  max-width: 520px;
+  padding: 28px;
+  position: relative;
+  width: min(520px, 100%);
+}
+
+.favorite-modal h2 {
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  line-height: 0.95;
+  margin: 0 0 10px;
+}
+
+.favorite-modal__intro {
+  color: var(--color-muted);
+  line-height: 1.55;
+  margin: 0 0 22px;
+}
+
+.favorite-modal__field {
+  color: var(--color-forest-dark);
+  display: grid;
+  font-weight: 900;
+  gap: 9px;
+}
+
+.favorite-modal__field input {
+  background: #fff;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  color: var(--color-forest-dark);
+  font: inherit;
+  font-weight: 700;
+  padding: 13px 14px;
+  width: 100%;
+}
+
+.favorite-modal__field input:focus {
+  border-color: var(--color-forest);
+  box-shadow: 0 0 0 4px rgba(49, 84, 63, 0.13);
+  outline: none;
+}
+
+.favorite-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.favorite-modal__actions button,
+.close-button {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.favorite-modal__actions button {
+  background: #fff;
+  color: var(--color-forest-dark);
+  padding: 11px 18px;
+}
+
+.favorite-modal__actions button:last-child {
+  background: var(--color-forest);
+  border-color: var(--color-forest);
+  color: #fff;
+}
+
+.close-button {
+  align-items: center;
+  background: rgba(49, 84, 63, 0.09);
+  color: var(--color-forest-dark);
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 34px;
+}
+
 /* Page-specific planner refinements */
 /* Classic planner polish: closer to the original Project III map-first format. */
 .planner-page--classic .planner-shell--classic {
@@ -2276,4 +2559,17 @@ p,
   .classic-map-header { align-items: stretch; flex-direction: column; }
   .classic-map-tools { flex-direction: column; align-items: stretch; }
   .map-canvas--classic { height: 60vh; min-height: 420px; }
+}
+
+.classic-results-grid--stacked {
+  grid-template-columns: 1fr;
+}
+
+.classic-results-grid--stacked .itinerary-list {
+  max-width: none;
+}
+
+.classic-results-grid--stacked .itinerary-list .generated-activities,
+.classic-results-grid--stacked .itinerary-list .day-plan-activities {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }

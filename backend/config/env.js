@@ -168,12 +168,15 @@ function buildConfig() {
     googlePlaces: {
       apiKey: hasConfiguredValue(googlePlacesApiKey) ? googlePlacesApiKey : '',
       timeoutMs: parsePositiveInteger(process.env.GOOGLE_PLACES_TIMEOUT_MS, 8000),
+      languageCode: readString('GOOGLE_PLACES_LANGUAGE_CODE', 'en'),
+      enrichItineraries: parseBoolean(process.env.GOOGLE_PLACES_ENRICH_ITINERARIES, true),
+      enrichmentLimit: parsePositiveInteger(process.env.GOOGLE_PLACES_ENRICHMENT_LIMIT, 12),
     },
     ai: {
       provider: resolveAiProvider(),
-      timeoutMs: parsePositiveInteger(process.env.AI_PROVIDER_TIMEOUT_MS, 20000),
+      timeoutMs: parsePositiveInteger(process.env.AI_PROVIDER_TIMEOUT_MS, 25000),
       openaiApiKey: readString('OPENAI_API_KEY'),
-      openaiModel: readString('OPENAI_MODEL', 'gpt-4o-mini'),
+      openaiModel: readString('OPENAI_MODEL', 'gpt-5.4-mini'),
     },
   };
 }

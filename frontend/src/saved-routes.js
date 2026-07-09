@@ -8,11 +8,52 @@ import { requireAuthenticatedSession, setupLogoutButton } from './session.js';
 setupLogoutButton();
 const DEFAULT_MAP_CENTER = { lat: 39.6, lng: -8.0 };
 
+function decodePolyline(encodedPolyline = '') {
+  const points = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encodedPolyline.length) {
+    let result = 0;
+    let shift = 0;
+    let byte = null;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    result = 0;
+    shift = 0;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return points;
+}
+
+function getRouteMetadata(favorite) {
+  return favorite?.map_data?.routeMetadata || favorite?.map_data?.routes?.routeMetadata || null;
+}
+
 const state = {
   favorites: [],
   filteredFavorites: [],
   mapsReady: false,
   renameFavoriteId: null,
+  pendingDeleteFavorite: null,
 };
 
 function normalizeText(value) {
@@ -36,6 +77,7 @@ function getLegs(favorite) {
 function getRouteSummary(favorite) {
   const monuments = getMonuments(favorite);
   const legs = getLegs(favorite);
+  const routeMetadata = getRouteMetadata(favorite);
   const firstLeg = legs[0];
   const lastLeg = legs[legs.length - 1];
   const firstMonument = monuments[0];
@@ -47,6 +89,9 @@ function getRouteSummary(favorite) {
     legs: legs.length,
     firstStop: firstLeg?.start_address || firstMonument?.name || 'Origin unavailable',
     lastStop: lastLeg?.end_address || lastMonument?.name || 'Destination unavailable',
+    distanceText: routeMetadata?.distanceText || '',
+    durationText: routeMetadata?.durationText || '',
+    hasRouteMetadata: Boolean(routeMetadata),
     updatedAt: formatDate(favorite?.updatedAt || favorite?.createdAt, 'Unknown'),
   };
 }
@@ -99,13 +144,28 @@ function createGoogleMapsUrl(favorite) {
   }
 
   const monuments = getMonuments(favorite);
-  const first = monuments[0]?.address || monuments[0]?.name;
-  if (!first) return 'https://www.google.com/maps';
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(first)}`;
+  const origin = monuments[0]?.address || monuments[0]?.name;
+  const destination = monuments[monuments.length - 1]?.address || monuments[monuments.length - 1]?.name;
+  const waypoints = monuments.slice(1, -1).map((monument) => monument.address || monument.name).filter(Boolean);
+
+  if (origin && destination && origin !== destination) {
+    const url = new URL('https://www.google.com/maps/dir/');
+    url.searchParams.set('api', '1');
+    url.searchParams.set('origin', origin);
+    url.searchParams.set('destination', destination);
+    if (waypoints.length > 0) {
+      url.searchParams.set('waypoints', waypoints.slice(0, 9).join('|'));
+    }
+    return url.toString();
+  }
+
+  if (!origin) return 'https://www.google.com/maps';
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(origin)}`;
 }
 
 function renderMapPreview(favorite, mapElement) {
-  if (!state.mapsReady || !favorite?.map_data?.routes) {
+  const routeMetadata = getRouteMetadata(favorite);
+  if (!state.mapsReady || (!favorite?.map_data?.routes && !routeMetadata?.encodedPolyline)) {
     mapElement.innerHTML = '<span class="favorite-map__badge">Map unavailable</span>';
     return;
   }
@@ -118,6 +178,25 @@ function renderMapPreview(favorite, mapElement) {
       streetViewControl: false,
       fullscreenControl: false,
     });
+
+    if (routeMetadata?.encodedPolyline) {
+      const path = decodePolyline(routeMetadata.encodedPolyline);
+      if (path.length >= 2) {
+        const polyline = new google.maps.Polyline({
+          path,
+          strokeColor: '#31543f',
+          strokeOpacity: 0.95,
+          strokeWeight: 4,
+        });
+        polyline.setMap(map);
+        const bounds = new google.maps.LatLngBounds();
+        path.forEach((point) => bounds.extend(point));
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds);
+        }
+        return;
+      }
+    }
 
     const renderer = new google.maps.DirectionsRenderer({
       suppressMarkers: true,
@@ -178,17 +257,40 @@ async function renameFavorite(event) {
   }
 }
 
-async function deleteFavorite(favorite, button) {
-  const confirmed = window.confirm(`Remove "${favorite.name || 'this route'}" from your saved routes?`);
-  if (!confirmed) return;
+function openDeleteDialog(favorite) {
+  const dialog = getElement('delete-dialog');
+  const title = getElement('delete-route-title');
+  const error = getElement('delete-error');
+  if (!dialog) return;
 
-  const restoreButton = setButtonBusy(button, 'Removing...');
+  state.pendingDeleteFavorite = favorite;
+  if (title) {
+    title.textContent = favorite.name || 'this saved route';
+  }
+  clearStatusMessage(error);
+  dialog.showModal();
+}
+
+async function confirmDeleteFavorite() {
+  const favorite = state.pendingDeleteFavorite;
+  const saveButton = getElement('delete-confirm');
+  const dialog = getElement('delete-dialog');
+  const error = getElement('delete-error');
+
+  if (!favorite?.id) {
+    dialog?.close();
+    return;
+  }
+
+  const restoreButton = setButtonBusy(saveButton, 'Removing...');
   try {
     await apiDelete(`/favorites/${favorite.id}`);
+    state.pendingDeleteFavorite = null;
     state.favorites = state.favorites.filter((item) => Number(item.id) !== Number(favorite.id));
+    dialog?.close();
     applyFilters();
-  } catch (error) {
-    setStatusMessage(getElement('library-status'), getErrorMessage(error, 'Could not remove this route.'), 'error');
+  } catch (err) {
+    setStatusMessage(error, getErrorMessage(err, 'Could not remove this route.'), 'error');
   } finally {
     restoreButton();
   }
@@ -209,32 +311,26 @@ function createFavoriteCard(favorite) {
   body.appendChild(createMeta([
     `${summary.stops} stops`,
     summary.days > 0 ? `${summary.days} days` : null,
-    summary.legs > 0 ? `${summary.legs} legs` : 'Route data',
+    summary.distanceText && summary.durationText ? `${summary.distanceText} · ${summary.durationText}` : null,
+    summary.hasRouteMetadata ? 'Route overview' : 'List only',
     `Updated ${summary.updatedAt}`,
   ]));
 
-  const actions = createElement('div', 'favorite-actions');
+  const actions = createElement('div', 'favorite-actions favorite-actions--organised');
   const detailsLink = document.createElement('a');
   detailsLink.href = `/route-details?favoriteId=${encodeURIComponent(favorite.id)}`;
-  detailsLink.className = 'action-button action-button--primary';
+  detailsLink.className = 'action-button action-button--primary favorite-actions__main';
   detailsLink.textContent = 'View details';
 
-  const mapsLink = document.createElement('a');
-  mapsLink.href = createGoogleMapsUrl(favorite);
-  mapsLink.target = '_blank';
-  mapsLink.rel = 'noopener noreferrer';
-  mapsLink.className = 'action-button action-button--ghost';
-  mapsLink.textContent = 'Open map';
-
-  actions.append(
-    detailsLink,
-    mapsLink,
+  const tools = createElement('div', 'favorite-actions__tools');
+  tools.append(
     createButton('Rename', 'action-button action-button--ghost', () => openRenameDialog(favorite)),
     createButton('Export HTML', 'action-button action-button--ghost', () => downloadRouteHtml(favorite, createGoogleMapsUrl(favorite))),
     createButton('Export JSON', 'action-button action-button--ghost', () => downloadRouteJson(favorite)),
-    createButton('Remove', 'action-button action-button--danger', (event) => deleteFavorite(favorite, event.currentTarget))
+    createButton('Remove', 'action-button action-button--danger', () => openDeleteDialog(favorite))
   );
 
+  actions.append(detailsLink, tools);
   body.appendChild(actions);
   card.append(mapWrapper, body);
   requestAnimationFrame(() => renderMapPreview(favorite, mapCanvas));
@@ -281,19 +377,23 @@ function applyFilters() {
   grid.innerHTML = '';
   grid.setAttribute('aria-busy', 'false');
 
+  const heroActions = getElement('library-hero-actions');
+
   if (state.favorites.length === 0) {
     metrics?.classList.add('is-hidden');
     toolbar?.classList.add('is-empty');
+    heroActions?.classList.add('is-hidden');
     emptyState.classList.remove('is-hidden');
     grid.classList.add('is-hidden');
     emptyState.querySelector('h3').textContent = 'You do not have any saved routes yet.';
     emptyState.querySelector('p').textContent = 'Create your first itinerary and save it for later.';
-    setStatusMessage(getElement('library-status'), 'No saved routes yet.', 'info');
+    clearStatusMessage(getElement('library-status'));
     return;
   }
 
   metrics?.classList.remove('is-hidden');
   toolbar?.classList.remove('is-empty');
+  heroActions?.classList.remove('is-hidden');
 
   if (state.filteredFavorites.length === 0) {
     emptyState.classList.remove('is-hidden');
@@ -347,6 +447,11 @@ function bindControls() {
   getElement('favorite-sort')?.addEventListener('change', applyFilters);
   getElement('rename-dialog')?.addEventListener('submit', renameFavorite);
   getElement('rename-cancel')?.addEventListener('click', () => getElement('rename-dialog')?.close());
+  getElement('delete-confirm')?.addEventListener('click', confirmDeleteFavorite);
+  getElement('delete-cancel')?.addEventListener('click', () => getElement('delete-dialog')?.close());
+  getElement('delete-dialog')?.addEventListener('close', () => {
+    state.pendingDeleteFavorite = null;
+  });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

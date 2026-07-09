@@ -93,6 +93,7 @@ GOOGLE_MAPS_BROWSER_API_KEY=
 GOOGLE_MAPS_SERVER_API_KEY=
 GOOGLE_ROUTES_API_KEY=
 GOOGLE_PLACES_API_KEY=
+GOOGLE_PLACES_ENRICH_ITINERARIES=true
 ```
 
 Google keys are optional for local development. When they are not configured, the app keeps the itinerary available as a list and uses local fallback data where possible.
@@ -213,7 +214,7 @@ Used by the browser map layer.
 GOOGLE_MAPS_BROWSER_API_KEY=your_restricted_browser_key
 ```
 
-Recommended API: Maps JavaScript API.
+Recommended APIs: Maps JavaScript API and Places API for browser-side place suggestions.
 
 ### Google server-side key
 
@@ -227,41 +228,41 @@ Recommended API: Geocoding API.
 
 ### Google Routes API
 
-Prepared as an optional backend adapter for distance, duration and route metadata.
+Used as an optional backend adapter for distance, duration and route metadata during itinerary generation and route rebuilds.
 
 ```env
 GOOGLE_ROUTES_API_KEY=your_restricted_routes_key
-GOOGLE_ROUTES_TIMEOUT_MS=7000
+GOOGLE_ROUTES_TIMEOUT_MS=8000
 ```
 
 ### Google Places API
 
-Prepared as an optional backend adapter for place search, addresses, ratings and metadata.
+Used as an optional backend adapter for real stop search, itinerary enrichment, addresses, ratings and coordinates.
 
 ```env
 GOOGLE_PLACES_API_KEY=your_restricted_places_key
-GOOGLE_PLACES_TIMEOUT_MS=7000
+GOOGLE_PLACES_TIMEOUT_MS=8000
+GOOGLE_PLACES_LANGUAGE_CODE=en
+GOOGLE_PLACES_ENRICH_ITINERARIES=true
+GOOGLE_PLACES_ENRICHMENT_LIMIT=12
 ```
 
-Keep all keys restricted by referrer, API scope and environment.
+Keep browser keys restricted by HTTP referrer. Keep server keys restricted by API scope and environment; do not paste real keys into commits or screenshots.
 
 ## Optional AI providers
 
-The app works with the local recommendation engine by default:
+The app can run with the local recommendation engine or with OpenAI as the live itinerary generator.
 
 ```env
 TRAVEL_AI_PROVIDER=openai
-```
-
-OpenAI provider for the final demo:
-
-```env
-TRAVEL_AI_PROVIDER=openai
+AI_PROVIDER_TIMEOUT_MS=60000
 OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=gpt-5.4-mini
 ```
 
-When `OPENAI_API_KEY` is empty, the backend uses the local fallback route generator so the UI remains testable without spending API credits.
+The OpenAI integration uses the Responses API with Structured Outputs so generated itineraries follow the backend schema before they are enriched with Google Places and Google Routes. The generated payload includes day summaries, activity periods, visit durations, `placeQuery` and `mapsSearchHint` fields for better Google Places matching.
+
+When `OPENAI_API_KEY` is empty, invalid or unavailable, the backend automatically uses the local fallback route generator so the UI remains testable without spending API credits.
 
 External providers are optional. Do not commit provider credentials.
 

@@ -43,11 +43,14 @@ const state = {
   lastItinerary: null,
   currentFavoriteId: null,
   lastDirectionsResult: null,
+  routeMetadata: null,
   markers: [],
   currentMonuments: [],
   searchExecuted: false,
   previewLocation: DEFAULT_LOCATION,
   userLocationMarker: null,
+  routePolyline: null,
+  providerInfo: null,
 };
 
 function getMapElement() {
@@ -231,7 +234,7 @@ async function bootPlanner() {
   }
 
   try {
-    await loadGoogleMapsScript({ language: 'en', libraries: ['routes'] });
+    await loadGoogleMapsScript({ language: 'en', libraries: ['places'] });
     await initializeInteractiveMap({ skipSessionCheck: true });
   } catch (error) {
     await initializeMapUnavailable(error.reason || 'default', { skipSessionCheck: true });
@@ -291,7 +294,7 @@ function setPlannerResultsVisible(visible) {
 function syncRouteActionButtons() {
   const hasStops = Array.isArray(state.currentMonuments) && state.currentMonuments.length > 0;
   const canBuildRoute = state.currentMonuments.length >= 2;
-  const hasRoute = Boolean(state.lastDirectionsResult?.routes || state.lastDirectionsResult?.fallback);
+  const hasRoute = Boolean(state.lastDirectionsResult?.routes || state.lastDirectionsResult?.fallback || state.routeMetadata);
   const centerButton = document.getElementById('center-route-button');
   const buildRouteButton = document.getElementById('save-button');
   const favoriteButton = document.getElementById('favorite-button');
@@ -306,6 +309,9 @@ function syncRouteActionButtons() {
     buildRouteButton.disabled = !canBuildRoute;
   }
   if (favoriteButton) {
+    if (!favoriteButton.textContent.trim()) {
+      favoriteButton.textContent = 'Save route';
+    }
     favoriteButton.hidden = Boolean(state.currentFavoriteId) || !hasStops;
     favoriteButton.disabled = !hasStops;
   }
@@ -348,15 +354,33 @@ function setupSearchButton({ searchForm, itineraryController, notify }) {
       }
 
       state.lastItinerary = result.itinerary || null;
+      state.providerInfo = result.providerInfo || null;
       itineraryController.displaySearchResult({
         itinerary: result.itinerary || [],
         monuments: result.monuments || [],
         directions: result.routes || null,
+        routeMetadata: result.routeMetadata || null,
       });
       setPlannerResultsVisible(true);
 
-      if (!result.routes) {
-        notify.warning('Itinerary generated. Review the stops and save the route when ready.');
+      const recentDirections = result.routes || {
+        fallback: true,
+        source: result.routeMetadata ? 'google-routes-api-polyline' : 'generated-itinerary',
+        routes: [],
+        routeMetadata: result.routeMetadata || null,
+      };
+      await itineraryController.saveRecentSearch(recentDirections);
+
+      if (result.providerInfo?.usedFallback) {
+        notify.warning('OpenAI was unavailable, so a local fallback itinerary was generated. Review the route carefully.');
+      } else if (result.providerInfo?.aiProvider === 'openai') {
+        notify.success('Itinerary generated with OpenAI. Review the stops and save the route when ready.');
+      }
+
+      if (result.routeMetadata) {
+        notify.success('Route metadata calculated. Review the stops and map route before saving.');
+      } else if (!result.routes) {
+        notify.warning('Route metadata is unavailable. Review the stop order before saving.');
       }
 
       state.searchExecuted = true;
@@ -468,6 +492,14 @@ function buildFallbackMapData() {
   };
 }
 
+function buildMapDataPayload() {
+  const mapData = state.lastDirectionsResult || buildFallbackMapData();
+  return {
+    ...mapData,
+    routeMetadata: state.routeMetadata || mapData.routeMetadata || null,
+  };
+}
+
 function buildFavoritePayload(favoriteName) {
   return {
     name: favoriteName,
@@ -479,9 +511,10 @@ function buildFavoritePayload(favoriteName) {
         cities: getUniqueRouteCities(state.currentMonuments),
         days: getTripDayCount(),
         stops: state.currentMonuments.length,
+        providerInfo: state.providerInfo || null,
       },
     },
-    map_data: state.lastDirectionsResult || buildFallbackMapData(),
+    map_data: buildMapDataPayload(),
   };
 }
 
@@ -585,6 +618,7 @@ function restoreRecentSearch({ searchForm, itineraryController }) {
       itinerary: recentSearch.itinerary || [],
       monuments: recentSearch.monuments,
       directions: recentSearch.directions || null,
+      routeMetadata: recentSearch.routeMetadata || recentSearch.directions?.routeMetadata || null,
       showSuccess: false,
     });
   }

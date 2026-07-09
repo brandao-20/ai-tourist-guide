@@ -79,7 +79,7 @@ function createFavoriteNameModal() {
   modal.className = 'modal favorite-modal';
   modal.innerHTML = `
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="favoriteModalTitle">
-      <span class="close-button" id="favoriteModalClose" aria-label="Close">&times;</span>
+      <button class="favorite-modal__close" id="favoriteModalClose" type="button" aria-label="Close dialog">×</button>
       <h2 id="favoriteModalTitle">Save favorite itinerary</h2>
       <p class="favorite-modal__intro">Name this route so it is easy to find later from the dashboard.</p>
       <label class="favorite-modal__field" for="favoriteNameInput">
@@ -151,7 +151,7 @@ export function showFavoriteNameModal(callback, options = {}) {
 
   input.value = defaultName;
   input.placeholder = defaultName || 'Example: Lisbon weekend route';
-  modal.style.display = 'block';
+  modal.style.display = 'flex';
   input.focus();
   input.select();
 }

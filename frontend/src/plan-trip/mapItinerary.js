@@ -1,5 +1,6 @@
 import { escapeHtml, stripHtml } from '../ui.js';
 import { createMapMarker, openMarkerInfoWindow } from '../mapMarker.js';
+import { formatDistance, formatDuration } from '../formatters.js';
 
 function hasValidCoordinates(monument) {
   return (
@@ -39,6 +40,52 @@ function ensureItineraryContainer() {
   searchSection.appendChild(itineraryDiv);
 
   return itineraryDiv.querySelector('ol');
+}
+
+function ensureItineraryControls() {
+  const itinerarySection = document.querySelector('.itinerary-list');
+  if (!itinerarySection) {
+    return null;
+  }
+
+  let controls = itinerarySection.querySelector('.itinerary-controls');
+  if (controls) {
+    return controls;
+  }
+
+  controls = document.createElement('div');
+  controls.className = 'itinerary-controls';
+
+  const expandButton = createMonumentButton('Expand all', 'itinerary-control-button', () => {
+    itinerarySection.querySelectorAll('details.day-plan-card').forEach((details) => {
+      details.open = true;
+    });
+  });
+  const collapseButton = createMonumentButton('Collapse all', 'itinerary-control-button', () => {
+    itinerarySection.querySelectorAll('details.day-plan-card').forEach((details, index) => {
+      details.open = index === 0;
+    });
+  });
+
+  controls.append(expandButton, collapseButton);
+  const heading = itinerarySection.querySelector('h2');
+  if (heading) {
+    heading.insertAdjacentElement('afterend', controls);
+  } else {
+    itinerarySection.prepend(controls);
+  }
+
+  return controls;
+}
+
+function setLongItineraryLayout(days = []) {
+  const resultsGrid = document.getElementById('planner-results');
+  if (!resultsGrid) {
+    return;
+  }
+
+  const totalActivities = days.reduce((total, day) => total + getDayActivities(day).length, 0);
+  resultsGrid.classList.toggle('classic-results-grid--stacked', days.length > 3 || totalActivities > 10);
 }
 
 function createMonumentButton(label, className, onClick, title = label) {
@@ -81,9 +128,15 @@ function getSelectedTravelModeLabel() {
   return 'Car';
 }
 
-function getRouteModeLabel(directions) {
+function getRouteModeLabel(directions, routeMetadata = null) {
   if (Array.isArray(directions?.routes)) {
     return 'Map route';
+  }
+
+  if (routeMetadata) {
+    const distance = formatDistance(routeMetadata.distanceMeters);
+    const duration = formatDuration(routeMetadata.durationSeconds);
+    return `${distance} · ${duration}`;
   }
 
   return 'Pending';
@@ -102,7 +155,7 @@ function getLegCount(directions) {
   return Array.isArray(legs) ? legs.length : 0;
 }
 
-function renderRouteStats({ monuments = [], directions = null, itinerary = [] } = {}) {
+function renderRouteStats({ monuments = [], directions = null, itinerary = [], routeMetadata = null } = {}) {
   const stats = document.getElementById('route-stats');
   if (!stats) {
     return;
@@ -112,7 +165,7 @@ function renderRouteStats({ monuments = [], directions = null, itinerary = [] } 
   const values = [
     ['Stops', String(safeMonuments.length)],
     ['Days', String(getDayCount(itinerary))],
-    ['Route', getLegCount(directions) > 0 ? `${getLegCount(directions)} legs` : getRouteModeLabel(directions)],
+    ['Route', getLegCount(directions) > 0 ? `${getLegCount(directions)} legs` : getRouteModeLabel(directions, routeMetadata)],
   ];
 
   stats.replaceChildren(...values.map(([label, value]) => {
@@ -165,11 +218,46 @@ function renderMonumentList(monuments, actions) {
   });
 }
 
+function getActivityLabel(activity) {
+  if (typeof activity === 'string') {
+    return activity;
+  }
+
+  if (!activity || typeof activity !== 'object') {
+    return '';
+  }
+
+  if (activity.label) {
+    return activity.label;
+  }
+
+  const period = activity.period && activity.period !== 'flexible'
+    ? `${activity.period[0].toUpperCase()}${activity.period.slice(1)}: `
+    : '';
+  const location = activity.address ? ` (${activity.address})` : '';
+  const duration = activity.durationMinutes ? ` · ${activity.durationMinutes} min` : '';
+  const reason = activity.reason ? ` — ${activity.reason}` : '';
+  return `${period}${activity.name || activity.placeQuery || 'Stop'}${location}${duration}${reason}`;
+}
+
+function getDayActivities(day) {
+  if (Array.isArray(day.activityDetails) && day.activityDetails.length > 0) {
+    return day.activityDetails;
+  }
+
+  return Array.isArray(day.activities) ? day.activities : [];
+}
+
 function renderGeneratedItinerary(days) {
   const itineraryContainer = ensureItineraryContainer();
   itineraryContainer.replaceChildren();
 
   if (!Array.isArray(days) || days.length === 0) {
+    setLongItineraryLayout([]);
+    const controls = ensureItineraryControls();
+    if (controls) {
+      controls.hidden = true;
+    }
     renderEmptyListItem(itineraryContainer, {
       title: 'No timeline yet',
       message: 'Generate an itinerary to build a day-by-day plan.',
@@ -177,26 +265,60 @@ function renderGeneratedItinerary(days) {
     return;
   }
 
-  days.forEach((day) => {
-    const dayItem = document.createElement('li');
-    dayItem.className = 'generated-day-item';
+  setLongItineraryLayout(days);
+  const controls = ensureItineraryControls();
+  if (controls) {
+    controls.hidden = days.length < 2;
+  }
 
-    const title = createTextElement('p', `Day ${day.day || ''}${day.city ? ` · ${day.city}` : ''}`.trim());
-    title.className = 'generated-day-meta';
+  days.forEach((day, index) => {
+    const dayItem = document.createElement('li');
+    dayItem.className = 'generated-day-item generated-day-item--accordion';
+
+    const details = document.createElement('details');
+    details.className = 'day-plan-card';
+    details.open = index < (days.length > 3 ? 1 : 2);
+
+    const titleText = [
+      `Day ${day.day || index + 1}`.trim(),
+      day.title || day.city || '',
+    ].filter(Boolean).join(' · ');
+
+    const summary = document.createElement('summary');
+    summary.className = 'day-plan-summary';
+    const summaryText = document.createElement('span');
+    summaryText.className = 'day-plan-summary__text';
+    summaryText.append(
+      createTextElement('strong', titleText),
+      createTextElement('span', day.city || 'Route day')
+    );
+    summary.append(
+      createTextElement('span', String(day.day || index + 1).padStart(2, '0'), 'day-plan-index'),
+      summaryText,
+      createTextElement('span', `${getDayActivities(day).length} stops`, 'day-plan-count')
+    );
+
+    const body = document.createElement('div');
+    body.className = 'day-plan-body';
+    if (day.summary) {
+      body.appendChild(createTextElement('p', day.summary, 'generated-day-summary'));
+    }
 
     const activities = document.createElement('ul');
-    activities.className = 'generated-activities';
-    const dayActivities = Array.isArray(day.activities) ? day.activities : [];
+    activities.className = 'generated-activities day-plan-activities';
+    const dayActivities = getDayActivities(day);
 
     if (dayActivities.length === 0) {
       activities.appendChild(createTextElement('li', 'No activities available for this day.'));
     } else {
       dayActivities.forEach((activity) => {
-        activities.appendChild(createTextElement('li', activity));
+        activities.appendChild(createTextElement('li', getActivityLabel(activity)));
       });
     }
 
-    dayItem.append(title, activities);
+    body.appendChild(activities);
+    details.append(summary, body);
+    dayItem.appendChild(details);
     itineraryContainer.appendChild(dayItem);
   });
 }
@@ -260,6 +382,84 @@ function clearMarkers(state) {
   state.markers = [];
 }
 
+function clearRoutePolyline(state) {
+  if (state.routePolyline) {
+    state.routePolyline.setMap(null);
+    state.routePolyline = null;
+  }
+}
+
+function decodePolyline(encodedPolyline = '') {
+  const points = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encodedPolyline.length) {
+    let result = 0;
+    let shift = 0;
+    let byte = null;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    const deltaLat = result & 1 ? ~(result >> 1) : result >> 1;
+    lat += deltaLat;
+
+    result = 0;
+    shift = 0;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    const deltaLng = result & 1 ? ~(result >> 1) : result >> 1;
+    lng += deltaLng;
+
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return points;
+}
+
+function drawRoutePolylineFromMetadata(state, routeMetadata) {
+  if (!window.google?.maps || !window.myMap || !routeMetadata?.encodedPolyline) {
+    clearRoutePolyline(state);
+    return false;
+  }
+
+  const path = decodePolyline(routeMetadata.encodedPolyline);
+  if (path.length < 2) {
+    clearRoutePolyline(state);
+    return false;
+  }
+
+  clearRoutePolyline(state);
+  state.routePolyline = new google.maps.Polyline({
+    path,
+    geodesic: false,
+    strokeColor: '#31543f',
+    strokeOpacity: 0.95,
+    strokeWeight: 5,
+  });
+  state.routePolyline.setMap(window.myMap);
+
+  const bounds = new google.maps.LatLngBounds();
+  path.forEach((point) => bounds.extend(point));
+  if (!bounds.isEmpty()) {
+    window.myMap.fitBounds(bounds);
+  }
+
+  return true;
+}
+
 function getTravelModeValue() {
   if (!window.google?.maps?.TravelMode) {
     return 'DRIVING';
@@ -301,24 +501,35 @@ export function createMapItineraryController({
   function displayMonumentsOnly(monuments) {
     setPlannerResultsVisible(state.searchExecuted || (Array.isArray(monuments) && monuments.length > 0));
     setMonuments(monuments);
+    clearRoutePolyline(state);
     renderMonumentList(state.currentMonuments, actions);
-    renderRouteStats({ monuments: state.currentMonuments, directions: state.lastDirectionsResult, itinerary: state.lastItinerary });
+    renderRouteStats({
+      monuments: state.currentMonuments,
+      directions: state.lastDirectionsResult,
+      itinerary: state.lastItinerary,
+      routeMetadata: state.routeMetadata,
+    });
     document.dispatchEvent(new CustomEvent('route-state-change'));
 
     if (isInteractiveMapAvailable()) {
       plotMarkersOnMap(state.currentMonuments);
+      if (state.routeMetadata?.encodedPolyline) {
+        drawRoutePolylineFromMetadata(state, state.routeMetadata);
+      }
     }
   }
 
-  function displaySearchResult({ itinerary, monuments, directions, showSuccess = true }) {
+  function displaySearchResult({ itinerary, monuments, directions, routeMetadata = null, showSuccess = true }) {
     setPlannerResultsVisible(true);
     setMonuments(monuments);
     state.lastDirectionsResult = directions || null;
+    state.routeMetadata = routeMetadata || null;
     renderMonumentList(state.currentMonuments, actions);
-    renderRouteStats({ monuments: state.currentMonuments, directions, itinerary });
+    renderRouteStats({ monuments: state.currentMonuments, directions, itinerary, routeMetadata: state.routeMetadata });
     document.dispatchEvent(new CustomEvent('route-state-change'));
 
-    if (directions) {
+    const hasDirectionsRoutes = Array.isArray(directions?.routes) && directions.routes.length > 0;
+    if (hasDirectionsRoutes) {
       displayItineraryAndMonuments(state.currentMonuments, directions, { showSuccess, itinerary });
       return;
     }
@@ -327,6 +538,9 @@ export function createMapItineraryController({
 
     if (isInteractiveMapAvailable()) {
       plotMarkersOnMap(state.currentMonuments);
+      if (state.routeMetadata?.encodedPolyline) {
+        drawRoutePolylineFromMetadata(state, state.routeMetadata);
+      }
     }
   }
 
@@ -340,10 +554,12 @@ export function createMapItineraryController({
       monuments: state.currentMonuments,
       directions: directionsResult,
       itinerary: options.itinerary || state.lastItinerary,
+      routeMetadata: state.routeMetadata,
     });
     document.dispatchEvent(new CustomEvent('route-state-change'));
 
     if (isInteractiveMapAvailable()) {
+      clearRoutePolyline(state);
       plotMarkersOnMap(state.currentMonuments);
     }
 
@@ -366,6 +582,7 @@ export function createMapItineraryController({
 
     state.currentMonuments.splice(index, 1);
     state.lastDirectionsResult = null;
+    state.routeMetadata = null;
     displayMonumentsOnly(state.currentMonuments);
   }
 
@@ -379,6 +596,7 @@ export function createMapItineraryController({
       state.currentMonuments[index - 1],
     ];
     state.lastDirectionsResult = null;
+    state.routeMetadata = null;
     displayMonumentsOnly(state.currentMonuments);
   }
 
@@ -392,6 +610,7 @@ export function createMapItineraryController({
       state.currentMonuments[index + 1],
     ];
     state.lastDirectionsResult = null;
+    state.routeMetadata = null;
     displayMonumentsOnly(state.currentMonuments);
   }
 
@@ -458,6 +677,20 @@ export function createMapItineraryController({
     }
   }
 
+  async function refreshRouteMetadata() {
+    try {
+      const data = await apiPost('/routes/metadata', {
+        stops: state.currentMonuments,
+        travelMode: 'driving',
+      });
+      state.routeMetadata = data?.routeMetadata || null;
+      return state.routeMetadata;
+    } catch (error) {
+      state.routeMetadata = null;
+      return null;
+    }
+  }
+
   async function saveMonuments() {
     if (state.currentMonuments.length < 2) {
       notify.error('Please add at least two stops to build a route.');
@@ -465,6 +698,7 @@ export function createMapItineraryController({
     }
 
     if (!isInteractiveMapAvailable() || !directionsService || !directionsRenderer) {
+      await refreshRouteMetadata();
       await saveRecentSearch(null);
       renderGeneratedItinerary(state.lastItinerary || []);
       notify.warning('The interactive map is temporarily unavailable. Your itinerary is still available as a list.');
@@ -509,10 +743,29 @@ export function createMapItineraryController({
       }
 
       directionsRenderer.setDirections(result);
+      await refreshRouteMetadata();
       displayItineraryAndMonuments(state.currentMonuments, result);
       await saveRecentSearch(result);
     } catch (error) {
-      notify.error('An error occurred while calculating the route. Please try again.');
+      const metadata = state.routeMetadata || await refreshRouteMetadata();
+      if (metadata?.encodedPolyline && drawRoutePolylineFromMetadata(state, metadata)) {
+        await saveRecentSearch({
+          fallback: true,
+          source: 'google-routes-api-polyline',
+          routeMetadata: metadata,
+          routes: [],
+        });
+        renderRouteStats({
+          monuments: state.currentMonuments,
+          directions: null,
+          itinerary: state.lastItinerary,
+          routeMetadata: metadata,
+        });
+        notify.warning('Google Maps turn-by-turn directions are unavailable, but the driving route overview is shown on the map.');
+        return;
+      }
+
+      notify.error('An error occurred while calculating the route. Please check the stop order and try again.');
     }
   }
 
@@ -522,6 +775,7 @@ export function createMapItineraryController({
       itinerary: state.lastItinerary,
       monuments: state.currentMonuments,
       directions: directionsResult,
+      routeMetadata: state.routeMetadata || directionsResult?.routeMetadata || null,
     };
 
     try {
@@ -584,6 +838,7 @@ export function createMapItineraryController({
     displayItineraryAndMonuments,
     displaySearchResult,
     saveMonuments,
+    saveRecentSearch,
     centerRoute,
   };
 }

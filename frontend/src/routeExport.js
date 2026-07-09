@@ -32,14 +32,27 @@ function getDays(routeDetails = {}) {
 
 function getLegs(routeDetails = {}) {
   const legs = routeDetails?.map_data?.routes?.[0]?.legs;
-  return Array.isArray(legs) ? legs : [];
+  if (Array.isArray(legs)) {
+    return legs;
+  }
+
+  const metadataLegs = routeDetails?.map_data?.routeMetadata?.legs;
+  return Array.isArray(metadataLegs) ? metadataLegs : [];
 }
 
 function getMetricValue(metric) {
   return typeof metric?.value === 'number' && Number.isFinite(metric.value) ? metric.value : 0;
 }
 
-function summarizeLegs(legs) {
+function summarizeLegs(legs, routeDetails = {}) {
+  const routeMetadata = routeDetails?.map_data?.routeMetadata || null;
+  if (routeMetadata?.distanceMeters || routeMetadata?.durationSeconds) {
+    return {
+      distanceMeters: Number(routeMetadata.distanceMeters) || 0,
+      durationSeconds: Number(routeMetadata.durationSeconds) || 0,
+    };
+  }
+
   return legs.reduce(
     (summary, leg) => ({
       distanceMeters: summary.distanceMeters + getMetricValue(leg.distance),
@@ -58,7 +71,7 @@ function getStopAddress(monument = {}) {
 }
 
 function getTravelMode(routeDetails = {}) {
-  const travelMode = routeDetails?.map_data?.request?.travelMode;
+  const travelMode = routeDetails?.map_data?.request?.travelMode || routeDetails?.map_data?.routeMetadata?.travelMode;
   return normalizeText(String(travelMode || '').toLowerCase(), 'driving');
 }
 
@@ -89,7 +102,7 @@ export function createRouteExportModel(routeDetails = {}, mapsUrl = null) {
   const monuments = getMonuments(routeDetails);
   const legs = getLegs(routeDetails);
   const days = getDays(routeDetails);
-  const totals = summarizeLegs(legs);
+  const totals = summarizeLegs(legs, routeDetails);
   const googleMapsUrl = mapsUrl || createGoogleMapsDirectionsUrl(monuments);
 
   return {
@@ -115,7 +128,10 @@ export function createRouteExportModel(routeDetails = {}, mapsUrl = null) {
       city: normalizeText(monument.city, ''),
       country: normalizeText(monument.country, ''),
       category: normalizeText(monument.category, ''),
+      placeQuery: normalizeText(monument.placeQuery || monument.mapsSearchHint, ''),
+      mapsSearchHint: normalizeText(monument.mapsSearchHint || monument.placeQuery, ''),
       tags: Array.isArray(monument.tags) ? monument.tags.filter(Boolean) : [],
+      durationMinutes: Number.isFinite(Number(monument.durationMinutes)) ? Number(monument.durationMinutes) : null,
       reason: normalizeText(monument.reason || monument.explanation || monument.description, ''),
       coordinates: monument.coordinates || null,
     })),
@@ -146,6 +162,7 @@ function createStopHtml(stop) {
     ? `<p class="muted">${escapeHtml(`${Number(stop.coordinates.lat).toFixed(5)}, ${Number(stop.coordinates.lng).toFixed(5)}`)}</p>`
     : '';
 
+  const duration = stop.durationMinutes ? `<p class="muted">Suggested visit: ${escapeHtml(`${stop.durationMinutes} min`)}</p>` : '';
   const reason = stop.reason ? `<p>${escapeHtml(stop.reason)}</p>` : '';
 
   return `
@@ -155,6 +172,7 @@ function createStopHtml(stop) {
         <h3>${escapeHtml(stop.name)}</h3>
         <p>${escapeHtml(stop.address)}</p>
         ${coordinates}
+        ${duration}
         ${reason}
         ${tags ? `<div class="tags">${tags}</div>` : ''}
       </div>
@@ -206,8 +224,8 @@ export function createRouteSummaryText(routeDetails = {}, mapsUrl = null) {
 export function createRouteExportHtml(routeDetails = {}, mapsUrl = null) {
   const model = createRouteExportModel(routeDetails, mapsUrl);
   const routeLink = model.summary.googleMapsUrl
-    ? `<a href="${escapeHtml(model.summary.googleMapsUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
-    : '<span>Google Maps link unavailable</span>';
+    ? `<a class="maps-link" href="${escapeHtml(model.summary.googleMapsUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
+    : '<span class="maps-link maps-link--disabled">Google Maps link unavailable</span>';
 
   return `<!doctype html>
 <html lang="en">
@@ -225,6 +243,9 @@ export function createRouteExportHtml(routeDetails = {}, mapsUrl = null) {
     h1 { margin: 0; font-size: clamp(2rem, 6vw, 4rem); line-height: .95; letter-spacing: -.05em; }
     h2 { margin: 32px 0 14px; color: var(--green); }
     a { color: var(--green); font-weight: 800; }
+    .maps-link { display: inline-flex; align-items: center; margin-left: 8px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.38); background: rgba(255,255,255,.16); color: #fff; text-decoration: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+    .maps-link:hover { background: rgba(255,255,255,.24); color: #fff; }
+    .maps-link--disabled { opacity: .76; }
     .meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
     .meta-card, .stop-card, .leg-card { border: 1px solid var(--border); border-radius: 18px; background: var(--soft); }
     .meta-card { padding: 16px; }

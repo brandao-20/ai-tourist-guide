@@ -32,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB,
       allowNull: true,
     },
+    routeMetadata: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
   }, {
     tableName: 'RecentSearches',
     timestamps: true,

@@ -176,6 +176,7 @@ const recentSearchSchema = z.object({
   itinerary: storedJsonSchema({ fieldName: 'itinerary', allowNull: true }),
   monuments: storedJsonSchema({ fieldName: 'monuments', allowNull: true }),
   directions: storedJsonSchema({ fieldName: 'directions', allowNull: true }),
+  routeMetadata: storedJsonSchema({ fieldName: 'routeMetadata', allowNull: true }),
 });
 
 

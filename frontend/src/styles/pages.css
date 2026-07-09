@@ -167,3 +167,16 @@
   .classic-map-tools { flex-direction: column; align-items: stretch; }
   .map-canvas--classic { height: 60vh; min-height: 420px; }
 }
+
+.classic-results-grid--stacked {
+  grid-template-columns: 1fr;
+}
+
+.classic-results-grid--stacked .itinerary-list {
+  max-width: none;
+}
+
+.classic-results-grid--stacked .itinerary-list .generated-activities,
+.classic-results-grid--stacked .itinerary-list .day-plan-activities {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}

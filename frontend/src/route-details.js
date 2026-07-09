@@ -79,13 +79,26 @@ function getRouteLegs(directionsResult) {
   return Array.isArray(legs) ? legs : [];
 }
 
+function getRouteMetadata(mapData = {}) {
+  return mapData?.routeMetadata || null;
+}
+
+function hasRouteMetadata(mapData = {}) {
+  const metadata = getRouteMetadata(mapData);
+  return Boolean(metadata?.encodedPolyline || metadata?.distanceMeters || metadata?.durationSeconds);
+}
+
 function getPrimaryRoute(directionsResult) {
   return directionsResult?.routes?.[0] || null;
 }
 
 function getTravelModeLabel(directionsResult) {
-  const requestMode = directionsResult?.request?.travelMode;
+  const metadataMode = directionsResult?.routeMetadata?.travelMode;
+  const requestMode = directionsResult?.request?.travelMode || metadataMode;
   const travelMode = typeof requestMode === 'string' ? requestMode.toUpperCase() : '';
+  if (hasRouteMetadata(directionsResult)) {
+    return TRAVEL_MODE_LABELS[travelMode] || 'Driving route overview';
+  }
   return TRAVEL_MODE_LABELS[travelMode] || 'Saved route';
 }
 
@@ -94,6 +107,14 @@ function parseGoogleMetricValue(metric) {
 }
 
 function summarizeDirections(directionsResult) {
+  const metadata = getRouteMetadata(directionsResult);
+  if (metadata?.distanceMeters || metadata?.durationSeconds) {
+    return {
+      distanceMeters: Number(metadata.distanceMeters) || 0,
+      durationSeconds: Number(metadata.durationSeconds) || 0,
+    };
+  }
+
   const legs = getRouteLegs(directionsResult);
   return legs.reduce(
     (summary, leg) => ({
@@ -221,6 +242,7 @@ function setHeroSummary(routeDetails, monuments, directionsResult) {
   const createdLabel = getCreatedLabel(routeDetails);
   const legs = getRouteLegs(directionsResult);
   const summary = summarizeDirections(directionsResult);
+  const hasOverview = hasRouteMetadata(directionsResult);
   const title = document.getElementById('route-title');
   const description = document.getElementById('route-description');
 
@@ -229,10 +251,13 @@ function setHeroSummary(routeDetails, monuments, directionsResult) {
   }
 
   if (description) {
-    description.textContent = `${createdLabel}. Review ${monuments.length} stops, ${legs.length} route legs and the saved route context.`;
+    const routeLabel = hasOverview
+      ? `${formatDistance(summary.distanceMeters)} and ${formatDuration(summary.durationSeconds)}`
+      : `${legs.length} route legs`;
+    description.textContent = `${createdLabel}. Review ${monuments.length} stops, ${routeLabel} and the saved route context.`;
   }
 
-  setTextContent('hero-route-status', 'Ready');
+  setTextContent('hero-route-status', hasOverview ? 'Route overview ready' : 'Ready');
   setTextContent(
     'hero-route-meta',
     `${formatDistance(summary.distanceMeters)} · ${formatDuration(summary.durationSeconds)} · ${getTravelModeLabel(directionsResult)}`
@@ -242,9 +267,10 @@ function setHeroSummary(routeDetails, monuments, directionsResult) {
 function setOverviewMetrics(monuments, directionsResult) {
   const legs = getRouteLegs(directionsResult);
   const summary = summarizeDirections(directionsResult);
+  const hasOverview = hasRouteMetadata(directionsResult);
 
   setTextContent('overview-stops', String(monuments.length));
-  setTextContent('overview-legs', String(legs.length));
+  setTextContent('overview-legs', legs.length > 0 ? String(legs.length) : (hasOverview ? 'Overview' : '—'));
   setTextContent('overview-distance', formatDistance(summary.distanceMeters));
   setTextContent('overview-duration', formatDuration(summary.durationSeconds));
   setTextContent('stops-count-pill', `${monuments.length} ${monuments.length === 1 ? 'stop' : 'stops'}`);
@@ -373,6 +399,63 @@ function bindExportActions() {
   setExportActionsEnabled(Boolean(currentRouteDetails));
 }
 
+function decodePolyline(encodedPolyline = '') {
+  const points = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encodedPolyline.length) {
+    let result = 0;
+    let shift = 0;
+    let byte = null;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    result = 0;
+    shift = 0;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return points;
+}
+
+function drawRouteMetadataPolyline(routeMetadata) {
+  if (!map || !routeMetadata?.encodedPolyline) {
+    return false;
+  }
+
+  const path = decodePolyline(routeMetadata.encodedPolyline);
+  if (path.length < 2) {
+    return false;
+  }
+
+  new google.maps.Polyline({
+    path,
+    map,
+    geodesic: false,
+    strokeColor: '#31543f',
+    strokeOpacity: 0.95,
+    strokeWeight: 5,
+  });
+  return true;
+}
+
 function renderMarkersAndRoute(monuments, directionsResult) {
   if (!map || !directionsRenderer) {
     return;
@@ -418,6 +501,8 @@ function renderMarkersAndRoute(monuments, directionsResult) {
 
   if (directionsResult?.routes) {
     directionsRenderer.setDirections(directionsResult);
+  } else {
+    drawRouteMetadataPolyline(getRouteMetadata(directionsResult));
   }
 
   if (markerCount > 0 && !bounds.isEmpty()) {
@@ -425,7 +510,112 @@ function renderMarkersAndRoute(monuments, directionsResult) {
   }
 }
 
-function renderStops(monuments) {
+function getItineraryDays(routeDetails = currentRouteDetails) {
+  const days = routeDetails?.itinerary?.days;
+  return Array.isArray(days) ? days : [];
+}
+
+function getDayActivities(day = {}) {
+  if (Array.isArray(day.activityDetails) && day.activityDetails.length > 0) {
+    return day.activityDetails;
+  }
+  return Array.isArray(day.activities) ? day.activities : [];
+}
+
+function getActivityName(activity, fallback = 'Stop') {
+  if (typeof activity === 'string') {
+    return activity;
+  }
+  return activity?.name || activity?.placeQuery || activity?.mapsSearchHint || fallback;
+}
+
+function getActivityLocation(activity) {
+  if (typeof activity === 'string') {
+    return '';
+  }
+  return activity?.address || activity?.city || activity?.country || '';
+}
+
+function getActivityDescription(activity) {
+  if (typeof activity === 'string') {
+    return '';
+  }
+  const period = activity?.period && activity.period !== 'flexible' ? `${activity.period}: ` : '';
+  const duration = activity?.durationMinutes ? ` · ${activity.durationMinutes} min` : '';
+  const reason = activity?.reason ? ` — ${activity.reason}` : '';
+  return `${period}${getActivityName(activity)}${duration}${reason}`;
+}
+
+function renderStopCard(monument, index) {
+  const card = document.createElement('article');
+  card.className = 'stop-card';
+
+  const indexElement = createTextElement('span', String(index + 1).padStart(2, '0'), 'stop-index');
+  const body = document.createElement('div');
+  body.className = 'stop-main';
+
+  body.appendChild(createTextElement('h3', getTextValue(monument.name, `Stop ${index + 1}`)));
+  body.appendChild(createTextElement('p', getMonumentLocation(monument)));
+
+  if (hasValidCoordinates(monument)) {
+    body.appendChild(createTextElement(
+      'span',
+      `${monument.coordinates.lat.toFixed(5)}, ${monument.coordinates.lng.toFixed(5)}`,
+      'coordinates-chip'
+    ));
+  }
+
+  card.append(indexElement, body);
+  return card;
+}
+
+function renderDayStopGroups(monuments, routeDetails = currentRouteDetails) {
+  const days = getItineraryDays(routeDetails);
+  if (days.length === 0) {
+    return null;
+  }
+
+  const wrapper = document.createDocumentFragment();
+  let globalIndex = 0;
+  days.forEach((day, dayIndex) => {
+    const activities = getDayActivities(day);
+    const details = document.createElement('details');
+    details.className = 'day-plan-card route-details-day-card';
+    details.open = dayIndex < 2;
+
+    const summary = document.createElement('summary');
+    summary.className = 'day-plan-summary';
+    summary.append(
+      createTextElement('span', String(day.day || dayIndex + 1).padStart(2, '0'), 'day-plan-index'),
+      createTextElement('strong', `Day ${day.day || dayIndex + 1} · ${day.title || day.city || 'Route day'}`),
+      createTextElement('span', `${activities.length} stops`, 'day-plan-count')
+    );
+
+    const body = document.createElement('div');
+    body.className = 'route-details-day-stops';
+    if (day.summary) {
+      body.appendChild(createTextElement('p', day.summary, 'generated-day-summary'));
+    }
+
+    activities.forEach((activity) => {
+      const matchingMonument = monuments[globalIndex] || {};
+      const stop = {
+        ...matchingMonument,
+        name: getActivityName(activity, matchingMonument.name || `Stop ${globalIndex + 1}`),
+        address: getActivityLocation(activity) || getMonumentLocation(matchingMonument),
+      };
+      body.appendChild(renderStopCard(stop, globalIndex));
+      globalIndex += 1;
+    });
+
+    details.append(summary, body);
+    wrapper.appendChild(details);
+  });
+
+  return wrapper;
+}
+
+function renderStops(monuments, routeDetails = currentRouteDetails) {
   const container = getStopsContainer();
   if (!container) {
     return;
@@ -436,45 +626,97 @@ function renderStops(monuments) {
     return;
   }
 
+  const groupedStops = renderDayStopGroups(monuments, routeDetails);
+  if (groupedStops) {
+    container.replaceChildren(groupedStops);
+    return;
+  }
+
   const fragment = document.createDocumentFragment();
   monuments.forEach((monument, index) => {
-    const card = document.createElement('article');
-    card.className = 'stop-card';
-
-    const indexElement = createTextElement('span', String(index + 1).padStart(2, '0'), 'stop-index');
-    const body = document.createElement('div');
-    body.className = 'stop-main';
-
-    body.appendChild(createTextElement('h3', getTextValue(monument.name, 'Unnamed stop')));
-    body.appendChild(createTextElement('p', getMonumentLocation(monument)));
-
-    if (hasValidCoordinates(monument)) {
-      body.appendChild(createTextElement(
-        'span',
-        `${monument.coordinates.lat.toFixed(5)}, ${monument.coordinates.lng.toFixed(5)}`,
-        'coordinates-chip'
-      ));
-    }
-
-    card.append(indexElement, body);
-    fragment.appendChild(card);
+    fragment.appendChild(renderStopCard(monument, index));
   });
 
   container.replaceChildren(fragment);
 }
 
-function renderRouteLegs(directionsResult) {
+function renderItineraryDays(routeDetails = currentRouteDetails) {
+  const days = getItineraryDays(routeDetails);
+  if (days.length === 0) {
+    return null;
+  }
+
+  const fragment = document.createDocumentFragment();
+  days.forEach((day, index) => {
+    const details = document.createElement('details');
+    details.className = 'day-plan-card directions-day-card';
+    details.open = index < 2;
+
+    const activities = getDayActivities(day);
+    const summary = document.createElement('summary');
+    summary.className = 'day-plan-summary';
+    summary.append(
+      createTextElement('span', String(day.day || index + 1).padStart(2, '0'), 'day-plan-index'),
+      createTextElement('strong', `Day ${day.day || index + 1} · ${day.title || day.city || 'Route day'}`),
+      createTextElement('span', `${activities.length} stops`, 'day-plan-count')
+    );
+
+    const body = document.createElement('div');
+    body.className = 'day-plan-body';
+    if (day.summary) {
+      body.appendChild(createTextElement('p', day.summary, 'generated-day-summary'));
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'generated-activities day-plan-activities';
+    activities.forEach((activity) => {
+      list.appendChild(createTextElement('li', getActivityDescription(activity) || getActivityName(activity)));
+    });
+    if (activities.length === 0) {
+      list.appendChild(createTextElement('li', 'No activities stored for this day.'));
+    }
+    body.appendChild(list);
+    details.append(summary, body);
+    fragment.appendChild(details);
+  });
+
+  return fragment;
+}
+
+function renderRouteOverviewFallback(directionsResult) {
+  const metadata = getRouteMetadata(directionsResult);
+  if (!metadata) {
+    return createEmptyState(
+      'Route overview unavailable',
+      'The saved stops are visible, but no route overview was stored for this route.'
+    );
+  }
+
+  const wrapper = document.createElement('article');
+  wrapper.className = 'route-overview-note';
+  wrapper.append(
+    createTextElement('h3', 'Driving route overview available'),
+    createTextElement('p', `The route line is shown on the map. Estimated distance: ${formatDistance(metadata.distanceMeters)}. Estimated duration: ${formatDuration(metadata.durationSeconds)}.`),
+    createTextElement('p', 'Open the route in Google Maps for live traffic and turn-by-turn navigation.')
+  );
+  return wrapper;
+}
+
+function renderRouteLegs(directionsResult, routeDetails = currentRouteDetails) {
   const container = getDirectionsContainer();
   if (!container) {
     return;
   }
 
+  const dayPlan = renderItineraryDays(routeDetails);
+  if (dayPlan) {
+    container.replaceChildren(dayPlan);
+    return;
+  }
+
   const legs = getRouteLegs(directionsResult);
   if (!legs.length) {
-    container.replaceChildren(createEmptyState(
-      'Route directions unavailable',
-      'The saved stops are visible, but turn-by-turn directions were not stored for this route.'
-    ));
+    container.replaceChildren(renderRouteOverviewFallback(directionsResult));
     return;
   }
 
@@ -537,15 +779,17 @@ function displayRouteDetails(routeDetails) {
   renderMiniSummary(monuments, map_data);
   setGoogleMapsExternalLink(monuments);
   renderMarkersAndRoute(monuments, map_data);
-  renderStops(monuments);
-  renderRouteLegs(map_data);
+  renderStops(monuments, routeDetails);
+  renderRouteLegs(map_data, routeDetails);
   setExportActionsEnabled(true);
 
   const primaryRoute = getPrimaryRoute(map_data);
   if (primaryRoute?.summary) {
     setRouteStatus(`Loaded saved route: ${primaryRoute.summary}.`, 'success');
+  } else if (hasRouteMetadata(map_data)) {
+    setRouteStatus('Loaded saved route overview. Open in Google Maps for turn-by-turn navigation.', 'success');
   } else {
-    setRouteStatus('Loaded saved stops. Route legs may need to be rebuilt from the planner if directions are missing.', 'warning');
+    setRouteStatus('Loaded saved stops. Route overview metadata is not available for this route.', 'warning');
   }
 }
 

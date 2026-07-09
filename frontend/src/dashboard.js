@@ -3,7 +3,7 @@ import { DEFAULT_AVATAR, getUploadUrl } from './config.js';
 import { requireAuthenticatedSession, setupLogoutButton } from './session.js';
 import { getFallbackLocation, getPreferredMapLocation } from './location.js';
 import { createMapMarker } from './mapMarker.js';
-import { formatDate } from './formatters.js';
+import { formatDate, formatDistance, formatDuration } from './formatters.js';
 import { loadGoogleMapsScript } from './googleMapsLoader.js';
 import { getElement } from './ui.js';
 
@@ -101,7 +101,7 @@ function setOnboardingStep(id, { complete = false, current = false } = {}) {
 
 function updateOnboardingState(user, favorites = [], recentSearch = null) {
   const hasPreferences = hasConfiguredPreferences(user);
-  const hasRecentRoute = Boolean(recentSearch?.directions?.routes);
+  const hasRecentRoute = Boolean(recentSearch?.directions?.routes || recentSearch?.routeMetadata || (Array.isArray(recentSearch?.monuments) && recentSearch.monuments.length > 0));
   const hasFavorites = Array.isArray(favorites) && favorites.length > 0;
 
   setOnboardingStep('step-profile', {
@@ -177,17 +177,29 @@ function getRouteLegs(routeData) {
   return Array.isArray(legs) ? legs : [];
 }
 
+function getRouteMetadata(routeData = {}) {
+  return routeData?.routeMetadata || null;
+}
+
 function getRouteSummary(routeData, monuments = []) {
   const legs = getRouteLegs(routeData);
   const firstLeg = legs[0];
   const lastLeg = legs[legs.length - 1];
+  const metadata = getRouteMetadata(routeData);
+  const distance = metadata?.distanceMeters
+    ? formatDistance(metadata.distanceMeters)
+    : firstLeg?.distance?.text || (legs.length > 0 ? 'Multiple legs' : 'Distance unavailable');
+  const duration = metadata?.durationSeconds
+    ? formatDuration(metadata.durationSeconds)
+    : firstLeg?.duration?.text || (legs.length > 0 ? 'Multiple legs' : 'Duration unavailable');
 
   return {
     legCount: legs.length,
     firstStop: firstLeg?.start_address || monuments[0]?.name || 'Start unavailable',
     lastStop: lastLeg?.end_address || monuments[monuments.length - 1]?.name || 'Destination unavailable',
-    distance: firstLeg?.distance?.text || (legs.length > 0 ? 'Multiple legs' : 'Distance unavailable'),
-    duration: firstLeg?.duration?.text || (legs.length > 0 ? 'Multiple legs' : 'Duration unavailable'),
+    distance,
+    duration,
+    hasRouteOverview: Boolean(metadata?.encodedPolyline || metadata?.distanceMeters || metadata?.durationSeconds),
   };
 }
 
@@ -202,6 +214,9 @@ function getFavoriteSummary(favorite) {
     legs: routeSummary.legCount,
     firstStop: routeSummary.firstStop,
     lastStop: routeSummary.lastStop,
+    distance: routeSummary.distance,
+    duration: routeSummary.duration,
+    hasRouteOverview: routeSummary.hasRouteOverview,
     updatedAt: formatDate(favorite?.updatedAt || favorite?.createdAt, 'Unknown date'),
   };
 }
@@ -326,6 +341,89 @@ async function forceDashboardLocation() {
   }
 }
 
+function decodePolyline(encodedPolyline = '') {
+  const points = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encodedPolyline.length) {
+    let result = 0;
+    let shift = 0;
+    let byte = null;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    result = 0;
+    shift = 0;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index) - 63;
+      index += 1;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20 && index < encodedPolyline.length);
+
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return points;
+}
+
+function fitMapToPath(map, path = []) {
+  const bounds = new google.maps.LatLngBounds();
+  path.forEach((point) => bounds.extend(point));
+  if (!bounds.isEmpty()) {
+    map.fitBounds(bounds);
+  }
+}
+
+function renderRouteMetadataPreview(mapElement, routeMetadata, monuments = []) {
+  const path = routeMetadata?.encodedPolyline ? decodePolyline(routeMetadata.encodedPolyline) : [];
+  const firstCoordinate = monuments.find((monument) => monument?.coordinates)?.coordinates;
+  const map = new google.maps.Map(mapElement, {
+    zoom: 6,
+    center: firstCoordinate || { lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng },
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+  });
+
+  if (path.length >= 2) {
+    new google.maps.Polyline({
+      path,
+      map,
+      geodesic: false,
+      strokeColor: '#31543f',
+      strokeOpacity: 0.95,
+      strokeWeight: 4,
+    });
+    fitMapToPath(map, path);
+    return map;
+  }
+
+  const bounds = new google.maps.LatLngBounds();
+  monuments.forEach((monument, index) => {
+    if (!monument?.coordinates) {
+      return;
+    }
+    const position = { lat: monument.coordinates.lat, lng: monument.coordinates.lng };
+    createMapMarker({ position, map, label: String(index + 1), title: monument.name || 'Stop' });
+    bounds.extend(position);
+  });
+  if (!bounds.isEmpty()) {
+    map.fitBounds(bounds);
+  }
+  return map;
+}
+
 function renderDirectionsPreview(mapElement, directions, options = {}) {
   const map = new google.maps.Map(mapElement, {
     zoom: options.zoom || 6,
@@ -373,7 +471,8 @@ function createFavoriteCard(favorite) {
   body.appendChild(createMetaList([
     `${summary.stops} stops`,
     summary.days > 0 ? `${summary.days} days` : null,
-    summary.legs > 0 ? `${summary.legs} route legs` : 'Map route',
+    summary.hasRouteOverview ? summary.distance : (summary.legs > 0 ? `${summary.legs} route legs` : 'Map route'),
+    summary.hasRouteOverview ? summary.duration : null,
     summary.updatedAt,
   ]));
 
@@ -395,7 +494,8 @@ function renderFavoriteFallback(favorite, container) {
   body.appendChild(createMetaList([
     `${summary.stops} stops`,
     summary.days > 0 ? `${summary.days} days` : null,
-    'Open details',
+    summary.hasRouteOverview ? summary.distance : 'Open details',
+    summary.hasRouteOverview ? summary.duration : null,
     summary.updatedAt,
   ]));
 
@@ -410,7 +510,11 @@ function initMiniMapForFavorite(favorite, elementId) {
   }
 
   try {
-    const favoriteMap = renderDirectionsPreview(mapElement, favorite.map_data);
+    const monuments = getFavoriteMonuments(favorite);
+    const metadata = favorite.map_data?.routeMetadata || null;
+    const favoriteMap = metadata?.encodedPolyline
+      ? renderRouteMetadataPreview(mapElement, metadata, monuments)
+      : renderDirectionsPreview(mapElement, favorite.map_data);
     favoriteMap.addListener('click', () => {
       window.location.href = `/route-details?favoriteId=${encodeURIComponent(favorite.id)}`;
     });
@@ -454,7 +558,7 @@ async function loadFavorites() {
     savedRoutesSection?.classList.remove('is-hidden');
 
     favoritesArray.forEach((favorite) => {
-      if (!favorite.map_data?.routes) {
+      if (!favorite.map_data?.routes && !favorite.map_data?.routeMetadata) {
         renderFavoriteFallback(favorite, favoritesContainer);
         return;
       }
@@ -485,7 +589,8 @@ function renderRecentSummary(recentSearch) {
   }
 
   const monuments = Array.isArray(recentSearch?.monuments) ? recentSearch.monuments : [];
-  const routeSummary = getRouteSummary(recentSearch?.directions, monuments);
+  const routeData = { ...(recentSearch?.directions || {}), routeMetadata: recentSearch?.routeMetadata || recentSearch?.directions?.routeMetadata || null };
+  const routeSummary = getRouteSummary(routeData, monuments);
   const query = recentSearch?.query_params || {};
   const cities = Array.isArray(query.selectedCities) ? query.selectedCities.join(', ') : '';
 
@@ -500,7 +605,8 @@ function renderRecentSummary(recentSearch) {
   [
     `${monuments.length} stops`,
     getItineraryDays(recentSearch?.itinerary) > 0 ? `${getItineraryDays(recentSearch.itinerary)} days` : null,
-    routeSummary.legCount > 0 ? `${routeSummary.legCount} legs` : 'Route saved',
+    routeSummary.hasRouteOverview ? routeSummary.distance : (routeSummary.legCount > 0 ? `${routeSummary.legCount} legs` : 'Route overview'),
+    routeSummary.hasRouteOverview ? routeSummary.duration : null,
     formatDate(recentSearch?.updated_at || recentSearch?.created_at, 'Unknown date'),
   ].forEach((item) => {
     if (item) {
@@ -522,7 +628,9 @@ async function loadRecentSearch() {
   try {
     const recentSearch = await apiGet('/recent_search');
     const recentSection = getElement('recent-route-section');
-    if (!recentSearch?.directions?.routes) {
+    const monuments = Array.isArray(recentSearch?.monuments) ? recentSearch.monuments : [];
+    const routeMetadata = recentSearch?.routeMetadata || recentSearch?.directions?.routeMetadata || null;
+    if (monuments.length === 0) {
       if (recentMapContainer) {
         recentMapContainer.classList.add('is-hidden');
       }
@@ -534,11 +642,17 @@ async function loadRecentSearch() {
 
     recentSection?.classList.remove('is-hidden');
 
-    setDashboardMetric('recent-route-state', 'Ready');
+    setDashboardMetric('recent-route-state', routeMetadata ? 'Route overview' : 'Ready');
     if (recentMapContainer) {
       recentMapContainer.classList.remove('is-hidden');
       recentMapContainer.innerHTML = '';
-      renderDirectionsPreview(recentMapContainer, recentSearch.directions);
+      if (routeMetadata?.encodedPolyline) {
+        renderRouteMetadataPreview(recentMapContainer, routeMetadata, monuments);
+      } else if (recentSearch?.directions?.routes) {
+        renderDirectionsPreview(recentMapContainer, recentSearch.directions);
+      } else {
+        renderRouteMetadataPreview(recentMapContainer, null, monuments);
+      }
     }
     renderRecentSummary(recentSearch);
 

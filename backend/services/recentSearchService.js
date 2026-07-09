@@ -13,6 +13,7 @@ function serializeRecentSearch(recentSearch) {
     itinerary: plainRecentSearch.itinerary,
     monuments: plainRecentSearch.monuments,
     directions: plainRecentSearch.directions,
+    routeMetadata: plainRecentSearch.routeMetadata,
     created_at: plainRecentSearch.created_at,
     updated_at: plainRecentSearch.updated_at,
   };

@@ -238,6 +238,35 @@ function selectStops(input, preferences) {
   }));
 }
 
+
+function getCityOrderIndex(city, selectedCities) {
+  const normalizedCity = normalizeLookup(city);
+  const index = selectedCities.findIndex((selectedCity) => normalizeLookup(selectedCity) === normalizedCity);
+  return index >= 0 ? index : selectedCities.length;
+}
+
+function orderStopsBySelectedCity(stops, selectedCities) {
+  if (!Array.isArray(stops) || selectedCities.length < 2) {
+    return stops;
+  }
+
+  return [...stops].sort((a, b) => (
+    getCityOrderIndex(a.city, selectedCities) - getCityOrderIndex(b.city, selectedCities)
+  ) || ((b.score || 0) - (a.score || 0)) || a.name.localeCompare(b.name));
+}
+
+function buildLinearDayCitySequence(days, selectedCities) {
+  if (selectedCities.length <= 1) {
+    return Array.from({ length: days }, () => selectedCities[0] || DEFAULT_CITY);
+  }
+
+  return Array.from({ length: days }, (_, dayIndex) => {
+    const ratio = dayIndex / Math.max(days - 1, 1);
+    const cityIndex = Math.min(selectedCities.length - 1, Math.floor(ratio * selectedCities.length));
+    return selectedCities[cityIndex] || selectedCities[selectedCities.length - 1] || DEFAULT_CITY;
+  });
+}
+
 function getLeastLoadedDayIndex(grouped, candidateIndexes) {
   const availableCandidates = candidateIndexes.filter((candidateIndex) => grouped[candidateIndex].stops.length < 4);
   const effectiveCandidates = availableCandidates.length > 0 ? availableCandidates : candidateIndexes;
@@ -248,13 +277,16 @@ function getLeastLoadedDayIndex(grouped, candidateIndexes) {
 }
 
 function groupStopsByDay(stops, days, selectedCities) {
-  const grouped = Array.from({ length: days }, (_, index) => ({
+  const dayCities = buildLinearDayCitySequence(days, selectedCities);
+  const grouped = dayCities.map((city, index) => ({
     day: index + 1,
-    city: selectedCities[index % selectedCities.length] || DEFAULT_CITY,
+    city,
     stops: [],
   }));
 
-  stops.forEach((stop, index) => {
+  const orderedStops = orderStopsBySelectedCity(stops, selectedCities);
+
+  orderedStops.forEach((stop, index) => {
     const matchingDayIndexes = grouped
       .map((day, dayIndex) => ({ day, dayIndex }))
       .filter(({ day }) => normalizeLookup(day.city) === normalizeLookup(stop.city))
@@ -264,7 +296,7 @@ function groupStopsByDay(stops, days, selectedCities) {
       ? matchingDayIndexes
       : grouped.map((_, dayIndex) => dayIndex);
 
-    const fallbackIndex = index % days;
+    const fallbackIndex = Math.min(index, grouped.length - 1);
     const targetIndex = candidateIndexes.length > 0
       ? getLeastLoadedDayIndex(grouped, candidateIndexes)
       : fallbackIndex;
@@ -318,10 +350,10 @@ function generateRecommendationPlan(input, rawPreferences = {}) {
   const selectedCities = getSelectedCities(input);
   const days = getTripDays(input.selectedDays);
   const intent = parseIntent(input.generalQuery, preferences);
-  const stops = selectStops(input, preferences);
+  const stops = orderStopsBySelectedCity(selectStops(input, preferences), selectedCities);
   const dayGroups = groupStopsByDay(stops, days, selectedCities);
   const itinerary = buildItinerary(dayGroups);
-  const monuments = stops.map(toMonument);
+  const monuments = dayGroups.flatMap((group) => group.stops).map(toMonument);
 
   return {
     itinerary,
