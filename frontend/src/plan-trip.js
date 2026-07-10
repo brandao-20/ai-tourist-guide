@@ -294,8 +294,7 @@ function setPlannerResultsVisible(visible) {
 function syncRouteActionButtons() {
   const hasStops = Array.isArray(state.currentMonuments) && state.currentMonuments.length > 0;
   const canBuildRoute = state.currentMonuments.length >= 2;
-  const hasRoute = Boolean(state.lastDirectionsResult?.routes || state.lastDirectionsResult?.fallback || state.routeMetadata);
-  const centerButton = document.getElementById('center-route-button');
+    const centerButton = document.getElementById('center-route-button');
   const buildRouteButton = document.getElementById('save-button');
   const favoriteButton = document.getElementById('favorite-button');
   const unfavoriteButton = document.getElementById('unfavorite-button');
@@ -412,7 +411,7 @@ function setupSaveButton({ itineraryController }) {
   }
 
   saveButton.addEventListener('click', async () => {
-    const restoreButton = setButtonBusy(saveButton, 'Building route...');
+    const restoreButton = setButtonBusy(saveButton, 'Recalculating...');
     try {
       await itineraryController.saveMonuments();
     } finally {
@@ -638,24 +637,9 @@ function initializeApp({ mapEnabled }) {
     setConfigurationRequiredState('default');
   }
 
-  const directionsService = mapEnabled && window.google?.maps ? new google.maps.DirectionsService() : null;
-  const directionsRenderer = mapEnabled && window.google?.maps ? new google.maps.DirectionsRenderer({
-    suppressMarkers: true,
-    polylineOptions: {
-      strokeColor: '#3A5A40',
-      strokeWeight: 4,
-    },
-  }) : null;
-
-  if (directionsRenderer && window.myMap) {
-    directionsRenderer.setMap(window.myMap);
-  }
-
   const searchForm = createSearchFormController({ apiGet, notify });
   const itineraryController = createMapItineraryController({
     state,
-    directionsService,
-    directionsRenderer,
     getSearchPayload: searchForm.getPayload,
     apiPost,
     notify,

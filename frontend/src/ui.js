@@ -113,9 +113,20 @@ export function showFavoriteNameModal(callback, options = {}) {
     submitLabel = 'Save itinerary',
   } = options;
 
-  const closeModal = () => {
-    modal.style.display = 'none';
+  const previousActiveElement = document.activeElement;
+
+  const handleKeydown = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeModal();
+    }
   };
+
+  function closeModal() {
+    modal.style.display = 'none';
+    document.removeEventListener('keydown', handleKeydown);
+    previousActiveElement?.focus?.();
+  }
 
   if (title) {
     title.textContent = modalTitle;
@@ -151,7 +162,138 @@ export function showFavoriteNameModal(callback, options = {}) {
 
   input.value = defaultName;
   input.placeholder = defaultName || 'Example: Lisbon weekend route';
+  document.addEventListener('keydown', handleKeydown);
   modal.style.display = 'flex';
   input.focus();
   input.select();
+}
+
+const GLOBAL_NOTIFICATION_CONTAINER_ID = 'app-notifications';
+const GLOBAL_NOTIFICATION_TIMEOUT_MS = 5200;
+const CONFIRM_MODAL_ID = 'appConfirmModal';
+
+function getNotificationContainer() {
+  let container = document.getElementById(GLOBAL_NOTIFICATION_CONTAINER_ID);
+  if (container) {
+    return container;
+  }
+
+  container = document.createElement('div');
+  container.id = GLOBAL_NOTIFICATION_CONTAINER_ID;
+  container.className = 'toast-stack';
+  container.setAttribute('aria-live', 'polite');
+  container.setAttribute('aria-atomic', 'false');
+  document.body.appendChild(container);
+  return container;
+}
+
+function removeToast(toast) {
+  toast.classList.add('toast-message--leaving');
+  window.setTimeout(() => toast.remove(), 180);
+}
+
+export function showToast(message, type = 'info') {
+  const text = String(message || '').trim();
+  if (!text) {
+    return;
+  }
+
+  const container = getNotificationContainer();
+  const toast = document.createElement('div');
+  const normalizedType = ['success', 'warning', 'error', 'info'].includes(type) ? type : 'info';
+  toast.className = `toast-message toast-message--${normalizedType}`;
+  toast.setAttribute('role', normalizedType === 'error' ? 'alert' : 'status');
+
+  const content = document.createElement('span');
+  content.textContent = text;
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'toast-message__close';
+  closeButton.setAttribute('aria-label', 'Dismiss notification');
+  closeButton.textContent = '×';
+  closeButton.addEventListener('click', () => removeToast(toast));
+
+  toast.append(content, closeButton);
+  container.appendChild(toast);
+  window.setTimeout(() => removeToast(toast), GLOBAL_NOTIFICATION_TIMEOUT_MS);
+}
+
+function createConfirmModal() {
+  const modal = document.createElement('div');
+  modal.id = CONFIRM_MODAL_ID;
+  modal.className = 'modal app-confirm-modal';
+  modal.innerHTML = `
+    <div class="modal-content app-confirm-modal__card" role="dialog" aria-modal="true" aria-labelledby="appConfirmTitle" aria-describedby="appConfirmDescription">
+      <button class="favorite-modal__close app-confirm-modal__close" id="appConfirmClose" type="button" aria-label="Close dialog">×</button>
+      <h2 id="appConfirmTitle">Confirm action</h2>
+      <p id="appConfirmDescription" class="favorite-modal__intro">Please confirm this action.</p>
+      <div class="favorite-modal__actions app-confirm-modal__actions">
+        <button id="appConfirmCancel" type="button">Cancel</button>
+        <button id="appConfirmSubmit" type="button">Confirm</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+export function showConfirmDialog(options = {}) {
+  const modal = document.getElementById(CONFIRM_MODAL_ID) || createConfirmModal();
+  const title = modal.querySelector('#appConfirmTitle');
+  const description = modal.querySelector('#appConfirmDescription');
+  const closeButton = modal.querySelector('#appConfirmClose');
+  const cancelButton = modal.querySelector('#appConfirmCancel');
+  const confirmButton = modal.querySelector('#appConfirmSubmit');
+  const previousActiveElement = document.activeElement;
+
+  title.textContent = options.title || 'Confirm action';
+  description.textContent = options.description || 'Please confirm this action.';
+  cancelButton.textContent = options.cancelLabel || 'Cancel';
+  confirmButton.textContent = options.confirmLabel || 'Confirm';
+  confirmButton.classList.toggle('button-danger', options.variant === 'danger');
+
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    const cleanup = () => {
+      modal.style.display = 'none';
+      modal.removeEventListener('click', handleBackdropClick);
+      document.removeEventListener('keydown', handleKeydown);
+      closeButton.onclick = null;
+      cancelButton.onclick = null;
+      confirmButton.onclick = null;
+      previousActiveElement?.focus?.();
+    };
+
+    const finish = (value) => {
+      if (resolved) {
+        return;
+      }
+      resolved = true;
+      cleanup();
+      resolve(value);
+    };
+
+    const handleBackdropClick = (event) => {
+      if (event.target === modal) {
+        finish(false);
+      }
+    };
+
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        finish(false);
+      }
+    };
+
+    closeButton.onclick = () => finish(false);
+    cancelButton.onclick = () => finish(false);
+    confirmButton.onclick = () => finish(true);
+    modal.addEventListener('click', handleBackdropClick);
+    document.addEventListener('keydown', handleKeydown);
+    modal.style.display = 'flex';
+    confirmButton.focus();
+  });
 }

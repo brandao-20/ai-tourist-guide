@@ -161,6 +161,14 @@ function updateSelectionSummary(selected, dropdowns) {
   }
 
   chips.forEach((chip) => summary.appendChild(chip));
+
+  const selectedCities = getSelectedLabels(dropdowns.cities, selected.cities);
+  if (selectedCities.length >= 2) {
+    const routeOrder = document.createElement('span');
+    routeOrder.className = 'route-order-note';
+    routeOrder.textContent = `Route order: ${selectedCities[0]} → ${selectedCities[selectedCities.length - 1]}`;
+    summary.appendChild(routeOrder);
+  }
 }
 
 function setupDropdownToggle(dropdown) {

@@ -6,6 +6,7 @@ import { createMapMarker } from './mapMarker.js';
 import { formatDate, formatDistance, formatDuration } from './formatters.js';
 import { loadGoogleMapsScript } from './googleMapsLoader.js';
 import { getElement } from './ui.js';
+import { createRouteSubtitle, getDisplayStopName, getValidCoordinates, normalizePlaceName, truncateText } from './routePresentation.js';
 
 const DEFAULT_LOCATION = getFallbackLocation();
 
@@ -195,8 +196,8 @@ function getRouteSummary(routeData, monuments = []) {
 
   return {
     legCount: legs.length,
-    firstStop: firstLeg?.start_address || monuments[0]?.name || 'Start unavailable',
-    lastStop: lastLeg?.end_address || monuments[monuments.length - 1]?.name || 'Destination unavailable',
+    firstStop: normalizePlaceName(firstLeg?.start_address || monuments[0]?.name || monuments[0]?.address, 'Start unavailable', 60),
+    lastStop: normalizePlaceName(lastLeg?.end_address || monuments[monuments.length - 1]?.name || monuments[monuments.length - 1]?.address, 'Destination unavailable', 60),
     distance,
     duration,
     hasRouteOverview: Boolean(metadata?.encodedPolyline || metadata?.distanceMeters || metadata?.durationSeconds),
@@ -381,7 +382,7 @@ function fitMapToPath(map, path = []) {
   const bounds = new google.maps.LatLngBounds();
   path.forEach((point) => bounds.extend(point));
   if (!bounds.isEmpty()) {
-    map.fitBounds(bounds);
+    map.fitBounds(bounds, 38);
   }
 }
 
@@ -419,12 +420,13 @@ function renderRouteMetadataPreview(mapElement, routeMetadata, monuments = []) {
     bounds.extend(position);
   });
   if (!bounds.isEmpty()) {
-    map.fitBounds(bounds);
+    map.fitBounds(bounds, 38);
   }
   return map;
 }
 
 function renderDirectionsPreview(mapElement, directions, options = {}) {
+  const monuments = Array.isArray(options.monuments) ? options.monuments : [];
   const map = new google.maps.Map(mapElement, {
     zoom: options.zoom || 6,
     center: { lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng },
@@ -433,16 +435,33 @@ function renderDirectionsPreview(mapElement, directions, options = {}) {
     fullscreenControl: false,
   });
 
-  const directionsRenderer = new google.maps.DirectionsRenderer({
-    suppressMarkers: options.suppressMarkers ?? true,
-    polylineOptions: {
-      strokeColor: '#3A5A40',
-      strokeWeight: 4,
-    },
+  const bounds = new google.maps.LatLngBounds();
+  const path = monuments.map(getValidCoordinates).filter(Boolean);
+  path.forEach((position, index) => {
+    createMapMarker({
+      position,
+      map,
+      label: String(index + 1),
+      title: getDisplayStopName(monuments[index], `Stop ${index + 1}`),
+    });
+    bounds.extend(position);
   });
 
-  directionsRenderer.setMap(map);
-  directionsRenderer.setDirections(directions);
+  if (path.length >= 2) {
+    new google.maps.Polyline({
+      path,
+      map,
+      geodesic: false,
+      strokeColor: '#31543f',
+      strokeOpacity: 0.82,
+      strokeWeight: 4,
+    });
+  }
+
+  if (!bounds.isEmpty()) {
+    map.fitBounds(bounds, 38);
+  }
+
   return map;
 }
 
@@ -464,10 +483,10 @@ function createFavoriteCard(favorite) {
 
   const body = document.createElement('div');
   body.className = 'favorite-card__body';
-  body.appendChild(createTextElement('h3', favorite.name || 'Saved itinerary'));
+  body.appendChild(createTextElement('h3', truncateText(favorite.name || 'Saved itinerary', 70)));
 
   const summary = getFavoriteSummary(favorite);
-  body.appendChild(createTextElement('p', `${summary.firstStop} → ${summary.lastStop}`));
+  body.appendChild(createTextElement('p', createRouteSubtitle(getFavoriteMonuments(favorite), favorite.map_data, 112)));
   body.appendChild(createMetaList([
     `${summary.stops} stops`,
     summary.days > 0 ? `${summary.days} days` : null,
@@ -489,8 +508,8 @@ function renderFavoriteFallback(favorite, container) {
   body.className = 'favorite-card__body';
 
   const summary = getFavoriteSummary(favorite);
-  body.appendChild(createTextElement('h3', favorite.name || 'Saved itinerary'));
-  body.appendChild(createTextElement('p', `${summary.firstStop} → ${summary.lastStop}`));
+  body.appendChild(createTextElement('h3', truncateText(favorite.name || 'Saved itinerary', 70)));
+  body.appendChild(createTextElement('p', createRouteSubtitle(getFavoriteMonuments(favorite), favorite.map_data, 112)));
   body.appendChild(createMetaList([
     `${summary.stops} stops`,
     summary.days > 0 ? `${summary.days} days` : null,
@@ -514,7 +533,7 @@ function initMiniMapForFavorite(favorite, elementId) {
     const metadata = favorite.map_data?.routeMetadata || null;
     const favoriteMap = metadata?.encodedPolyline
       ? renderRouteMetadataPreview(mapElement, metadata, monuments)
-      : renderDirectionsPreview(mapElement, favorite.map_data);
+      : renderDirectionsPreview(mapElement, favorite.map_data, { monuments });
     favoriteMap.addListener('click', () => {
       window.location.href = `/route-details?favoriteId=${encodeURIComponent(favorite.id)}`;
     });
@@ -597,8 +616,8 @@ function renderRecentSummary(recentSearch) {
   const card = document.createElement('div');
   card.className = 'summary-card';
 
-  card.appendChild(createTextElement('h3', cities || 'Recent route'));
-  card.appendChild(createTextElement('p', `${routeSummary.firstStop} → ${routeSummary.lastStop}`));
+  card.appendChild(createTextElement('h3', truncateText(cities || 'Recent route', 70)));
+  card.appendChild(createTextElement('p', createRouteSubtitle(monuments, routeData, 120)));
 
   const meta = document.createElement('div');
   meta.className = 'summary-meta';
@@ -649,7 +668,7 @@ async function loadRecentSearch() {
       if (routeMetadata?.encodedPolyline) {
         renderRouteMetadataPreview(recentMapContainer, routeMetadata, monuments);
       } else if (recentSearch?.directions?.routes) {
-        renderDirectionsPreview(recentMapContainer, recentSearch.directions);
+        renderDirectionsPreview(recentMapContainer, recentSearch.directions, { monuments });
       } else {
         renderRouteMetadataPreview(recentMapContainer, null, monuments);
       }

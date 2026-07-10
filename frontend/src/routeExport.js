@@ -1,5 +1,6 @@
 import { formatDateTime, formatDistance, formatDuration } from './formatters.js';
 import { escapeHtml, stripHtml } from './ui.js';
+import { getDisplayStopLocation, normalizePlaceName } from './routePresentation.js';
 
 function normalizeText(value, fallback = 'Not available') {
   const normalized = String(value ?? '').trim();
@@ -63,11 +64,11 @@ function summarizeLegs(legs, routeDetails = {}) {
 }
 
 function getRouteName(routeDetails = {}) {
-  return normalizeText(routeDetails.name || getItinerary(routeDetails).name, 'Saved route');
+  return normalizePlaceName(routeDetails.name || getItinerary(routeDetails).name, 'Saved route', 96);
 }
 
 function getStopAddress(monument = {}) {
-  return normalizeText(monument.address || monument.location || monument.city, 'Address unavailable');
+  return getDisplayStopLocation(monument, 'Address unavailable');
 }
 
 function getTravelMode(routeDetails = {}) {
@@ -123,7 +124,7 @@ export function createRouteExportModel(routeDetails = {}, mapsUrl = null) {
     },
     stops: monuments.map((monument, index) => ({
       order: index + 1,
-      name: normalizeText(monument.name, `Stop ${index + 1}`),
+      name: normalizePlaceName(monument.name || monument.placeQuery || monument.mapsSearchHint, `Stop ${index + 1}`, 90),
       address: getStopAddress(monument),
       city: normalizeText(monument.city, ''),
       country: normalizeText(monument.country, ''),

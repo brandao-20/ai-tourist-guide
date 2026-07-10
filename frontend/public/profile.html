@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="app.css?v=14.1" rel="stylesheet">
+  <link href="app.css?v=14.3" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -47,6 +47,14 @@
         <article class="info-card"><h3>Email</h3><p id="profile-email">Loading...</p></article>
       </div>
     </section>
+    <section class="content-card profile-activity-card" aria-labelledby="profile-activity-title">
+      <div class="section-heading"><div><h2 id="profile-activity-title">Travel activity</h2></div></div>
+      <div class="overview-grid profile-stats-grid" aria-label="Profile travel statistics">
+        <article class="metric-card"><span>Saved routes</span><strong id="profile-routes-count">—</strong></article>
+        <article class="metric-card"><span>Total stops</span><strong id="profile-stops-count">—</strong></article>
+        <article class="metric-card"><span>Latest itinerary</span><strong id="profile-latest-route">—</strong></article>
+      </div>
+    </section>
   </main>
   <footer class="site-footer">
     <div class="footer-grid footer-grid--simple">
@@ -62,7 +70,7 @@
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/profile.js?v=14.1"></script>
+  <script src="/build/profile.js?v=14.3"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>

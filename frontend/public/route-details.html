@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="app.css?v=14.1" rel="stylesheet">
+  <link href="app.css?v=14.3" rel="stylesheet">
   <title>Personalized Tourist Guide AI</title>
   <script src="/config.js"></script>
 </head>
@@ -34,18 +34,20 @@
         <p id="route-description">Review stops, itinerary details and saved route context.</p>
         <div class="hero-actions"><a href="/saved-routes" class="btn btn-secondary">Back to saved routes</a><a href="/plan-trip" class="btn btn-primary">Plan another trip</a></div>
       </div>
-      <aside class="hero-card" aria-label="Route summary">
-        <span class="summary-label">Route status</span>
-        <strong id="hero-route-status">Loading</strong>
-        <span id="hero-route-meta">Fetching saved route data.</span>
+      <aside class="hero-card route-status-card" aria-label="Route summary">
+        <span class="summary-label">Route summary</span>
+        <div id="hero-route-badges" class="route-status-badges">
+          <span id="hero-route-status" class="route-status-badge route-status-badge--strong">Loading</span>
+          <span id="hero-route-meta" class="route-status-badge">Fetching saved route data.</span>
+        </div>
       </aside>
     </section>
 
     <section class="route-shell content-card" aria-labelledby="route-overview-title">
       <div class="route-toolbar">
         <div><h2 id="route-overview-title">Route overview</h2></div>
-        <div class="toolbar-actions">
-          <a id="open-google-maps-link" class="action-button action-button--ghost is-disabled" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Open in Google Maps</a>
+        <div class="toolbar-actions route-toolbar-actions">
+          <a id="open-google-maps-link" class="action-button action-button--primary is-disabled" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Open in Google Maps</a>
           <button id="print-route-button" class="action-button action-button--ghost" type="button" disabled>Print</button>
           <button id="export-html-button" class="action-button action-button--ghost" type="button" disabled>Export HTML</button>
           <button id="export-json-button" class="action-button action-button--ghost" type="button" disabled>Export JSON</button>
@@ -53,6 +55,7 @@
           <button id="toggle-favorite-button" class="action-button action-button--danger" type="button">Remove route</button>
         </div>
       </div>
+      <div id="daily-google-maps-links" class="daily-maps-links" hidden></div>
       <div id="route-status" class="form-feedback" role="status" aria-live="polite">Loading route details...</div>
       <div class="overview-grid" aria-label="Route metrics">
         <article class="metric-card"><span>Stops</span><strong id="overview-stops">—</strong></article>
@@ -91,7 +94,7 @@
     </div>
     <div class="footer-bottom"><p>© 2026 Personalized Tourist Guide AI. All rights reserved.</p></div>
   </footer>
-  <script src="/build/route-details.js?v=14.1"></script>
+  <script src="/build/route-details.js?v=14.3"></script>
   <script src="/nav-surface.js"></script>
 </body>
 </html>

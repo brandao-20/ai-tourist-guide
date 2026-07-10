@@ -11,12 +11,21 @@ import {
   isValidNumericId,
   setButtonBusy,
   setStatusMessage,
+  showConfirmDialog,
   showFavoriteNameModal,
+  showToast,
   stripHtml,
 } from './ui.js';
 import { getFallbackLocation, getPreferredMapLocation } from './location.js';
 import { createMapMarker, openMarkerInfoWindow } from './mapMarker.js';
 import { formatDistance, formatDuration } from './formatters.js';
+import {
+  createDailyGoogleMapsLinks,
+  getDisplayStopLocation,
+  getDisplayStopName,
+  normalizePlaceName,
+  truncateText,
+} from './routePresentation.js';
 import { loadGoogleMapsScript } from './googleMapsLoader.js';
 
 import { requireAuthenticatedSession, setupLogoutButton } from './session.js';
@@ -37,7 +46,7 @@ const TRAVEL_MODE_LABELS = {
 };
 
 let map;
-let directionsRenderer;
+let routePolyline = null;
 let routeMarkers = [];
 let isFavorited = true;
 let favoriteRouteId = null;
@@ -220,7 +229,7 @@ function getCreatedLabel(routeDetails) {
 }
 
 function getMonumentLocation(monument) {
-  return getTextValue(monument.address || monument.location || monument.city, 'Address unavailable');
+  return getDisplayStopLocation(monument, 'Address unavailable');
 }
 
 function getRouteEndpointLabels(monuments, directionsResult) {
@@ -229,10 +238,11 @@ function getRouteEndpointLabels(monuments, directionsResult) {
   const lastLeg = legs[legs.length - 1];
 
   return {
-    origin: getTextValue(firstLeg?.start_address || monuments[0]?.address || monuments[0]?.name, 'Origin unavailable'),
-    destination: getTextValue(
+    origin: normalizePlaceName(firstLeg?.start_address || monuments[0]?.address || monuments[0]?.name, 'Origin unavailable', 70),
+    destination: normalizePlaceName(
       lastLeg?.end_address || monuments[monuments.length - 1]?.address || monuments[monuments.length - 1]?.name,
-      'Destination unavailable'
+      'Destination unavailable',
+      70
     ),
   };
 }
@@ -240,28 +250,38 @@ function getRouteEndpointLabels(monuments, directionsResult) {
 function setHeroSummary(routeDetails, monuments, directionsResult) {
   const routeName = getRouteName(routeDetails);
   const createdLabel = getCreatedLabel(routeDetails);
-  const legs = getRouteLegs(directionsResult);
   const summary = summarizeDirections(directionsResult);
   const hasOverview = hasRouteMetadata(directionsResult);
   const title = document.getElementById('route-title');
   const description = document.getElementById('route-description');
+  const badges = document.getElementById('hero-route-badges');
 
   if (title) {
     title.textContent = routeName;
+    title.title = routeName;
   }
+
+  const distance = formatDistance(summary.distanceMeters, 'Distance unavailable');
+  const duration = formatDuration(summary.durationSeconds, 'Duration unavailable');
+  const routeMode = getTravelModeLabel(directionsResult);
 
   if (description) {
-    const routeLabel = hasOverview
-      ? `${formatDistance(summary.distanceMeters)} and ${formatDuration(summary.durationSeconds)}`
-      : `${legs.length} route legs`;
-    description.textContent = `${createdLabel}. Review ${monuments.length} stops, ${routeLabel} and the saved route context.`;
+    description.textContent = `${createdLabel}. ${monuments.length} stops · ${distance} · ${duration} · saved route.`;
   }
 
-  setTextContent('hero-route-status', hasOverview ? 'Route overview ready' : 'Ready');
-  setTextContent(
-    'hero-route-meta',
-    `${formatDistance(summary.distanceMeters)} · ${formatDuration(summary.durationSeconds)} · ${getTravelModeLabel(directionsResult)}`
-  );
+  if (badges) {
+    badges.replaceChildren(
+      createTextElement('span', hasOverview ? 'Route overview ready' : 'Saved stops', 'route-status-badge route-status-badge--strong'),
+      createTextElement('span', `${monuments.length} stops`, 'route-status-badge'),
+      createTextElement('span', distance, 'route-status-badge'),
+      createTextElement('span', duration, 'route-status-badge'),
+      createTextElement('span', routeMode, 'route-status-badge')
+    );
+    return;
+  }
+
+  setTextContent('hero-route-status', hasOverview ? 'Route overview ready' : 'Saved stops');
+  setTextContent('hero-route-meta', `${monuments.length} stops · ${distance} · ${duration} · ${routeMode}`);
 }
 
 function setOverviewMetrics(monuments, directionsResult) {
@@ -311,6 +331,34 @@ function setGoogleMapsExternalLink(monuments) {
   link.setAttribute('aria-disabled', 'false');
 }
 
+
+function renderDailyGoogleMapsLinks(routeDetails = currentRouteDetails) {
+  const container = document.getElementById('daily-google-maps-links');
+  if (!container) {
+    return;
+  }
+
+  const links = createDailyGoogleMapsLinks(routeDetails);
+  container.replaceChildren();
+  container.hidden = links.length < 2;
+  if (links.length < 2) {
+    return;
+  }
+
+  const label = createTextElement('span', 'Open route by day', 'daily-maps-links__label');
+  container.appendChild(label);
+  links.forEach((item) => {
+    const link = document.createElement('a');
+    link.href = item.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.className = 'action-button action-button--ghost';
+    link.textContent = `${item.label} in Google Maps`;
+    link.setAttribute('aria-label', `Open ${item.label}: ${item.title} in Google Maps`);
+    container.appendChild(link);
+  });
+}
+
 function getRouteGoogleMapsUrl() {
   const monuments = Array.isArray(currentRouteDetails?.itinerary?.monuments)
     ? currentRouteDetails.itinerary.monuments
@@ -351,7 +399,8 @@ function exportRouteHtml() {
   }
 
   downloadRouteHtml(currentRouteDetails, getRouteGoogleMapsUrl());
-  setRouteStatus('Printable HTML route export downloaded.', 'success');
+  setRouteStatus('HTML export downloaded.', 'success');
+  showToast('HTML export downloaded.', 'success');
 }
 
 function exportRouteJson() {
@@ -360,7 +409,8 @@ function exportRouteJson() {
   }
 
   downloadRouteJson(currentRouteDetails);
-  setRouteStatus('Route JSON export downloaded.', 'success');
+  setRouteStatus('JSON export downloaded.', 'success');
+  showToast('JSON export downloaded.', 'success');
 }
 
 async function copySummary() {
@@ -372,7 +422,8 @@ async function copySummary() {
   const restoreButton = setButtonBusy(button, 'Copying...');
   try {
     await copyRouteSummary(currentRouteDetails, getRouteGoogleMapsUrl());
-    setRouteStatus('Route summary copied to clipboard.', 'success');
+    setRouteStatus('Route summary copied.', 'success');
+    showToast('Route summary copied to clipboard.', 'success');
   } catch (error) {
     setRouteStatus(getErrorMessage(error, 'Could not copy route summary.'), 'error');
   } finally {
@@ -435,34 +486,64 @@ function decodePolyline(encodedPolyline = '') {
   return points;
 }
 
-function drawRouteMetadataPolyline(routeMetadata) {
-  if (!map || !routeMetadata?.encodedPolyline) {
+function clearRoutePolyline() {
+  if (routePolyline) {
+    routePolyline.setMap(null);
+    routePolyline = null;
+  }
+}
+
+function drawPolyline(path = [], options = {}) {
+  if (!map || path.length < 2) {
     return false;
   }
 
-  const path = decodePolyline(routeMetadata.encodedPolyline);
-  if (path.length < 2) {
-    return false;
-  }
-
-  new google.maps.Polyline({
+  clearRoutePolyline();
+  routePolyline = new google.maps.Polyline({
     path,
     map,
     geodesic: false,
-    strokeColor: '#31543f',
-    strokeOpacity: 0.95,
-    strokeWeight: 5,
+    strokeColor: options.strokeColor || '#31543f',
+    strokeOpacity: options.strokeOpacity || 0.95,
+    strokeWeight: options.strokeWeight || 5,
   });
   return true;
 }
 
+function getRoutePath(monuments = [], directionsResult = {}) {
+  const metadata = getRouteMetadata(directionsResult);
+  if (metadata?.encodedPolyline) {
+    const decoded = decodePolyline(metadata.encodedPolyline);
+    if (decoded.length >= 2) {
+      return decoded;
+    }
+  }
+
+  const encodedOverview = directionsResult?.routes?.[0]?.overview_polyline?.points;
+  if (encodedOverview) {
+    const decoded = decodePolyline(encodedOverview);
+    if (decoded.length >= 2) {
+      return decoded;
+    }
+  }
+
+  return monuments
+    .map((monument) => {
+      if (!hasValidCoordinates(monument)) {
+        return null;
+      }
+      return { lat: monument.coordinates.lat, lng: monument.coordinates.lng };
+    })
+    .filter(Boolean);
+}
+
 function renderMarkersAndRoute(monuments, directionsResult) {
-  if (!map || !directionsRenderer) {
+  if (!map) {
     return;
   }
 
   clearMarkers();
-  directionsRenderer.set('directions', null);
+  clearRoutePolyline();
 
   const bounds = new google.maps.LatLngBounds();
   let markerCount = 0;
@@ -481,11 +562,11 @@ function renderMarkersAndRoute(monuments, directionsResult) {
       position,
       map,
       label: String(index + 1),
-      title: monument.name || 'Stop',
+      title: getDisplayStopName(monument, `Stop ${index + 1}`),
     });
 
     const infoWindow = new google.maps.InfoWindow({
-      content: `<strong>${escapeHtml(monument.name || 'Stop')}</strong><p>${escapeHtml(getMonumentLocation(monument))}</p>`,
+      content: `<strong>${escapeHtml(getDisplayStopName(monument, 'Stop'))}</strong><p>${escapeHtml(getMonumentLocation(monument))}</p>`,
     });
 
     marker?.addListener('click', () => {
@@ -499,14 +580,13 @@ function renderMarkersAndRoute(monuments, directionsResult) {
     markerCount += 1;
   });
 
-  if (directionsResult?.routes) {
-    directionsRenderer.setDirections(directionsResult);
-  } else {
-    drawRouteMetadataPolyline(getRouteMetadata(directionsResult));
+  const routePath = getRoutePath(monuments, directionsResult);
+  if (drawPolyline(routePath)) {
+    routePath.forEach((point) => bounds.extend(point));
   }
 
-  if (markerCount > 0 && !bounds.isEmpty()) {
-    map.fitBounds(bounds);
+  if ((markerCount > 0 || routePath.length > 0) && !bounds.isEmpty()) {
+    map.fitBounds(bounds, 46);
   }
 }
 
@@ -526,7 +606,7 @@ function getActivityName(activity, fallback = 'Stop') {
   if (typeof activity === 'string') {
     return activity;
   }
-  return activity?.name || activity?.placeQuery || activity?.mapsSearchHint || fallback;
+  return normalizePlaceName(activity?.name || activity?.placeQuery || activity?.mapsSearchHint, fallback, 76);
 }
 
 function getActivityLocation(activity) {
@@ -554,7 +634,7 @@ function renderStopCard(monument, index) {
   const body = document.createElement('div');
   body.className = 'stop-main';
 
-  body.appendChild(createTextElement('h3', getTextValue(monument.name, `Stop ${index + 1}`)));
+  body.appendChild(createTextElement('h3', getDisplayStopName(monument, `Stop ${index + 1}`)));
   body.appendChild(createTextElement('p', getMonumentLocation(monument)));
 
   if (hasValidCoordinates(monument)) {
@@ -581,10 +661,11 @@ function renderDayStopGroups(monuments, routeDetails = currentRouteDetails) {
     const activities = getDayActivities(day);
     const details = document.createElement('details');
     details.className = 'day-plan-card route-details-day-card';
-    details.open = dayIndex < 2;
+    details.open = dayIndex === 0;
 
     const summary = document.createElement('summary');
     summary.className = 'day-plan-summary';
+    summary.setAttribute('aria-label', `Toggle day ${day.day || dayIndex + 1} stops`);
     summary.append(
       createTextElement('span', String(day.day || dayIndex + 1).padStart(2, '0'), 'day-plan-index'),
       createTextElement('strong', `Day ${day.day || dayIndex + 1} · ${day.title || day.city || 'Route day'}`),
@@ -640,6 +721,42 @@ function renderStops(monuments, routeDetails = currentRouteDetails) {
   container.replaceChildren(fragment);
 }
 
+function renderActivityCard(activity, activityIndex) {
+  const item = document.createElement('li');
+  item.className = 'day-activity-card';
+
+  if (typeof activity === 'string') {
+    item.appendChild(createTextElement('strong', activity));
+    return item;
+  }
+
+  const period = activity?.period && activity.period !== 'flexible'
+    ? `${activity.period[0].toUpperCase()}${activity.period.slice(1)}`
+    : `Stop ${activityIndex + 1}`;
+  const name = getActivityName(activity, `Stop ${activityIndex + 1}`);
+  const duration = activity?.durationMinutes ? `${activity.durationMinutes} min` : '';
+  const location = getActivityLocation(activity);
+  const reason = activity?.reason || activity?.description || '';
+
+  const header = document.createElement('div');
+  header.className = 'day-activity-card__header';
+  header.append(
+    createTextElement('span', period, 'day-activity-card__period'),
+    duration ? createTextElement('span', duration, 'day-activity-card__duration') : document.createDocumentFragment()
+  );
+
+  item.appendChild(header);
+  item.appendChild(createTextElement('strong', name));
+  if (location) {
+    item.appendChild(createTextElement('span', truncateText(location, 92), 'day-activity-card__location'));
+  }
+  if (reason) {
+    item.appendChild(createTextElement('p', reason, 'day-activity-card__reason'));
+  }
+
+  return item;
+}
+
 function renderItineraryDays(routeDetails = currentRouteDetails) {
   const days = getItineraryDays(routeDetails);
   if (days.length === 0) {
@@ -650,11 +767,12 @@ function renderItineraryDays(routeDetails = currentRouteDetails) {
   days.forEach((day, index) => {
     const details = document.createElement('details');
     details.className = 'day-plan-card directions-day-card';
-    details.open = index < 2;
+    details.open = index === 0;
 
     const activities = getDayActivities(day);
     const summary = document.createElement('summary');
     summary.className = 'day-plan-summary';
+    summary.setAttribute('aria-label', `Toggle day ${day.day || index + 1} directions`);
     summary.append(
       createTextElement('span', String(day.day || index + 1).padStart(2, '0'), 'day-plan-index'),
       createTextElement('strong', `Day ${day.day || index + 1} · ${day.title || day.city || 'Route day'}`),
@@ -668,9 +786,9 @@ function renderItineraryDays(routeDetails = currentRouteDetails) {
     }
 
     const list = document.createElement('ul');
-    list.className = 'generated-activities day-plan-activities';
-    activities.forEach((activity) => {
-      list.appendChild(createTextElement('li', getActivityDescription(activity) || getActivityName(activity)));
+    list.className = 'generated-activities day-plan-activities day-plan-activities--cards';
+    activities.forEach((activity, activityIndex) => {
+      list.appendChild(renderActivityCard(activity, activityIndex));
     });
     if (activities.length === 0) {
       list.appendChild(createTextElement('li', 'No activities stored for this day.'));
@@ -778,6 +896,7 @@ function displayRouteDetails(routeDetails) {
   setOverviewMetrics(monuments, map_data);
   renderMiniSummary(monuments, map_data);
   setGoogleMapsExternalLink(monuments);
+  renderDailyGoogleMapsLinks(routeDetails);
   renderMarkersAndRoute(monuments, map_data);
   renderStops(monuments, routeDetails);
   renderRouteLegs(map_data, routeDetails);
@@ -861,15 +980,7 @@ function initializeInteractiveRouteMap() {
         map.setZoom(location.source === 'browser' ? 13 : DEFAULT_MAP_OPTIONS.zoom);
       }
     });
-    directionsRenderer = new google.maps.DirectionsRenderer({
-      map,
-      suppressMarkers: true,
-      polylineOptions: {
-        strokeColor: '#3A5A40',
-        strokeWeight: 5,
-        strokeOpacity: 0.86,
-      },
-    });
+    routePolyline = null;
 
     setupFavoriteToggle();
     loadRouteDetails();
@@ -884,7 +995,7 @@ function initializeRouteMapUnavailable(reason = 'default') {
     : 'The interactive map could not be loaded.';
 
   map = null;
-  directionsRenderer = null;
+  routePolyline = null;
   setMapConfigurationRequiredState(message);
   setupFavoriteToggle();
   loadRouteDetails();
@@ -914,6 +1025,19 @@ async function bootRouteDetails() {
 async function removeFavorite(button) {
   if (!isValidNumericId(favoriteRouteId)) {
     setRouteStatus('Invalid saved route ID.', 'error');
+    showToast('This saved route could not be identified.', 'error');
+    return;
+  }
+
+  const confirmed = await showConfirmDialog({
+    title: 'Remove saved route?',
+    description: `“${getRouteName(currentRouteDetails)}” will be removed from your saved routes.`,
+    confirmLabel: 'Remove route',
+    cancelLabel: 'Cancel',
+    variant: 'danger',
+  });
+
+  if (!confirmed) {
     return;
   }
 
@@ -923,8 +1047,11 @@ async function removeFavorite(button) {
     isFavorited = false;
     setToggleButtonState();
     setRouteStatus('Route removed from saved routes. You can save it again from this page.', 'success');
+    showToast('Saved route removed.', 'success');
   } catch (error) {
-    setRouteStatus(getErrorMessage(error, 'Could not remove this route from saved routes.'), 'error');
+    const message = getErrorMessage(error, 'Could not remove this route from saved routes.');
+    setRouteStatus(message, 'error');
+    showToast(message, 'error');
   } finally {
     restoreButton();
     setToggleButtonState();
@@ -953,14 +1080,15 @@ function saveFavorite(button) {
       favoriteRouteId = data.favoriteId;
       currentRouteDetails = data.favorite || { ...currentRouteDetails, name: favoriteName, itinerary };
       isFavorited = true;
-      setRouteStatus(
-        data.action === 'updated'
-          ? 'This route already existed. The saved route was updated instead of duplicated.'
-          : 'Route saved successfully.',
-        'success'
-      );
+      const message = data.action === 'updated'
+        ? 'Existing saved route updated.'
+        : 'Route saved successfully.';
+      setRouteStatus(message, 'success');
+      showToast(message, 'success');
     } catch (error) {
-      setRouteStatus(getErrorMessage(error, 'Could not save this route.'), 'error');
+      const message = getErrorMessage(error, 'Could not save this route.');
+      setRouteStatus(message, 'error');
+      showToast(message, 'error');
     } finally {
       restoreButton();
       setToggleButtonState();

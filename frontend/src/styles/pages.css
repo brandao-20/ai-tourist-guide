@@ -180,3 +180,310 @@
 .classic-results-grid--stacked .itinerary-list .day-plan-activities {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
+
+/* Alignment and modal polish: saved route cards, previews and route detail header. */
+.favorite-card,
+.summary-card,
+.route-shell,
+.content-card {
+  min-width: 0;
+}
+
+.favorite-card__map,
+.favorite-map {
+  overflow: hidden;
+  background: var(--color-mint);
+}
+
+.favorite-card__map .favorite-mini-map,
+.favorite-map .favorite-map__canvas,
+.favorite-mini-map,
+.favorite-map__canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent;
+}
+
+.favorites-grid--classic .favorite-card {
+  display: grid;
+  grid-template-rows: clamp(210px, 18vw, 260px) 1fr;
+  height: 100%;
+}
+
+.favorites-grid--classic .favorite-card__map {
+  min-height: 0;
+  height: 100%;
+}
+
+.favorites-grid--classic .favorite-card__body {
+  display: grid;
+  grid-template-rows: minmax(2.35rem, auto) minmax(3rem, auto) auto;
+  align-content: start;
+  gap: 10px;
+  min-height: 178px;
+  padding: 20px;
+}
+
+.favorites-grid--classic .favorite-card__body h3,
+.library-page .favorite-body h3 {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.favorites-grid--classic .favorite-card__body p,
+.library-page .favorite-route {
+  min-height: 2.8rem;
+  margin: 0;
+}
+
+.favorites-grid--classic .favorite-card__meta,
+.summary-meta,
+.favorite-meta {
+  align-self: end;
+  min-height: 34px;
+  margin: 0;
+}
+
+.library-page .favorite-card {
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  min-height: 280px;
+}
+
+.library-page .favorite-map {
+  min-height: 280px;
+  height: 100%;
+}
+
+.library-page .favorite-body {
+  grid-template-rows: auto minmax(2.9rem, auto) auto auto;
+  align-content: center;
+  gap: 12px;
+  min-height: 280px;
+}
+
+.library-page .favorite-meta {
+  display: flex;
+  align-items: center;
+}
+
+.library-page .favorite-actions--organised {
+  display: grid;
+  grid-template-columns: minmax(150px, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px 14px;
+}
+
+.library-page .favorite-actions__tools {
+  align-items: center;
+}
+
+/* Custom confirmation modal: real card, readable hierarchy and no browser-like floating text. */
+.app-confirm-modal {
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 5vw, 34px);
+}
+
+.app-confirm-modal .app-confirm-modal__card {
+  display: grid;
+  gap: 14px;
+  width: min(520px, calc(100vw - 36px));
+  max-width: 520px;
+  padding: 34px 34px 30px;
+  position: relative;
+  overflow: visible;
+  border: 1px solid var(--color-border);
+  border-radius: 28px;
+  background: var(--color-surface);
+  box-shadow: 0 28px 80px rgba(20, 40, 31, .26);
+  color: var(--color-forest-dark);
+  text-align: left;
+}
+
+.app-confirm-modal .app-confirm-modal__card h2 {
+  max-width: calc(100% - 58px);
+  margin: 0;
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+
+.app-confirm-modal .favorite-modal__intro {
+  max-width: 100%;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.app-confirm-modal__close,
+.app-confirm-modal .favorite-modal__close {
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+}
+
+.app-confirm-modal__actions {
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Route details: resilient hero and perfectly centred overview actions. */
+.route-details-page .hero-section {
+  height: auto !important;
+  min-height: 300px !important;
+  overflow: visible;
+  align-items: center;
+  gap: clamp(28px, 4vw, 56px);
+  padding-block: clamp(42px, 5vw, 68px) !important;
+}
+
+.route-details-page .hero-copy {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.route-details-page .hero-section h1 {
+  margin: 0;
+  max-width: 760px;
+  font-size: clamp(3rem, 6vw, 5.7rem);
+  line-height: 1;
+  letter-spacing: -.075em;
+  overflow-wrap: anywhere;
+}
+
+.route-details-page .hero-section p {
+  max-width: 820px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.route-details-page .hero-actions {
+  align-items: center;
+  margin-top: 2px;
+}
+
+.route-details-page .hero-actions .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.route-status-card {
+  align-self: center;
+}
+
+.route-status-card .summary-label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.route-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px 24px;
+  margin-bottom: 22px;
+}
+
+.route-toolbar h2 {
+  margin: 0;
+  line-height: 1;
+}
+
+.route-toolbar-actions,
+.toolbar-actions.route-toolbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.route-toolbar-actions .action-button {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.route-shell .overview-grid {
+  margin-top: 18px;
+  margin-bottom: 24px;
+}
+
+.route-shell .details-layout {
+  margin-top: 8px;
+}
+
+.route-details-page .section-heading {
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.route-details-page .section-heading h2,
+.route-details-page .directions-panel h2,
+.route-details-page .map-panel h2,
+.route-details-page .stops-panel h2 {
+  margin: 0;
+}
+
+.route-details-page .map-container,
+.route-details-page .favorite-mini-map {
+  border-radius: 14px;
+}
+
+@media (max-width: 980px) {
+  .route-toolbar {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .route-toolbar-actions,
+  .toolbar-actions.route-toolbar-actions {
+    justify-content: flex-start;
+  }
+
+  .route-details-page .hero-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 880px) {
+  .library-page .favorite-card {
+    grid-template-columns: 1fr;
+  }
+
+  .library-page .favorite-map {
+    min-height: 240px;
+  }
+
+  .library-page .favorite-actions--organised {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .route-details-page .hero-section h1 {
+    font-size: clamp(2.5rem, 14vw, 4rem);
+  }
+
+  .route-details-page .hero-actions .btn,
+  .route-toolbar-actions .action-button,
+  .app-confirm-modal__actions button {
+    width: 100%;
+  }
+
+  .app-confirm-modal .app-confirm-modal__card {
+    padding: 30px 22px 24px;
+  }
+
+  .app-confirm-modal__actions {
+    justify-content: stretch;
+  }
+}
