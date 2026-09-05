@@ -1,34 +1,138 @@
-# Personalized Tourist Guide AI
+# AI Tourist Guide
 
-Personalized Tourist Guide AI is a full-stack travel planning application for creating personalised itineraries from a destination, available time and travel preferences. Users can generate route suggestions, review recommended stops, use an interactive Google Maps layer when configured, save routes and continue planning later.
+A full-stack AI-assisted travel planning application for creating personalised itineraries based on destination, available time, interests and travel preferences.
 
-The product is designed as a clean public repository: the UI is user-facing, the configuration is environment-based and optional external providers degrade to safe local fallbacks.
+The platform combines AI-generated travel plans with real-world place and routing data, persistent user accounts and interactive maps, while remaining usable through local fallbacks when optional external providers are unavailable.
 
-## Core features
+## Features
 
-- Public landing page with product-focused navigation.
-- Account creation and local sign-in.
-- Authenticated dashboard with recent routes, recent searches and active preferences.
-- Trip planner with country, city, interest and duration filters.
-- Preference-aware local recommendation engine.
-- Optional Google Maps, Google Routes and Google Places integrations.
-- Saved routes library with search, sorting, details and remove actions.
-- Route detail page with itinerary timeline, map fallback and export actions.
-- User profile and travel preferences editor.
-- Safe profile image upload with size/type validation.
-- Runtime validation with Zod.
-- Unit tests with Vitest and browser-flow tests with Playwright.
-- Docker Compose setup for frontend, backend and PostgreSQL/PostGIS.
+### AI-Assisted Itinerary Generation
 
-## Stack
+Generate structured travel itineraries from:
+
+- selected countries
+- one or multiple cities
+- trip duration
+- preferred interests
+- travel pace
+- budget preferences
+- transport preferences
+- free-text requests
+
+For multi-city trips, the itinerary generator treats the selected cities as an ordered route and builds a coherent progression from origin to destination.
+
+### Structured AI Output
+
+When OpenAI is configured, itinerary generation uses structured outputs to produce predictable travel data including:
+
+- day-by-day itinerary
+- activity periods
+- stop names
+- cities and countries
+- place search queries
+- activity categories
+- estimated visit duration
+- recommendation reasons
+- route-friendly search hints
+
+The resulting itinerary can then be enriched with external mapping and place data.
+
+### Google Maps Integration
+
+Optional Google integrations provide:
+
+- interactive maps
+- place search
+- geocoding
+- real-world place enrichment
+- addresses
+- ratings and coordinates
+- route distance and duration metadata
+
+Supported services include:
+
+- Google Maps JavaScript API
+- Google Places API
+- Google Routes API
+- Google Geocoding API
+
+The application remains functional when Google integrations are not configured.
+
+### Local Recommendation Fallback
+
+AI services are optional.
+
+When a valid OpenAI configuration is unavailable, the backend automatically falls back to a local recommendation engine so itinerary generation remains testable without external API usage.
+
+### User Accounts
+
+The application supports:
+
+- account creation
+- local authentication
+- persistent sessions
+- optional Google OAuth
+- user profile management
+- profile image upload
+- travel preference storage
+
+### Travel Preferences
+
+Users can maintain preferences such as:
+
+- favourite interests
+- travel pace
+- budget
+- walking tolerance
+- transport mode
+- additional travel notes
+
+These preferences can be reused when generating future routes.
+
+### Personal Dashboard
+
+Authenticated users have access to a dashboard containing:
+
+- recent routes
+- recent searches
+- active travel preferences
+- quick access to trip planning
+
+### Saved Routes
+
+Generated itineraries can be saved and revisited later.
+
+The saved-routes interface supports:
+
+- route browsing
+- search
+- sorting
+- detailed itinerary views
+- route removal
+- itinerary timeline
+- map visualisation
+- export actions
+
+### Input Validation and Upload Safety
+
+The backend includes:
+
+- runtime request validation with Zod
+- controlled profile-image uploads
+- file type validation
+- upload size limits
+- environment-based configuration
+- restricted production database synchronisation
+
+## Tech Stack
 
 ### Frontend
 
-- HTML
-- CSS with custom design tokens, source styles and generated `public/app.css`
+- HTML5
+- CSS3
 - JavaScript
 - Rollup
-- Google Maps JavaScript API when configured
+- Google Maps JavaScript API
 
 ### Backend
 
@@ -36,208 +140,287 @@ The product is designed as a clean public repository: the UI is user-facing, the
 - Express
 - Passport
 - Sequelize
-- PostgreSQL/PostGIS
 - Zod
 - Multer
 
-### Optional providers
+### Database
 
-- Local recommendation engine by default
-- Optional OpenAI provider for live itinerary generation
-- Optional Google Maps, Routes and Places adapters
+- PostgreSQL
+- PostGIS
 
-## Repository structure
+### AI
+
+- OpenAI Responses API
+- Structured Outputs
+- local recommendation fallback
+
+### External Services
+
+- Google Maps
+- Google Places
+- Google Routes
+- Google Geocoding
+- Google OAuth
+
+### Testing & Quality
+
+- Vitest
+- Playwright
+- custom smoke tests
+- security scanning
+- release auditing
+
+### Infrastructure
+
+- Docker
+- Docker Compose
+
+## Architecture
 
 ```text
-.
-├── backend/                 # Express API, models, routes, services and validation schemas
-├── frontend/                # Static pages, Rollup entries, generated app.css and public assets
-├── scripts/                 # Local verification and release checks
-├── tests/                   # Vitest unit tests and Playwright end-to-end tests
-├── docker-compose.yml
+┌─────────────────────────┐
+│        Frontend         │
+│  HTML · CSS · JavaScript│
+│        Rollup           │
+└────────────┬────────────┘
+             │
+             │ HTTP
+             ▼
+┌─────────────────────────┐
+│      Express API        │
+│                         │
+│ Auth · Users · Routes   │
+│ Preferences · Uploads   │
+└───────┬─────────┬───────┘
+        │         │
+        │         │
+        ▼         ▼
+┌─────────────┐  ┌────────────────────┐
+│ PostgreSQL  │  │   AI Provider      │
+│   PostGIS   │  │                    │
+│             │  │ OpenAI / Local     │
+└─────────────┘  │     Fallback       │
+                 └─────────┬──────────┘
+                           │
+                           ▼
+                 ┌────────────────────┐
+                 │ Google Services    │
+                 │                    │
+                 │ Places · Routes    │
+                 │ Maps · Geocoding   │
+                 └────────────────────┘
+```
+
+## Itinerary Generation Flow
+
+```text
+User Request
+    │
+    ▼
+Travel Preferences
+    │
+    ▼
+AI / Local Recommendation Engine
+    │
+    ▼
+Structured Itinerary
+    │
+    ▼
+Google Places Enrichment
+    │
+    ▼
+Google Routes Metadata
+    │
+    ▼
+Final Itinerary
+    │
+    ├── Timeline
+    ├── Interactive Map
+    └── Saved Route
+```
+
+External enrichment is optional. The core itinerary remains available when third-party providers are not configured.
+
+## Project Structure
+
+```text
+ai-tourist-guide/
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   └── server.js
+├── frontend/
+│   ├── public/
+│   └── src/
+├── scripts/
+├── tests/
 ├── .env.example
+├── docker-compose.yml
 ├── package.json
+├── AUTHORS.md
+├── LICENSE
 └── README.md
 ```
 
-## Environment setup
+## Getting Started
 
-Copy the example file and create your local environment file:
+### Requirements
+
+- Node.js 18+
+- npm
+- Docker and Docker Compose
+
+Docker is recommended because it provides the complete application stack, including PostgreSQL/PostGIS.
+
+## Installation
+
+Clone the repository:
 
 ```bash
-copy .env.example .env
+git clone https://github.com/brandao-20/ai-tourist-guide.git
+cd ai-tourist-guide
 ```
 
-On macOS/Linux, use:
+Install the workspace dependencies:
+
+```bash
+npm install
+```
+
+## Environment Configuration
+
+Create a local environment file from the provided example.
+
+macOS / Linux:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your local values. Never commit a real `.env` file.
+Windows:
 
-Key values:
+```powershell
+Copy-Item .env.example .env
+```
+
+At minimum, configure a strong local session secret:
 
 ```env
-FRONTEND_URL=http://localhost:8080
-FRONTEND_API_BASE_URL=http://localhost:5000
-CORS_ORIGINS=http://localhost:8080
 SESSION_SECRET=replace_with_a_long_random_value
+```
+
+Database configuration:
+
+```env
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=tourist_guide
 DB_USER=postgres
 DB_PASSWORD=postgres
-TRAVEL_AI_PROVIDER=openai
-GOOGLE_MAPS_BROWSER_API_KEY=
-GOOGLE_MAPS_SERVER_API_KEY=
-GOOGLE_ROUTES_API_KEY=
-GOOGLE_PLACES_API_KEY=
-GOOGLE_PLACES_ENRICH_ITINERARIES=true
 ```
 
-Google keys are optional for local development. When they are not configured, the app keeps the itinerary available as a list and uses local fallback data where possible.
+External providers are optional.
 
-## Run with Docker Compose
+## Running with Docker
 
-From the project root:
+Start the complete application stack:
 
 ```bash
 docker compose up --build
 ```
 
-Default local URLs:
+Default local services:
 
-- Frontend: `http://localhost:8080`
-- Backend API: `http://localhost:5000`
-- PostgreSQL/PostGIS host port: `5434`
+```text
+Frontend          http://localhost:8080
+Backend API       http://localhost:5000
+PostgreSQL        localhost:5434
+```
 
-Stop containers:
+Stop the stack:
 
 ```bash
 docker compose down
 ```
 
-Reset local containers and database volumes only when you intentionally want a clean database:
+Reset the local containers and database volume:
 
 ```bash
 docker compose down -v
 docker compose up --build
 ```
 
-## Run without Docker
+Use the reset command only when you intentionally want to remove the local database state.
 
-Install all workspace dependencies from the project root:
+## Running without Docker
 
-```bash
-npm install
-```
-
-Build frontend bundles:
+Build the frontend:
 
 ```bash
 npm run build:frontend
 ```
 
-Start backend:
+Start the backend:
 
 ```bash
 npm run start:backend
 ```
 
-Start frontend in another terminal:
+Start the frontend in another terminal:
 
 ```bash
 npm run start:frontend
 ```
 
-## Database synchronisation
+## AI Configuration
 
-The backend runs the database synchronisation step before starting in Docker. To run it manually:
+### Local Fallback
 
-```bash
-npm run db:sync
-```
+The application can run without a live AI API.
 
-For an existing local PostgreSQL database, the sync step also checks the active `Users` table and adds missing compatibility columns such as `travel_preferences`, `profileImage` and `google_id` when needed.
+When no valid OpenAI configuration is available, the backend uses its local recommendation engine.
 
-For controlled local schema updates, set this value before syncing:
+### OpenAI
+
+Enable live AI itinerary generation with:
 
 ```env
-DB_SYNC_ALTER=true
+TRAVEL_AI_PROVIDER=openai
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-5.4-mini
+AI_PROVIDER_TIMEOUT_MS=60000
 ```
 
-`DB_SYNC_ALTER=true` is blocked in production.
+The OpenAI integration uses the Responses API with Structured Outputs to validate the generated itinerary against the application's expected schema.
 
-## Testing and verification
+The generated result contains structured fields designed for subsequent Google Places and Google Routes enrichment.
 
-Syntax checks:
+Never commit API credentials to the repository.
 
-```bash
-npm run check
-```
+## Google Maps Configuration
 
-Unit tests:
-
-```bash
-npm run test:unit
-```
-
-Playwright browser tests:
-
-```bash
-npx playwright install
-npm run test:e2e
-```
-
-Smoke test against a running local stack:
-
-```bash
-npm run smoke:test
-```
-
-Security and release checks:
-
-```bash
-npm run security:scan
-npm run release:audit
-npm run check:release
-```
-
-## Optional Google configuration
-
-### Google Maps JavaScript API
-
-Used by the browser map layer.
+### Browser Map
 
 ```env
 GOOGLE_MAPS_BROWSER_API_KEY=your_restricted_browser_key
 ```
 
-Recommended APIs: Maps JavaScript API and Places API for browser-side place suggestions.
+Used for the interactive map displayed in the frontend.
 
-### Google server-side key
-
-Used by backend geocoding helpers.
+### Server-Side Geocoding
 
 ```env
 GOOGLE_MAPS_SERVER_API_KEY=your_restricted_server_key
 ```
 
-Recommended API: Geocoding API.
+Used by backend geocoding helpers.
 
-### Google Routes API
-
-Used as an optional backend adapter for distance, duration and route metadata during itinerary generation and route rebuilds.
-
-```env
-GOOGLE_ROUTES_API_KEY=your_restricted_routes_key
-GOOGLE_ROUTES_TIMEOUT_MS=8000
-```
-
-### Google Places API
-
-Used as an optional backend adapter for real stop search, itinerary enrichment, addresses, ratings and coordinates.
+### Google Places
 
 ```env
 GOOGLE_PLACES_API_KEY=your_restricted_places_key
@@ -247,40 +430,158 @@ GOOGLE_PLACES_ENRICH_ITINERARIES=true
 GOOGLE_PLACES_ENRICHMENT_LIMIT=12
 ```
 
-Keep browser keys restricted by HTTP referrer. Keep server keys restricted by API scope and environment; do not paste real keys into commits or screenshots.
+Used to enrich itinerary stops with real-world place information.
 
-## Optional AI providers
-
-The app can run with the local recommendation engine or with OpenAI as the live itinerary generator.
+### Google Routes
 
 ```env
-TRAVEL_AI_PROVIDER=openai
-AI_PROVIDER_TIMEOUT_MS=60000
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-5.4-mini
+GOOGLE_ROUTES_API_KEY=your_restricted_routes_key
+GOOGLE_ROUTES_TIMEOUT_MS=8000
 ```
 
-The OpenAI integration uses the Responses API with Structured Outputs so generated itineraries follow the backend schema before they are enriched with Google Places and Google Routes. The generated payload includes day summaries, activity periods, visit durations, `placeQuery` and `mapsSearchHint` fields for better Google Places matching.
+Used to obtain route distance, duration and travel metadata.
 
-When `OPENAI_API_KEY` is empty, invalid or unavailable, the backend automatically uses the local fallback route generator so the UI remains testable without spending API credits.
+Browser API keys should be restricted by HTTP referrer. Server-side keys should be restricted by API and environment.
 
-External providers are optional. Do not commit provider credentials.
+## Google OAuth
 
-## Public release safety
+Google authentication can be enabled through environment configuration.
 
-Before publishing:
+When valid Google OAuth credentials are unavailable, local account authentication remains available.
 
-- confirm `.env` is not committed;
-- keep `backend/uploads/` as runtime-only storage;
-- restrict all API keys;
-- run `npm run check:release`;
-- review the public UI for user-facing copy only;
-- verify account creation, sign-in, planning, saved routes and profile editing manually.
+## Database Synchronisation
 
-## Authors
+Synchronise the database schema manually with:
 
-See [AUTHORS.md](AUTHORS.md).
+```bash
+npm run db:sync
+```
+
+The application also includes compatibility checks for existing local databases.
+
+Controlled schema alteration can be enabled locally with:
+
+```env
+DB_SYNC_ALTER=true
+```
+
+This option is blocked in production.
+
+## Testing
+
+### Syntax Checks
+
+```bash
+npm run check
+```
+
+### Unit Tests
+
+```bash
+npm run test:unit
+```
+
+### End-to-End Tests
+
+Install the Playwright browsers:
+
+```bash
+npx playwright install
+```
+
+Run the browser-flow tests:
+
+```bash
+npm run test:e2e
+```
+
+### Smoke Test
+
+Against a running application:
+
+```bash
+npm run smoke:test
+```
+
+## Security and Release Checks
+
+Run the security scan:
+
+```bash
+npm run security:scan
+```
+
+Run the release audit:
+
+```bash
+npm run release:audit
+```
+
+Run the complete release verification:
+
+```bash
+npm run check:release
+```
+
+The full release check combines:
+
+```text
+Syntax validation
+Unit tests
+Security scan
+Release audit
+```
+
+## Public Repository Safety
+
+Before publishing or deploying the application:
+
+- never commit `.env`
+- keep uploaded user files outside version control
+- use a strong `SESSION_SECRET`
+- restrict external API keys
+- keep database credentials environment-based
+- run the release verification scripts
+- verify authentication and upload flows
+- verify external-provider fallbacks
+
+## Design Goals
+
+### Graceful Degradation
+
+Optional AI and Google services should improve the experience without making the application unusable when they are unavailable.
+
+### Structured AI Integration
+
+AI-generated itineraries follow a defined schema instead of relying on unrestricted free-form responses.
+
+### Real-World Enrichment
+
+Generated travel ideas can be connected to real places and routes through mapping services.
+
+### Persistent Personalisation
+
+User preferences and saved routes allow itinerary generation to become more relevant over repeated use.
+
+### Full-Stack Reliability
+
+The project includes validation, testing, security checks, environment configuration and containerised local infrastructure rather than focusing exclusively on the AI layer.
+
+## Authorship & Attribution
+
+The project was originally developed as an academic project in the Computer Engineering degree at Instituto Politécnico de Viana do Castelo.
+
+The original academic contributors were:
+
+- Gabriel da Silva Brandão
+- Luís Filipe Esteves Dias
+
+The public repository contains a cleaned and portfolio-oriented version of the original project.
+
+See [AUTHORS.md](AUTHORS.md) for additional attribution details.
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](LICENSE).
+This project is released under the MIT License.
+
+See [LICENSE](LICENSE) for details.
